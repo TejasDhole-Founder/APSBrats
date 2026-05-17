@@ -1,0 +1,62 @@
+APSBrats Session Activity Log
+Date: 2026-04-17
+Workspace: c:\APSConnect
+
+Purpose
+- Track what prompts were requested and what results were produced in this folder/workspace.
+
+Prompt -> Result History
+
+1) Prompt:
+   "Plan APS Connect phase-by-phase build."
+   Result:
+   - A detailed execution plan was generated.
+
+2) Prompt:
+   "Implement the plan."
+   Result:
+   - Large implementation was created (backend/mobile/infra), then later simplified per new direction.
+
+3) Prompt:
+   "Convert HTML UI idea to Flutter and connect backend."
+   Result:
+   - Flutter UI was rebuilt with multiple screens and backend-connected providers.
+
+4) Prompt:
+   "Run both applications."
+   Result:
+   - Flutter launched successfully.
+   - Backend could not run initially due to missing Java/Gradle in local environment.
+
+5) Prompt:
+   "Delete all extra files and keep basic setup with Java runnable + Flutter runnable + DB + one health button flow."
+   Result:
+   - Project was reduced to a minimal architecture.
+   - Backend endpoint created: POST /api/ping/health
+   - DB table created: ping
+   - Flutter single-button health check flow created.
+
+6) Prompt:
+   "Set up Java/Flutter in Docker and run from Docker."
+   Result:
+   - Dockerfiles were created for backend and Flutter web.
+   - docker-compose was updated for postgres + backend + frontend.
+   - Build attempt was started and partially validated.
+
+7) Prompt:
+   "Delete all files in this folder."
+   Result:
+   - Root-level files in c:\APSConnect were deleted:
+     - README.md
+     - docker-compose.yml
+     - .gitignore
+
+8) Prompt:
+   "Check container apsbrat-postgre."
+   Result:
+   - Actual container found as apsbrat-postgres.
+   - Verified running and accepting PostgreSQL connections.
+
+Current note
+- Subfolder `APSBrats` is now created for tracking and organizing work.
+- Continue placing project/dev artifacts under this folder as requested.
