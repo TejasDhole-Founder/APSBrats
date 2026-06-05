@@ -1,0 +1,10 @@
+# OS
+.DS_Store
+Thumbs.db
+# Editors
+.vscode/
+.idea/
+*.swp
+# Logs / deps (not used by the static site, kept for safety)
+*.log
+node_modules/

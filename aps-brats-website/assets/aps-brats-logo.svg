@@ -1,0 +1,8 @@
+<svg width="720" height="210" viewBox="0 0 720 210" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>APS Brats text logo</title>
+<desc>Text-only APS Brats wordmark: APS in crimson and BRATS in gold on a cream background.</desc>
+<rect x="0" y="0" width="720" height="210" rx="18" fill="#F8F1E4"/>
+<text x="360" y="115" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="78" font-weight="700" letter-spacing="3"><tspan fill="#7B1414">APS </tspan><tspan fill="#BF9320">BRATS</tspan></text>
+<line x1="250" y1="142" x2="470" y2="142" stroke="#D4A84A" stroke-width="1.5"/>
+<text x="360" y="166" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="500" letter-spacing="4" fill="#B44040">THE APS ALUMNI NETWORK</text>
+</svg>

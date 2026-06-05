@@ -1,0 +1,24 @@
+<svg width="500" height="500" viewBox="0 0 500 500" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>APS Brats logo</title>
+<desc>Square crimson logo: APS in cream over BRATS in gold, separated by an ornamental gold divider.</desc>
+<rect x="0" y="0" width="500" height="500" fill="#7B1414"/>
+<text x="250" y="190" text-anchor="middle" font-family="'Arial Black','Helvetica Neue',Helvetica,Arial,sans-serif" font-size="150" font-weight="900" letter-spacing="2" fill="#F9F3D7">APS</text>
+<g stroke="#D4A84A" fill="none" stroke-width="3">
+  <line x1="92" y1="243" x2="212" y2="243"/>
+  <line x1="288" y1="243" x2="408" y2="243"/>
+  <polygon points="84,243 91,236 98,243 91,250" fill="#D4A84A" stroke="none"/>
+  <polygon points="402,243 409,236 416,243 409,250" fill="#D4A84A" stroke="none"/>
+</g>
+<g fill="#D4A84A" stroke="none">
+  <polygon points="250,231 259,243 250,255 241,243"/>
+  <polygon points="231,243 237,237 243,243 237,249"/>
+  <polygon points="269,243 263,237 257,243 263,249"/>
+</g>
+<g stroke="#D4A84A" stroke-width="2.5" fill="none" stroke-linecap="round">
+  <path d="M250 224 q6 -7 13 -5"/>
+  <path d="M250 224 q-6 -7 -13 -5"/>
+  <path d="M250 262 q6 7 13 5"/>
+  <path d="M250 262 q-6 7 -13 5"/>
+</g>
+<text x="250" y="395" text-anchor="middle" font-family="'Arial Black','Helvetica Neue',Helvetica,Arial,sans-serif" font-size="120" font-weight="900" letter-spacing="3" fill="#D4A84A">BRATS</text>
+</svg>
