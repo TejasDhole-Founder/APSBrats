@@ -1,0 +1,9 @@
+<svg width="600" height="600" viewBox="0 0 600 600" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>APS Brats square logo</title>
+<desc>Square cream logo with APS in crimson, BRATS in gold, and the word test below.</desc>
+<rect x="0" y="0" width="600" height="600" rx="40" fill="#F8F1E4"/>
+<rect x="30" y="30" width="540" height="540" rx="28" fill="none" stroke="#D4A84A" stroke-opacity="0.5" stroke-width="3"/>
+<text x="300" y="270" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="140" font-weight="700" letter-spacing="4" fill="#7B1414">APS</text>
+<text x="300" y="400" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="110" font-weight="700" letter-spacing="6" fill="#A67C1A">BRATS</text>
+<text x="300" y="470" text-anchor="middle" font-family="system-ui, sans-serif" font-size="34" font-weight="500" letter-spacing="6" fill="#B44040">test</text>
+</svg>

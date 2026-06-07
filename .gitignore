@@ -1,0 +1,28 @@
+# Secrets — never commit
+.env
+
+# Java / Maven build output
+**/target/
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.claude/
+
+# Flutter / Dart
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.packages
+**/build/
+**/.pub-cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+activity_log.txt

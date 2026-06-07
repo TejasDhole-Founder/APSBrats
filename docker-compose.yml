@@ -1,0 +1,60 @@
+# Local / staging dev environment for the whole backend.
+#   docker compose up --build
+# API:    http://localhost:8080/api
+# Postgres: localhost:5432   Redis: localhost:6379
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: apsbrat_db
+      POSTGRES_USER: ${DB_USER:-aps_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-aps_pass}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-aps_user} -d apsbrat_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: ./apsbrat-api
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/apsbrat_db
+      DB_USER: ${DB_USER:-aps_user}
+      DB_PASSWORD: ${DB_PASSWORD:-aps_pass}
+      SPRING_DATA_REDIS_HOST: redis
+      # Fresh container DB must run ALL migrations from V1 (the dev default
+      # baselines at V4 for an existing DB — turn that off here).
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "false"
+      JWT_SECRET: ${JWT_SECRET:-dev-only-change-me-to-a-long-random-secret}
+      OTP_MASTER: ${OTP_MASTER:-000000}
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/api/schools >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+volumes:
+  pgdata:

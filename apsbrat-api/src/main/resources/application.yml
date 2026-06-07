@@ -33,19 +33,59 @@ spring:
     enabled: true
     locations: classpath:db/migration
     # Existing local DB already has tables; baseline so Flyway can start tracking safely.
+    # (In Docker/fresh DBs this is overridden to false so all migrations run.)
     baseline-on-migrate: true
     baseline-version: 4
     baseline-description: Existing schema baseline
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
 
 app:
   jwt:
     secret: ${JWT_SECRET:change-me}
     access-token-expiry: 900000
     refresh-token-expiry: 2592000000
+  otp:
+    # Dev-only universal OTP so seeded demo accounts log in without an SMS gateway.
+    master: ${OTP_MASTER:000000}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: qa
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    hikari:
+      connection-init-sql: SET TIME ZONE '+05:30'
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: Asia/Kolkata
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: ${SPRING_FLYWAY_BASELINE_ON_MIGRATE:false}
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    access-token-expiry: 900000
+    refresh-token-expiry: 2592000000
+  otp:
+    master: ${OTP_MASTER:}
 
 ---
 spring:
@@ -69,3 +109,16 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+    baseline-on-migrate: ${SPRING_FLYWAY_BASELINE_ON_MIGRATE:false}
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    access-token-expiry: 900000
+    refresh-token-expiry: 2592000000
+  otp:
+    master: ${OTP_MASTER:}
