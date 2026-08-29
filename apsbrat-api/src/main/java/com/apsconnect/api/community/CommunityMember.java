@@ -31,6 +31,10 @@ public class CommunityMember {
     @Column(name = "joined_at", nullable = false)
     private LocalDateTime joinedAt;
 
+    @Version
+    @Column(nullable = false)
+    private Long version;
+
     @PrePersist
     void onCreate() {
         if (joinedAt == null) {

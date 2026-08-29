@@ -5,7 +5,7 @@ class Env {
 
   static const baseUrl = String.fromEnvironment(
     'BASE_URL',
-    defaultValue: 'http://localhost:8080/api',
+    defaultValue: 'http://localhost:8080/api/v1',
   );
 
   static const cdnUrl = String.fromEnvironment(

@@ -3,6 +3,7 @@ package com.apsconnect.api.connection;
 import com.apsconnect.api.common.exception.AppException;
 import com.apsconnect.api.notification.NotificationService;
 import com.apsconnect.api.notification.NotificationType;
+import com.apsconnect.api.safety.UserBlockRepository;
 import com.apsconnect.api.user.PersonDto;
 import com.apsconnect.api.user.PersonService;
 import com.apsconnect.api.user.User;
@@ -24,6 +25,7 @@ public class ConnectionService {
     private final UserRepository userRepository;
     private final PersonService personService;
     private final NotificationService notificationService;
+    private final UserBlockRepository blockRepository;
 
     @Transactional
     public void requestConnection(UUID currentUserId, UUID targetUserId) {
@@ -33,7 +35,11 @@ public class ConnectionService {
         User requester = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new AppException("User not found", HttpStatus.NOT_FOUND));
         User addressee = userRepository.findById(targetUserId)
+                .filter(u -> u.getDeletedAt() == null)
                 .orElseThrow(() -> new AppException("Target user not found", HttpStatus.NOT_FOUND));
+        if (blockRepository.existsBetween(currentUserId, targetUserId)) {
+            throw new AppException("Target user not found", HttpStatus.NOT_FOUND);
+        }
 
         // One query covers both directions instead of two point lookups.
         if (!connectionRepository.findBetween(currentUserId, targetUserId).isEmpty()) {

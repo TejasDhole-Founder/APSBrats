@@ -48,3 +48,12 @@ Fields: `firstName, lastName, username, phone, email, dob, city, profession, gen
 - No intermediate planning docs
 - No error handling for cases that cannot happen
 - Fix lint warnings shown in `<ide_diagnostics>` only when severity is `error` or `warning` — ignore `Information`
+
+## Backend error handling (MANDATORY — see docs/conventions/error-handling.md)
+- Never catch-and-swallow. No empty `catch`, no `Exception ignored`. The catch-all `@ExceptionHandler(Exception.class)` MUST `log.error("...", ex)` with the full stack.
+- Map exceptions to the correct HTTP status; a 4xx (bad input, not found, conflict, auth) must never fall through to 500.
+- Never leak internals to clients: no stack traces, SQL, class names, or framework messages in `error`. 5xx returns a generic message + the `requestId` only.
+- Throw `AppException(message, HttpStatus, ErrorCode)` from services for expected errors. Never throw raw `RuntimeException` for control flow; never hand-build error envelopes in controllers.
+- Every error response includes a machine-readable `code` (ErrorCode enum) and a `requestId` (`X-Request-Id`, propagated via MDC by `RequestIdFilter`).
+- Log levels: 4xx = WARN (no stack), 5xx = ERROR (with stack). Never log PII (phone, email, OTP, JWT, message bodies).
+- When touching error handling, add/extend tests covering 400 (validation), 404, 409, and a forced 500 (assert generic body + requestId + that it was logged).

@@ -13,6 +13,7 @@ public record ProfileDto(
         String bio,
         String city,
         String profession,
+        String phone,
         String profilePicUrl,
         boolean isVerified,
         UserStatus currentStatus,
@@ -20,6 +21,7 @@ public record ProfileDto(
         List<UserSocialLinkDto> socials,
         long batchmatesCount,
         long schoolsCount,
-        long connectedCount
+        long connectedCount,
+        boolean restricted
 ) {
 }

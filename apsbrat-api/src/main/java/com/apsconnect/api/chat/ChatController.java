@@ -1,6 +1,7 @@
 package com.apsconnect.api.chat;
 
 import com.apsconnect.api.common.response.ApiResponse;
+import com.apsconnect.api.common.response.CursorPage;
 import com.apsconnect.api.common.security.SecurityUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/conversations")
+@RequestMapping("/api/v1/conversations")
 @RequiredArgsConstructor
 public class ChatController {
 
@@ -29,9 +30,12 @@ public class ChatController {
     }
 
     @GetMapping("/{conversationId}/messages")
-    public ResponseEntity<ApiResponse<List<ChatMessageDto>>> messages(@PathVariable UUID conversationId) {
+    public ResponseEntity<ApiResponse<CursorPage<ChatMessageDto>>> messages(
+            @PathVariable UUID conversationId,
+            @RequestParam(required = false) String cursor,
+            @RequestParam(defaultValue = "30") int limit) {
         return ResponseEntity.ok(ApiResponse.success(
-                chatService.messages(SecurityUtils.currentUserId(), conversationId)));
+                chatService.messages(SecurityUtils.currentUserId(), conversationId, cursor, limit)));
     }
 
     @PostMapping("/{conversationId}/messages")

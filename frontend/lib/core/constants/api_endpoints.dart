@@ -9,6 +9,15 @@ class ApiEndpoints {
   static const authRequestOtp = '/auth/request-otp';
   static const authVerifyOtp = '/auth/verify-otp';
   static const authRefresh = '/auth/refresh';
+  static const authLogout = '/auth/logout';
+
+  // Account (DPDP) + media
+  static const usersMeAvatar = '/users/me/avatar';
+  static const usersMeExport = '/users/me/export';
+  static const usersMe = '/users/me';
+
+  // Server-driven client config (force-update / maintenance)
+  static const appConfig = '/app/config';
 
   // Feed
   static const feedActivity = '/feed/activity';

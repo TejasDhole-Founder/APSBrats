@@ -10,6 +10,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
+
+    org.springframework.data.domain.Page<User> findAllByDeletedAtNull(org.springframework.data.domain.Pageable pageable);
+
     boolean existsByUsername(String username);
 
     boolean existsByPhone(String phone);

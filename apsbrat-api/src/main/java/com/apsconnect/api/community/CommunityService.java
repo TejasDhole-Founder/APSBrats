@@ -1,16 +1,21 @@
 package com.apsconnect.api.community;
 
 import com.apsconnect.api.common.exception.AppException;
+import com.apsconnect.api.common.realtime.RealtimeService;
+import com.apsconnect.api.common.response.CursorPage;
+import com.apsconnect.api.common.util.CursorSupport;
 import com.apsconnect.api.user.PersonDto;
 import com.apsconnect.api.user.PersonService;
 import com.apsconnect.api.user.User;
 import com.apsconnect.api.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -26,6 +31,7 @@ public class CommunityService {
     private final CommunityMessageRepository messageRepository;
     private final UserRepository userRepository;
     private final PersonService personService;
+    private final RealtimeService realtimeService;
 
     @Transactional(readOnly = true)
     public List<CommunityDto> myCommunities(UUID currentUserId) {
@@ -55,15 +61,34 @@ public class CommunityService {
     }
 
     @Transactional(readOnly = true)
-    public List<CommunityMessageDto> messages(UUID currentUserId, UUID communityId) {
+    public CursorPage<CommunityMessageDto> messages(UUID currentUserId, UUID communityId, String cursor, int limit) {
         communityRepository.findById(communityId)
                 .orElseThrow(() -> new AppException("Community not found", HttpStatus.NOT_FOUND));
-        List<CommunityMessage> msgs = messageRepository.findAllByCommunity_IdOrderByCreatedAtAsc(communityId);
-        // Batch-build sender PersonDtos once instead of one query per message.
-        List<User> senders = msgs.stream().map(CommunityMessage::getSender).toList();
+        if (!memberRepository.existsByCommunity_IdAndUser_Id(communityId, currentUserId)) {
+            throw new AppException("Not a member of this community", HttpStatus.FORBIDDEN);
+        }
+        int pageSize = CursorSupport.clampLimit(limit);
+        var pageable = PageRequest.of(0, pageSize + 1);
+        LocalDateTime before = CursorSupport.decode(cursor);
+
+        List<CommunityMessage> rows = before == null
+                ? messageRepository.findByCommunity_IdOrderByCreatedAtDesc(communityId, pageable)
+                : messageRepository.findByCommunity_IdAndCreatedAtLessThanOrderByCreatedAtDesc(
+                        communityId, before, pageable);
+
+        boolean hasMore = rows.size() > pageSize;
+        if (hasMore) {
+            rows = rows.subList(0, pageSize);
+        }
+        String nextCursor = hasMore && !rows.isEmpty()
+                ? CursorSupport.encode(rows.get(rows.size() - 1).getCreatedAt())
+                : null;
+
+        List<User> senders = rows.stream().map(CommunityMessage::getSender).toList();
         Map<UUID, PersonDto> byId = personService.toPeople(senders).stream()
                 .collect(Collectors.toMap(PersonDto::id, Function.identity(), (a, b) -> a));
-        return msgs.stream()
+
+        List<CommunityMessageDto> items = new ArrayList<>(rows.stream()
                 .map(m -> new CommunityMessageDto(
                         m.getId(),
                         m.getSender().getId(),
@@ -71,7 +96,9 @@ public class CommunityService {
                         m.getBody(),
                         m.getSender().getId().equals(currentUserId),
                         m.getCreatedAt()))
-                .toList();
+                .toList());
+        java.util.Collections.reverse(items);
+        return CursorPage.of(items, nextCursor, hasMore);
     }
 
     @Transactional
@@ -89,6 +116,11 @@ public class CommunityService {
         message.setBody(body.trim());
         message.setCreatedAt(LocalDateTime.now());
         message = messageRepository.save(message);
+
+        CommunityMessageDto broadcast = new CommunityMessageDto(message.getId(), sender.getId(),
+                personService.toPerson(sender), message.getBody(), false, message.getCreatedAt());
+        realtimeService.publishCommunityMessage(communityId, broadcast);
+
         return new CommunityMessageDto(message.getId(), sender.getId(), personService.toPerson(sender),
                 message.getBody(), true, message.getCreatedAt());
     }
@@ -107,6 +139,13 @@ public class CommunityService {
         member.setUser(user);
         member.setJoinedAt(LocalDateTime.now());
         memberRepository.save(member);
+    }
+
+    @Transactional
+    public void leave(UUID currentUserId, UUID communityId) {
+        CommunityMember member = memberRepository.findByCommunity_IdAndUser_Id(communityId, currentUserId)
+                .orElseThrow(() -> new AppException("Not a member of this community", HttpStatus.NOT_FOUND));
+        memberRepository.delete(member);
     }
 
     @Transactional

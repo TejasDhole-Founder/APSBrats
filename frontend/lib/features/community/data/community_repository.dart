@@ -1,5 +1,6 @@
 import 'package:apsbrat_frontend/core/constants/api_endpoints.dart';
 import 'package:apsbrat_frontend/core/network/dio_client.dart';
+import 'package:apsbrat_frontend/core/network/paged_result.dart';
 import 'package:apsbrat_frontend/features/community/data/community_models.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,10 +26,19 @@ class CommunityRepository {
     return Community.fromJson(res.data['data'] as Map<String, dynamic>);
   }
 
-  Future<List<CommunityMessage>> messages(String id) async {
-    final res = await _dio.get<dynamic>(ApiEndpoints.communityMessages(id));
-    final list = (res.data['data'] as List?) ?? const [];
-    return list.map((e) => CommunityMessage.fromJson(e as Map<String, dynamic>)).toList();
+  Future<PagedResult<CommunityMessage>> messages(String id, {String? cursor, int limit = 30}) async {
+    final res = await _dio.get<dynamic>(
+      ApiEndpoints.communityMessages(id),
+      queryParameters: {
+        if (cursor != null) 'cursor': cursor,
+        'limit': limit,
+      },
+    );
+    final data = res.data['data'] as Map<String, dynamic>?;
+    if (data == null) {
+      return PagedResult.empty<CommunityMessage>();
+    }
+    return PagedResult.fromJson(data, CommunityMessage.fromJson);
   }
 
   Future<CommunityMessage> send(String id, String body) async {
@@ -50,4 +60,4 @@ final discoverCommunitiesProvider =
 final communityProvider =
     FutureProvider.family<Community, String>((ref, id) => ref.watch(communityRepositoryProvider).get(id));
 final communityMessagesProvider =
-    FutureProvider.family<List<CommunityMessage>, String>((ref, id) => ref.watch(communityRepositoryProvider).messages(id));
+    FutureProvider.family<PagedResult<CommunityMessage>, String>((ref, id) => ref.watch(communityRepositoryProvider).messages(id));

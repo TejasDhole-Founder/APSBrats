@@ -12,6 +12,15 @@ class ProfileRepository {
     final res = await _dio.get<dynamic>(ApiEndpoints.profile(username));
     return Profile.fromJson(res.data['data'] as Map<String, dynamic>);
   }
+
+  Future<String> uploadAvatar(String filePath) async {
+    final form = FormData.fromMap({
+      'file': await MultipartFile.fromFile(filePath),
+    });
+    final res = await _dio.post<dynamic>(ApiEndpoints.usersMeAvatar, data: form);
+    final data = res.data['data'] as Map<String, dynamic>?;
+    return (data?['profilePicUrl'] as String?) ?? '';
+  }
 }
 
 final profileRepositoryProvider = Provider<ProfileRepository>((ref) => ProfileRepository(ref.watch(dioProvider)));

@@ -1,5 +1,6 @@
 package com.apsconnect.api.chat;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -14,9 +15,16 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, UUID> 
 
     List<ChatMessage> findAllByConversation_IdOrderByCreatedAtAsc(UUID conversationId);
 
+    List<ChatMessage> findByConversation_IdOrderByCreatedAtDesc(UUID conversationId, Pageable pageable);
+
+    List<ChatMessage> findByConversation_IdAndCreatedAtLessThanOrderByCreatedAtDesc(
+            UUID conversationId, LocalDateTime cursor, Pageable pageable);
+
     Optional<ChatMessage> findTopByConversation_IdOrderByCreatedAtDesc(UUID conversationId);
 
     long countByConversation_IdAndSender_IdNotAndReadAtIsNull(UUID conversationId, UUID senderId);
+
+    List<ChatMessage> findAllBySender_IdOrderByCreatedAtAsc(UUID senderId);
 
     @Modifying
     @Query("""

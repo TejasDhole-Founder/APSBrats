@@ -1,16 +1,22 @@
 package com.apsconnect.api.chat;
 
 import com.apsconnect.api.common.exception.AppException;
+import com.apsconnect.api.common.realtime.RealtimeService;
+import com.apsconnect.api.common.response.CursorPage;
+import com.apsconnect.api.common.util.CursorSupport;
+import com.apsconnect.api.safety.UserBlockRepository;
 import com.apsconnect.api.user.PersonDto;
 import com.apsconnect.api.user.PersonService;
 import com.apsconnect.api.user.User;
 import com.apsconnect.api.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -25,6 +31,8 @@ public class ChatService {
     private final ChatMessageRepository messageRepository;
     private final UserRepository userRepository;
     private final PersonService personService;
+    private final UserBlockRepository blockRepository;
+    private final RealtimeService realtimeService;
 
     @Transactional(readOnly = true)
     public List<ConversationDto> listConversations(UUID currentUserId) {
@@ -55,27 +63,50 @@ public class ChatService {
             throw new AppException("Cannot open a chat with yourself", HttpStatus.BAD_REQUEST);
         }
         userRepository.findById(otherUserId)
+                .filter(u -> u.getDeletedAt() == null)
                 .orElseThrow(() -> new AppException("User not found", HttpStatus.NOT_FOUND));
+        ensureNotBlocked(currentUserId, otherUserId);
         Conversation conversation = findOrCreate(currentUserId, otherUserId);
         return toDto(conversation, currentUserId);
     }
 
     @Transactional(readOnly = true)
-    public List<ChatMessageDto> messages(UUID currentUserId, UUID conversationId) {
+    public CursorPage<ChatMessageDto> messages(UUID currentUserId, UUID conversationId, String cursor, int limit) {
         ensureParticipant(currentUserId, conversationId);
-        return messageRepository.findAllByConversation_IdOrderByCreatedAtAsc(conversationId).stream()
+        int pageSize = CursorSupport.clampLimit(limit);
+        var pageable = PageRequest.of(0, pageSize + 1);
+        LocalDateTime before = CursorSupport.decode(cursor);
+
+        List<ChatMessage> rows = before == null
+                ? messageRepository.findByConversation_IdOrderByCreatedAtDesc(conversationId, pageable)
+                : messageRepository.findByConversation_IdAndCreatedAtLessThanOrderByCreatedAtDesc(
+                        conversationId, before, pageable);
+
+        boolean hasMore = rows.size() > pageSize;
+        if (hasMore) {
+            rows = rows.subList(0, pageSize);
+        }
+        String nextCursor = hasMore && !rows.isEmpty()
+                ? CursorSupport.encode(rows.get(rows.size() - 1).getCreatedAt())
+                : null;
+
+        // rows are newest-first; return ascending for display.
+        List<ChatMessageDto> items = new ArrayList<>(rows.stream()
                 .map(m -> new ChatMessageDto(
                         m.getId(),
                         m.getSender().getId(),
                         m.getBody(),
                         m.getSender().getId().equals(currentUserId),
                         m.getCreatedAt()))
-                .toList();
+                .toList());
+        java.util.Collections.reverse(items);
+        return CursorPage.of(items, nextCursor, hasMore);
     }
 
     @Transactional
     public ChatMessageDto send(UUID currentUserId, UUID conversationId, String body) {
         Conversation conversation = ensureParticipant(currentUserId, conversationId);
+        ensureNotBlocked(currentUserId, other(conversation, currentUserId).getId());
         User sender = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new AppException("User not found", HttpStatus.NOT_FOUND));
 
@@ -88,6 +119,11 @@ public class ChatService {
 
         conversation.setLastMessageAt(message.getCreatedAt());
         conversationRepository.save(conversation);
+
+        UUID recipientId = other(conversation, currentUserId).getId();
+        ChatMessageDto recipientView = new ChatMessageDto(
+                message.getId(), sender.getId(), message.getBody(), false, message.getCreatedAt());
+        realtimeService.publishDirectMessage(recipientId, recipientView);
 
         return new ChatMessageDto(message.getId(), sender.getId(), message.getBody(), true, message.getCreatedAt());
     }
@@ -134,6 +170,12 @@ public class ChatService {
                 last != null ? last.getCreatedAt() : c.getCreatedAt(),
                 unreadCount > 0,
                 unreadCount);
+    }
+
+    private void ensureNotBlocked(UUID a, UUID b) {
+        if (blockRepository.existsBetween(a, b)) {
+            throw new AppException("You cannot message this user", HttpStatus.FORBIDDEN);
+        }
     }
 
     private User other(Conversation c, UUID currentUserId) {
