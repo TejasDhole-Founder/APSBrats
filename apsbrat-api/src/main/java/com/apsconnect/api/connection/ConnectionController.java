@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/connections")
+@RequestMapping("/api/v1/connections")
 @RequiredArgsConstructor
 public class ConnectionController {
 

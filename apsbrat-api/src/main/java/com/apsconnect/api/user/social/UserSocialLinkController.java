@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/users/{userId}/social-links")
+@RequestMapping("/api/v1/users/{userId}/social-links")
 @RequiredArgsConstructor
 public class UserSocialLinkController {
     private final UserSocialLinkService userSocialLinkService;

@@ -50,11 +50,27 @@ public class User {
     private String fcmToken;
     private Boolean isVerified;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false, length = 20)
+    private UserRole role;
+
+    @Column(name = "suspended_until")
+    private LocalDateTime suspendedUntil;
+
+    @Column(name = "banned_at")
+    private LocalDateTime bannedAt;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    private LocalDateTime deletedAt;
+
+    @Version
+    @Column(nullable = false)
+    private Long version;
 
     @PrePersist
     void onCreate() {
@@ -71,6 +87,17 @@ public class User {
         if (currentStatus == null) {
             currentStatus = UserStatus.STUDENT;
         }
+        if (role == null) {
+            role = UserRole.USER;
+        }
+    }
+
+    public boolean isBanned() {
+        return bannedAt != null;
+    }
+
+    public boolean isSuspended() {
+        return suspendedUntil != null && suspendedUntil.isAfter(LocalDateTime.now());
     }
 
     @PreUpdate

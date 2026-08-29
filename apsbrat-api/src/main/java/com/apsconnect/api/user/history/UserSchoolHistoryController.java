@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/users/{userId}/school-history")
+@RequestMapping("/api/v1/users/{userId}/school-history")
 @RequiredArgsConstructor
 public class UserSchoolHistoryController {
     private final UserSchoolHistoryService userSchoolHistoryService;

@@ -1,4 +1,5 @@
 import 'package:apsbrat_frontend/core/constants/env.dart';
+import 'package:apsbrat_frontend/core/network/dio_client.dart';
 import 'package:apsbrat_frontend/core/routes/app_router.dart';
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +13,13 @@ class ApsBratApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
+
+    ref.listen<bool>(sessionExpiredProvider, (previous, expired) {
+      if (expired) {
+        router.go('/login');
+        ref.read(sessionExpiredProvider.notifier).state = false;
+      }
+    });
     return MaterialApp.router(
       title: 'APS Brat',
       debugShowCheckedModeBanner: false,

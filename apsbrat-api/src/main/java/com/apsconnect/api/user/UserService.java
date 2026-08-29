@@ -1,6 +1,7 @@
 package com.apsconnect.api.user;
 
 import com.apsconnect.api.common.exception.AppException;
+import com.apsconnect.api.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.data.domain.PageRequest;
@@ -8,20 +9,36 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
+
+    // E.164: optional leading +, first digit 1-9, total 8-15 digits.
+    private static final Pattern PHONE = Pattern.compile("^\\+?[1-9]\\d{7,14}$");
+    private static final Pattern EMAIL = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
+    private static final Pattern USERNAME = Pattern.compile("^[a-zA-Z][a-zA-Z0-9_]{2,19}$");
+    private static final int MIN_AGE = 13;
+    private static final int MAX_AGE = 120;
+    private static final Set<String> RESERVED_USERNAMES = Set.of(
+            "admin", "administrator", "root", "support", "help", "apsbrats", "aps",
+            "moderator", "mod", "system", "official", "staff", "security");
+    private static final Set<String> BLOCKED_USERNAME_TERMS = Set.of(
+            "fuck", "shit", "bitch", "cunt", "nigger", "rape");
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PersonService personService;
 
-    public List<UserDto> getUsers(int page, int size) {
-        return userRepository.findAll(PageRequest.of(page, size))
-                .stream()
-                .map(UserDto::from)
-                .toList();
+    public List<PersonDto> getUsers(int page, int size) {
+        return personService.toPeople(
+                userRepository.findAllByDeletedAtNull(PageRequest.of(page, size)).getContent());
     }
 
     @Transactional
@@ -29,6 +46,8 @@ public class UserService {
         String username = request.username() == null ? "" : request.username().trim();
         String phone = request.phone() == null ? "" : request.phone().trim();
         String email = request.email() == null ? null : request.email().trim().toLowerCase();
+
+        validateRegistration(username, phone, email, request.fullName(), request.dob());
 
         if (!username.isBlank() && userRepository.existsByUsername(username)) {
             throw new AppException("Username already exists", HttpStatus.CONFLICT);
@@ -77,6 +96,47 @@ public class UserService {
 
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
         userRepository.save(user);
+    }
+
+    private void validateRegistration(String username, String phone, String email, String fullName, LocalDate dob) {
+        if (fullName == null || fullName.trim().length() < 2) {
+            throw badRequest("Full name is required");
+        }
+        if (phone.isBlank() || !PHONE.matcher(phone).matches()) {
+            throw badRequest("Phone must be a valid number in international (E.164) format");
+        }
+        if (!username.isBlank()) {
+            if (!USERNAME.matcher(username).matches()) {
+                throw badRequest("Username must be 3-20 chars, start with a letter, letters/digits/underscore only");
+            }
+            String lower = username.toLowerCase();
+            if (RESERVED_USERNAMES.contains(lower)) {
+                throw badRequest("This username is reserved");
+            }
+            if (BLOCKED_USERNAME_TERMS.stream().anyMatch(lower::contains)) {
+                throw badRequest("This username is not allowed");
+            }
+        }
+        if (email != null && !email.isBlank() && !EMAIL.matcher(email).matches()) {
+            throw badRequest("Email is not valid");
+        }
+        if (dob == null) {
+            throw badRequest("Date of birth is required");
+        }
+        if (dob.isAfter(LocalDate.now())) {
+            throw badRequest("Date of birth cannot be in the future");
+        }
+        int age = Period.between(dob, LocalDate.now()).getYears();
+        if (age < MIN_AGE) {
+            throw badRequest("You must be at least " + MIN_AGE + " years old to register");
+        }
+        if (age > MAX_AGE) {
+            throw badRequest("Date of birth is not valid");
+        }
+    }
+
+    private AppException badRequest(String message) {
+        return new AppException(message, HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_ERROR);
     }
 
     private void validatePasswordStrength(String password) {

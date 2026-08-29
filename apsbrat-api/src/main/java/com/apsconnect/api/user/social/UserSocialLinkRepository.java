@@ -10,4 +10,6 @@ public interface UserSocialLinkRepository extends JpaRepository<UserSocialLink, 
     List<UserSocialLink> findAllByUser_IdOrderByCreatedAtDesc(UUID userId);
 
     Optional<UserSocialLink> findByUser_IdAndPlatform(UUID userId, SocialPlatform platform);
+
+    void deleteAllByUser_Id(UUID userId);
 }
