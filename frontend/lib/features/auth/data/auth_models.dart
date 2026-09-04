@@ -1,3 +1,4 @@
+/// Mirrors the backend UserDto — the logged-in user's own account details.
 class AuthUser {
   const AuthUser({
     required this.id,
@@ -6,7 +7,13 @@ class AuthUser {
     required this.phone,
     this.email,
     this.city,
+    this.profession,
+    this.gender,
+    this.dob,
+    this.bio,
+    this.profilePicUrl,
     this.currentStatus,
+    this.isVerified = false,
   });
 
   final String id;
@@ -15,7 +22,13 @@ class AuthUser {
   final String? phone;
   final String? email;
   final String? city;
+  final String? profession;
+  final String? gender;
+  final String? dob;
+  final String? bio;
+  final String? profilePicUrl;
   final String? currentStatus;
+  final bool isVerified;
 
   factory AuthUser.fromJson(Map<String, dynamic> json) {
     return AuthUser(
@@ -25,13 +38,23 @@ class AuthUser {
       phone: json['phone'] as String?,
       email: json['email'] as String?,
       city: json['city'] as String?,
+      profession: json['profession'] as String?,
+      gender: json['gender'] as String?,
+      dob: json['dob'] as String?,
+      bio: json['bio'] as String?,
+      profilePicUrl: json['profilePicUrl'] as String?,
       currentStatus: json['currentStatus'] as String?,
+      isVerified: json['isVerified'] as bool? ?? false,
     );
   }
 }
 
 class AuthTokens {
-  const AuthTokens({required this.accessToken, required this.refreshToken, required this.user});
+  const AuthTokens({
+    required this.accessToken,
+    required this.refreshToken,
+    required this.user,
+  });
 
   final String accessToken;
   final String refreshToken;
@@ -41,7 +64,9 @@ class AuthTokens {
     return AuthTokens(
       accessToken: json['accessToken'] as String? ?? '',
       refreshToken: json['refreshToken'] as String? ?? '',
-      user: AuthUser.fromJson(json['user'] as Map<String, dynamic>? ?? const {}),
+      user: AuthUser.fromJson(
+        json['user'] as Map<String, dynamic>? ?? const {},
+      ),
     );
   }
 }

@@ -12,7 +12,10 @@ class AuthRepository {
   final FlutterSecureStorage _storage;
 
   Future<void> requestOtp(String phone) async {
-    await _dio.post<dynamic>(ApiEndpoints.authRequestOtp, data: {'phone': phone});
+    await _dio.post<dynamic>(
+      ApiEndpoints.authRequestOtp,
+      data: {'phone': phone},
+    );
   }
 
   Future<AuthUser> verifyOtp(String phone, String code) async {
@@ -38,5 +41,8 @@ class AuthRepository {
 }
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  return AuthRepository(ref.watch(dioProvider), ref.watch(secureStorageProvider));
+  return AuthRepository(
+    ref.watch(dioProvider),
+    ref.watch(secureStorageProvider),
+  );
 });

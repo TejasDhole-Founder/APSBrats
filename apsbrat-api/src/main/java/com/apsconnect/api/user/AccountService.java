@@ -4,8 +4,8 @@ import com.apsconnect.api.auth.AuthService;
 import com.apsconnect.api.common.exception.AppException;
 import com.apsconnect.api.common.exception.ErrorCode;
 import com.apsconnect.api.profile.SchoolHistoryDto;
-import com.apsconnect.api.user.history.UserSchoolHistory;
 import com.apsconnect.api.user.history.UserSchoolHistoryRepository;
+import com.apsconnect.api.user.history.UserSchoolHistoryService;
 import com.apsconnect.api.user.settings.UserSettingsService;
 import com.apsconnect.api.user.social.UserSocialLinkDto;
 import com.apsconnect.api.user.social.UserSocialLinkRepository;
@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,6 +28,7 @@ public class AccountService {
 
     private final UserRepository userRepository;
     private final UserSchoolHistoryRepository historyRepository;
+    private final UserSchoolHistoryService historyService;
     private final UserSocialLinkRepository socialLinkRepository;
     private final UserSettingsService settingsService;
     private final AuthService authService;
@@ -37,10 +37,7 @@ public class AccountService {
     public AccountExportDto export(UUID userId) {
         User user = activeUser(userId);
 
-        List<SchoolHistoryDto> schools = historyRepository.findAllByUser_Id(userId).stream()
-                .sorted(Comparator.comparingInt((UserSchoolHistory h) -> h.getBatchEnd()).reversed())
-                .map(SchoolHistoryDto::from)
-                .toList();
+        List<SchoolHistoryDto> schools = historyService.getSchoolHistory(userId);
 
         List<UserSocialLinkDto> socials = socialLinkRepository
                 .findAllByUser_IdOrderByCreatedAtDesc(userId).stream()

@@ -62,6 +62,8 @@ class ApiEndpoints {
 
   // Profiles
   static String profile(String username) => '/profiles/$username';
+  static String userSchoolHistory(String userId) =>
+      '/users/$userId/school-history';
   static String userSocialLinks(String userId) => '/users/$userId/social-links';
   static String userSocialLink(String userId, String platform) =>
       '/users/$userId/social-links/$platform';

@@ -1,6 +1,7 @@
 import 'package:apsbrat_frontend/core/constants/api_endpoints.dart';
 import 'package:apsbrat_frontend/core/network/api_response.dart';
 import 'package:apsbrat_frontend/core/network/dio_client.dart';
+import 'package:apsbrat_frontend/features/auth/data/auth_models.dart';
 import 'package:apsbrat_frontend/features/auth/data/auth_repository.dart';
 import 'package:apsbrat_frontend/features/profile/data/profile_models.dart';
 import 'package:dio/dio.dart';
@@ -13,6 +14,17 @@ class ProfileRepository {
   Future<Profile> byUsername(String username) async {
     final res = await _dio.get<dynamic>(ApiEndpoints.profile(username));
     return Profile.fromJson(dataMap(res));
+  }
+
+  /// The logged-in user's own account details (GET /users/me).
+  Future<AuthUser> me() async {
+    final res = await _dio.get<dynamic>(ApiEndpoints.usersMe);
+    return AuthUser.fromJson(dataMap(res));
+  }
+
+  Future<List<SchoolHistory>> schoolHistory(String userId) async {
+    final res = await _dio.get<dynamic>(ApiEndpoints.userSchoolHistory(userId));
+    return dataList(res, SchoolHistory.fromJson);
   }
 
   Future<List<SocialLink>> socialLinks(String userId) async {
@@ -54,9 +66,25 @@ final profileProvider = FutureProvider.family<Profile, String>(
   (ref, username) => ref.watch(profileRepositoryProvider).byUsername(username),
 );
 
+/// The logged-in user, or null when nobody is logged in.
+final meProvider = FutureProvider<AuthUser?>((ref) async {
+  final userId = await ref.watch(authRepositoryProvider).currentUserId();
+  if (userId == null || userId.isEmpty) return null;
+  return ref.watch(profileRepositoryProvider).me();
+});
+
 /// Social links of the logged-in user; empty when nobody is logged in.
 final mySocialLinksProvider = FutureProvider<List<SocialLink>>((ref) async {
   final userId = await ref.watch(authRepositoryProvider).currentUserId();
   if (userId == null || userId.isEmpty) return const [];
   return ref.watch(profileRepositoryProvider).socialLinks(userId);
+});
+
+/// School history of the logged-in user; empty when nobody is logged in.
+final mySchoolHistoryProvider = FutureProvider<List<SchoolHistory>>((
+  ref,
+) async {
+  final userId = await ref.watch(authRepositoryProvider).currentUserId();
+  if (userId == null || userId.isEmpty) return const [];
+  return ref.watch(profileRepositoryProvider).schoolHistory(userId);
 });

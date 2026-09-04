@@ -55,6 +55,11 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(null, "Password updated successfully"));
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<UserDto>> getMe() {
+        return ResponseEntity.ok(ApiResponse.success(userService.getMe(SecurityUtils.currentUserId())));
+    }
+
     @GetMapping("/me/export")
     public ResponseEntity<ApiResponse<AccountExportDto>> exportMyData() {
         return ResponseEntity.ok(ApiResponse.success(accountService.export(SecurityUtils.currentUserId())));

@@ -1,13 +1,14 @@
 import 'package:apsbrat_frontend/core/constants/social_platforms.dart';
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
-import 'package:apsbrat_frontend/features/feed/data/dummy_data.dart';
-import 'package:apsbrat_frontend/features/feed/presentation/widgets/feed_shared.dart';
 import 'package:apsbrat_frontend/features/auth/data/auth_repository.dart';
+import 'package:apsbrat_frontend/features/feed/presentation/widgets/feed_shared.dart';
+import 'package:apsbrat_frontend/features/feed/presentation/widgets/school_timeline.dart';
 import 'package:apsbrat_frontend/features/profile/data/profile_models.dart';
 import 'package:apsbrat_frontend/features/profile/data/profile_repository.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 class ProfileTab extends StatelessWidget {
   const ProfileTab({super.key});
@@ -17,157 +18,7 @@ class ProfileTab extends StatelessWidget {
     return SingleChildScrollView(
       child: Column(
         children: [
-          // ── Crimson header ──
-          Stack(
-            children: [
-              Container(
-                color: AppColors.crimson,
-                width: double.infinity,
-                child: SafeArea(
-                  bottom: false,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 6, 20, 24),
-                    child: Column(
-                      children: [
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: FeedIconBtn(
-                            icon: Icons.settings_rounded,
-                            onTap: () => _openSettings(context),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Container(
-                          width: 76,
-                          height: 76,
-                          decoration: BoxDecoration(
-                            color: kGoldLight,
-                            border: Border.all(color: AppColors.gold, width: 3),
-                            shape: BoxShape.circle,
-                          ),
-                          alignment: Alignment.center,
-                          child: kShowDemoContent
-                              ? const Text(
-                                  'AS',
-                                  style: TextStyle(
-                                    fontSize: 26,
-                                    fontWeight: FontWeight.w800,
-                                    color: kGoldDark,
-                                  ),
-                                )
-                              : const Icon(
-                                  Icons.person_outline_rounded,
-                                  size: 34,
-                                  color: kGoldDark,
-                                ),
-                        ),
-                        const SizedBox(height: 8),
-                        if (kShowDemoContent)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.black26,
-                              border: Border.all(
-                                color: AppColors.gold.withValues(alpha: 0.4),
-                              ),
-                              borderRadius: BorderRadius.circular(100),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.verified_user_rounded,
-                                  size: 12,
-                                  color: AppColors.gold,
-                                ),
-                                SizedBox(width: 4),
-                                Text(
-                                  'Verified',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.gold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        const SizedBox(height: 10),
-                        Text(
-                          kShowDemoContent ? 'Arjun Singh' : 'Your profile',
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                        Text(
-                          kShowDemoContent
-                              ? '@arjun.singh · New Delhi'
-                              : 'Your details appear here after setup',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.white54,
-                          ),
-                        ),
-                        if (kShowDemoContent) ...[
-                          const SizedBox(height: 8),
-                          const Text(
-                            'NDA Cadet · Army brat through and through 🪖\nAPS Patiala → APS Pune → APS Delhi',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.white70,
-                              height: 1.55,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                        const SizedBox(height: 14),
-                        Row(
-                          children: [
-                            _StatItem(
-                              value: kShowDemoContent ? '34' : '0',
-                              label: 'Batchmates',
-                            ),
-                            _StatItem(
-                              value: kShowDemoContent ? '3' : '0',
-                              label: 'Schools',
-                            ),
-                            _StatItem(
-                              value: kShowDemoContent ? '12' : '0',
-                              label: 'Connected',
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: CustomPaint(painter: StripesPainter()),
-                ),
-              ),
-              Positioned(
-                bottom: -1,
-                left: 0,
-                right: 0,
-                child: Container(
-                  height: 22,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.elliptical(160, 22),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+          _ProfileHeader(onSettings: () => _openSettings(context)),
 
           // ── Body ──
           Padding(
@@ -175,35 +26,13 @@ class ProfileTab extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const SectionLabel('Personal info'),
+                const SizedBox(height: 10),
+                const _PersonalInfoSection(),
+                const SizedBox(height: 20),
                 const SectionLabel('My APS Schools'),
                 const SizedBox(height: 10),
-                if (!kShowDemoContent)
-                  const EmptyState(
-                    icon: Icons.school_outlined,
-                    title: 'No schools yet',
-                    message:
-                        'The APS schools you add during onboarding will be listed here.',
-                  ),
-                if (kShowDemoContent) ...[
-                  const _SchoolPill(
-                    number: 1,
-                    name: 'APS Patiala',
-                    years: 'Class 10–12 · Section 12A · 2019–2022',
-                    mostMissed: true,
-                  ),
-                  const SizedBox(height: 8),
-                  const _SchoolPill(
-                    number: 2,
-                    name: 'APS Pune',
-                    years: 'Class 6–9 · Section 9C · 2015–2019',
-                  ),
-                  const SizedBox(height: 8),
-                  const _SchoolPill(
-                    number: 3,
-                    name: 'APS Delhi Cantt',
-                    years: 'Class 1–5 · 2010–2015',
-                  ),
-                ],
+                const _SchoolsSection(),
                 const SizedBox(height: 20),
                 const SectionLabel('Socials'),
                 const SizedBox(height: 10),
@@ -266,90 +95,397 @@ class _StatItem extends StatelessWidget {
   }
 }
 
-// ── School pill ───────────────────────────────────────────────────────────────
+// ── Header (real data from GET /users/me) ─────────────────────────────────────
 
-class _SchoolPill extends StatelessWidget {
-  const _SchoolPill({
-    required this.number,
-    required this.name,
-    required this.years,
-    this.mostMissed = false,
-  });
+class _ProfileHeader extends ConsumerWidget {
+  const _ProfileHeader({required this.onSettings});
 
-  final int number;
-  final String name;
-  final String years;
-  final bool mostMissed;
+  final VoidCallback onSettings;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final me = ref.watch(meProvider).valueOrNull;
+    final username = me?.username;
+    final profile = username == null
+        ? null
+        : ref.watch(profileProvider(username)).valueOrNull;
+    final schools = ref.watch(mySchoolHistoryProvider).valueOrNull;
+
+    final name = (me?.fullName ?? '').isNotEmpty
+        ? me!.fullName
+        : 'Your profile';
+    final subtitleParts = [
+      if (username != null && username.isNotEmpty) '@$username',
+      if ((me?.city ?? '').isNotEmpty) me!.city!,
+    ];
+    final subtitle = me == null
+        ? 'Log in to see your details'
+        : subtitleParts.isEmpty
+        ? 'Complete your profile in Settings'
+        : subtitleParts.join(' · ');
+
+    return Stack(
+      children: [
+        Container(
+          color: AppColors.crimson,
+          width: double.infinity,
+          child: SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 6, 20, 24),
+              child: Column(
+                children: [
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: FeedIconBtn(
+                      icon: Icons.settings_rounded,
+                      onTap: onSettings,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    width: 76,
+                    height: 76,
+                    decoration: BoxDecoration(
+                      color: kGoldLight,
+                      border: Border.all(color: AppColors.gold, width: 3),
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: me == null
+                        ? const Icon(
+                            Icons.person_outline_rounded,
+                            size: 34,
+                            color: kGoldDark,
+                          )
+                        : Text(
+                            _initials(me.fullName),
+                            style: const TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.w800,
+                              color: kGoldDark,
+                            ),
+                          ),
+                  ),
+                  const SizedBox(height: 8),
+                  if (me != null) _VerifiedPill(verified: me.isVerified),
+                  const SizedBox(height: 10),
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(fontSize: 12, color: Colors.white54),
+                  ),
+                  if ((me?.bio ?? '').isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      me!.bio!,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.white70,
+                        height: 1.55,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      _StatItem(
+                        value: '${profile?.batchmatesCount ?? 0}',
+                        label: 'Batchmates',
+                      ),
+                      _StatItem(
+                        value:
+                            '${schools?.length ?? profile?.schoolsCount ?? 0}',
+                        label: 'Schools',
+                      ),
+                      _StatItem(
+                        value: '${profile?.connectedCount ?? 0}',
+                        label: 'Connected',
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Positioned.fill(
+          child: IgnorePointer(child: CustomPaint(painter: StripesPainter())),
+        ),
+        Positioned(
+          bottom: -1,
+          left: 0,
+          right: 0,
+          child: Container(
+            height: 22,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(
+                top: Radius.elliptical(160, 22),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// "Arjun Singh" → "AS"; single word → first letter.
+  String _initials(String fullName) {
+    final words = fullName
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((w) => w.isNotEmpty)
+        .toList();
+    if (words.isEmpty) return '?';
+    final first = words.first[0];
+    final last = words.length > 1 ? words.last[0] : '';
+    return (first + last).toUpperCase();
+  }
+}
+
+class _VerifiedPill extends StatelessWidget {
+  const _VerifiedPill({required this.verified});
+
+  final bool verified;
 
   @override
   Widget build(BuildContext context) {
+    final color = verified ? AppColors.gold : Colors.white54;
     return Container(
-      padding: const EdgeInsets.fromLTRB(13, 11, 13, 11),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: kBorder, width: 1.5),
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.black26,
+        border: Border.all(color: color.withValues(alpha: 0.4)),
+        borderRadius: BorderRadius.circular(100),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 26,
-            height: 26,
-            decoration: const BoxDecoration(
-              color: AppColors.crimson,
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              '$number',
-              style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-              ),
+          Icon(
+            verified ? Icons.verified_user_rounded : Icons.shield_outlined,
+            size: 12,
+            color: color,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            verified ? 'Verified' : 'Not verified',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: color,
             ),
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: kTxt,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(years, style: const TextStyle(fontSize: 11, color: kTxt3)),
-              ],
-            ),
-          ),
-          if (mostMissed)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: kGoldLight,
-                borderRadius: BorderRadius.circular(100),
-              ),
-              child: const Text(
-                'Most missed',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: kGoldDark,
-                ),
-              ),
-            ),
         ],
       ),
     );
   }
 }
 
-// ── Social row ────────────────────────────────────────────────────────────────
+// ── Personal info section ─────────────────────────────────────────────────────
+
+class _PersonalInfoSection extends ConsumerWidget {
+  const _PersonalInfoSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final me = ref.watch(meProvider).valueOrNull;
+    final hasEmail = (me?.email ?? '').isNotEmpty;
+
+    return _SocialsCard(
+      children: [
+        _InfoRow(
+          icon: Icons.alternate_email_rounded,
+          label: 'Username',
+          value: me?.username == null ? null : '@${me!.username}',
+          hint: 'Not set',
+        ),
+        const Divider(height: 1, color: kBorder),
+        _InfoRow(
+          icon: Icons.badge_outlined,
+          label: 'Full name',
+          value: me?.fullName,
+          hint: 'Not set',
+        ),
+        const Divider(height: 1, color: kBorder),
+        _InfoRow(
+          icon: Icons.phone_outlined,
+          label: 'Phone · used to log in',
+          value: me?.phone,
+          hint: 'Not set',
+          verified: me == null ? null : me.isVerified,
+        ),
+        const Divider(height: 1, color: kBorder),
+        _InfoRow(
+          icon: Icons.email_outlined,
+          label: 'Email',
+          value: me?.email,
+          hint: 'Not added',
+          verified: hasEmail ? false : null,
+        ),
+        const Divider(height: 1, color: kBorder),
+        _InfoRow(
+          icon: Icons.cake_outlined,
+          label: 'Date of birth',
+          value: _formatDob(me?.dob),
+          hint: 'Not added',
+        ),
+        const Divider(height: 1, color: kBorder),
+        _InfoRow(
+          icon: Icons.location_on_outlined,
+          label: 'Current city',
+          value: me?.city,
+          hint: 'Not added',
+        ),
+        const Divider(height: 1, color: kBorder),
+        _InfoRow(
+          icon: Icons.work_outline_rounded,
+          label: 'What I do now',
+          value: me?.profession,
+          hint: 'Not added',
+        ),
+        const Divider(height: 1, color: kBorder),
+        _InfoRow(
+          icon: Icons.school_outlined,
+          label: 'I am a',
+          value: switch (me?.currentStatus) {
+            'STUDENT' => 'Student',
+            'ALUMNI' => 'Alumni',
+            _ => null,
+          },
+          hint: 'Not set',
+        ),
+      ],
+    );
+  }
+
+  /// Backend sends yyyy-MM-dd; show it the way the form collected it.
+  String? _formatDob(String? dob) {
+    if (dob == null || dob.isEmpty) return null;
+    final parsed = DateTime.tryParse(dob);
+    return parsed == null ? dob : DateFormat('dd MMM yyyy').format(parsed);
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.hint,
+    this.verified,
+  });
+
+  final IconData icon;
+  final String label;
+  final String? value;
+  final String hint;
+
+  /// null = no badge, true = "Verified", false = "Not verified".
+  final bool? verified;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasValue = value != null && value!.isNotEmpty;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 11, 14, 11),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: kTxt3),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label.toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.7,
+                    color: AppColors.crimson,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  hasValue ? value! : hint,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: hasValue ? FontWeight.w600 : FontWeight.w400,
+                    color: hasValue ? kTxt : const Color(0xFFBBBBBB),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (verified != null) ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: verified!
+                    ? const Color(0xFFE8F5E9)
+                    : const Color(0xFFF3F0EC),
+                borderRadius: BorderRadius.circular(100),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    verified!
+                        ? Icons.check_circle_rounded
+                        : Icons.error_outline_rounded,
+                    size: 12,
+                    color: verified! ? const Color(0xFF2E7D32) : kTxt3,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    verified! ? 'Verified' : 'Not verified',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: verified! ? const Color(0xFF2E7D32) : kTxt3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// ── Schools section ───────────────────────────────────────────────────────────
+
+class _SchoolsSection extends ConsumerWidget {
+  const _SchoolsSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ref
+        .watch(mySchoolHistoryProvider)
+        .when(
+          data: (schools) => SchoolTimeline(schools: schools),
+          loading: () => const Padding(
+            padding: EdgeInsets.symmetric(vertical: 32),
+            child: Center(
+              child: CircularProgressIndicator(color: AppColors.crimson),
+            ),
+          ),
+          error: (_, __) => const SchoolTimeline(schools: []),
+        );
+  }
+}
 
 // ── Socials section ───────────────────────────────────────────────────────────
 //

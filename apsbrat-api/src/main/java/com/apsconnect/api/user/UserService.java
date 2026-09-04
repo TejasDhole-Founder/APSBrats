@@ -43,6 +43,14 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
+    public UserDto getMe(UUID userId) {
+        User user = userRepository.findById(userId)
+                .filter(u -> u.getDeletedAt() == null)
+                .orElseThrow(() -> new AppException("User not found", HttpStatus.NOT_FOUND));
+        return UserDto.from(user);
+    }
+
+    @Transactional(readOnly = true)
     public AvailabilityDto usernameAvailability(String username) {
         String normalized = username == null ? "" : username.trim();
         String problem = usernameProblem(normalized);

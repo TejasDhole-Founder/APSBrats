@@ -1,6 +1,7 @@
 package com.apsconnect.api.user.history;
 
 import com.apsconnect.api.common.exception.AppException;
+import com.apsconnect.api.profile.SchoolHistoryDto;
 import com.apsconnect.api.school.School;
 import com.apsconnect.api.school.SchoolRepository;
 import com.apsconnect.api.user.User;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,6 +22,18 @@ public class UserSchoolHistoryService {
     private final UserRepository userRepository;
     private final SchoolRepository schoolRepository;
     private final UserSchoolHistoryRepository userSchoolHistoryRepository;
+
+    /** A user's schools, most recent first. Shared by the profile, the data export and the GET endpoint. */
+    @Transactional(readOnly = true)
+    public List<SchoolHistoryDto> getSchoolHistory(UUID userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new AppException("User not found", HttpStatus.NOT_FOUND);
+        }
+        return userSchoolHistoryRepository.findAllByUser_Id(userId).stream()
+                .sorted(Comparator.comparingInt(UserSchoolHistory::getBatchEnd).reversed())
+                .map(SchoolHistoryDto::from)
+                .toList();
+    }
 
     @Transactional
     public void replaceSchoolHistory(UUID userId, SaveSchoolHistoryRequest request) {

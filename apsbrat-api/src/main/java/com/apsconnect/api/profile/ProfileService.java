@@ -6,8 +6,7 @@ import com.apsconnect.api.connection.ConnectionStatus;
 import com.apsconnect.api.safety.UserBlockRepository;
 import com.apsconnect.api.user.User;
 import com.apsconnect.api.user.UserRepository;
-import com.apsconnect.api.user.history.UserSchoolHistory;
-import com.apsconnect.api.user.history.UserSchoolHistoryRepository;
+import com.apsconnect.api.user.history.UserSchoolHistoryService;
 import com.apsconnect.api.user.settings.UserSettingsDto;
 import com.apsconnect.api.user.settings.UserSettingsService;
 import com.apsconnect.api.user.social.UserSocialLinkDto;
@@ -17,7 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,7 +24,7 @@ import java.util.UUID;
 public class ProfileService {
 
     private final UserRepository userRepository;
-    private final UserSchoolHistoryRepository historyRepository;
+    private final UserSchoolHistoryService historyService;
     private final UserSocialLinkRepository socialLinkRepository;
     private final ConnectionRepository connectionRepository;
     private final UserBlockRepository blockRepository;
@@ -67,10 +65,7 @@ public class ProfileService {
             );
         }
 
-        List<SchoolHistoryDto> schools = historyRepository.findAllByUser_Id(user.getId()).stream()
-                .sorted(Comparator.comparingInt((UserSchoolHistory h) -> h.getBatchEnd()).reversed())
-                .map(SchoolHistoryDto::from)
-                .toList();
+        List<SchoolHistoryDto> schools = historyService.getSchoolHistory(user.getId());
 
         List<UserSocialLinkDto> socials = socialLinkRepository
                 .findAllByUser_IdOrderByCreatedAtDesc(user.getId()).stream()

@@ -1,5 +1,6 @@
 package com.apsconnect.api.user;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 public record UserDto(
@@ -9,7 +10,13 @@ public record UserDto(
         String phone,
         String email,
         String city,
-        UserStatus currentStatus
+        String profession,
+        String gender,
+        LocalDate dob,
+        String bio,
+        String profilePicUrl,
+        UserStatus currentStatus,
+        boolean isVerified
 ) {
     public static UserDto from(User user) {
         return new UserDto(
@@ -19,7 +26,13 @@ public record UserDto(
                 user.getPhone(),
                 user.getEmail(),
                 user.getCity(),
-                user.getCurrentStatus()
+                user.getProfession(),
+                user.getGender(),
+                user.getDob(),
+                user.getBio(),
+                user.getProfilePicUrl(),
+                user.getCurrentStatus(),
+                Boolean.TRUE.equals(user.getIsVerified())
         );
     }
 }
