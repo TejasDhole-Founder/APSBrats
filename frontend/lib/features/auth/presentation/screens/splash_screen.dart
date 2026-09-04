@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+
+import 'package:apsbrat_frontend/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -5,8 +8,8 @@ class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
   // Crimson palette derived from the design
-  static const _bg = Color(0xFF7B1414);
-  static const _gold = Color(0xFFD4A84A);
+  static const _bg = AppColors.crimson;
+  static const _gold = AppColors.gold;
   static const _goldLight = Color(0xFFE8C06A);
   static const _muted = Color(0xFFBBA898);
   static const _pillBg = Color(0xFF2A0808);
@@ -17,33 +20,44 @@ class SplashScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: _bg,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 28),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 36),
-              _ApsLogo(),
-              const SizedBox(height: 20),
-              _Title(),
-              const SizedBox(height: 6),
-              _Subtitle(),
-              const SizedBox(height: 20),
-              _DiamondDivider(),
-              const SizedBox(height: 24),
-              _Headline(),
-              const SizedBox(height: 16),
-              _BodyText(),
-              const SizedBox(height: 20),
-              _StatsPill(),
-              const Spacer(),
-              _GetStartedButton(onTap: () => context.go('/onboarding')),
-              const SizedBox(height: 12),
-              _LoginButton(onTap: () => context.go('/login')),
-              const SizedBox(height: 20),
-              _Footer(),
-              const SizedBox(height: 16),
-            ],
+        // Scrolls on short screens; on tall screens the Spacer keeps the
+        // buttons pinned to the bottom as before.
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: IntrinsicHeight(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 28),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 36),
+                      _ApsLogo(),
+                      const SizedBox(height: 20),
+                      _Title(),
+                      const SizedBox(height: 6),
+                      _Subtitle(),
+                      const SizedBox(height: 20),
+                      _DiamondDivider(),
+                      const SizedBox(height: 24),
+                      _Headline(),
+                      const SizedBox(height: 16),
+                      _BodyText(),
+                      const SizedBox(height: 20),
+                      _StatsPill(),
+                      const Spacer(),
+                      _GetStartedButton(onTap: () => context.go('/onboarding')),
+                      const SizedBox(height: 12),
+                      _LoginButton(onTap: () => context.go('/login')),
+                      const SizedBox(height: 20),
+                      _Footer(),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ),
@@ -71,20 +85,20 @@ class _CirclesPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final paint = Paint()
-      ..color = _gold.withValues(alpha:0.35)
+      ..color = _gold.withValues(alpha: 0.35)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2;
 
     // outer ring
     canvas.drawCircle(center, size.width / 2 - 2, paint);
     // inner ring
-    paint.color = _gold.withValues(alpha:0.55);
+    paint.color = _gold.withValues(alpha: 0.55);
     canvas.drawCircle(center, size.width / 2 - 14, paint);
 
     // hexagon shield fill
     final hexR = size.width / 2 - 26.0;
     final hexPath = _hexPath(center, hexR);
-    canvas.drawPath(hexPath, Paint()..color = _gold.withValues(alpha:0.18));
+    canvas.drawPath(hexPath, Paint()..color = _gold.withValues(alpha: 0.18));
     canvas.drawPath(
       hexPath,
       Paint()
@@ -97,25 +111,17 @@ class _CirclesPainter extends CustomPainter {
   Path _hexPath(Offset center, double r) {
     final path = Path();
     for (var i = 0; i < 6; i++) {
-      final angle = (i * 60 - 30) * 3.14159 / 180;
-      final x = center.dx + r * _cos(angle);
-      final y = center.dy + r * _sin(angle);
-      i == 0 ? path.moveTo(x, y) : path.lineTo(x, y);
+      final angle = (i * 60 - 30) * math.pi / 180;
+      final x = center.dx + r * math.cos(angle);
+      final y = center.dy + r * math.sin(angle);
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
     }
     return path..close();
   }
-
-  double _cos(double rad) => rad < 0
-      ? _cos(-rad)
-      : (1 -
-          rad * rad / 2 +
-          rad * rad * rad * rad / 24 -
-          rad * rad * rad * rad * rad * rad / 720);
-
-  double _sin(double rad) => rad -
-      rad * rad * rad / 6 +
-      rad * rad * rad * rad * rad / 120 -
-      rad * rad * rad * rad * rad * rad * rad / 5040;
 
   @override
   bool shouldRepaint(covariant CustomPainter old) => false;
@@ -130,8 +136,14 @@ class _Title extends StatelessWidget {
       text: const TextSpan(
         style: TextStyle(fontSize: 38, fontWeight: FontWeight.w800, height: 1),
         children: [
-          TextSpan(text: 'APS ', style: TextStyle(color: Colors.white)),
-          TextSpan(text: 'Brat', style: TextStyle(color: SplashScreen._gold)),
+          TextSpan(
+            text: 'APS ',
+            style: TextStyle(color: Colors.white),
+          ),
+          TextSpan(
+            text: 'Brat',
+            style: TextStyle(color: SplashScreen._gold),
+          ),
         ],
       ),
     );
@@ -161,13 +173,13 @@ class _DiamondDivider extends StatelessWidget {
         Expanded(
           child: Container(
             height: 1,
-            color: SplashScreen._gold.withValues(alpha:0.3),
+            color: SplashScreen._gold.withValues(alpha: 0.3),
           ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10),
           child: Transform.rotate(
-            angle: 0.785398, // 45°
+            angle: math.pi / 4,
             child: Container(
               width: 7,
               height: 7,
@@ -181,7 +193,7 @@ class _DiamondDivider extends StatelessWidget {
         Expanded(
           child: Container(
             height: 1,
-            color: SplashScreen._gold.withValues(alpha:0.3),
+            color: SplashScreen._gold.withValues(alpha: 0.3),
           ),
         ),
       ],
@@ -195,7 +207,11 @@ class _Headline extends StatelessWidget {
     return RichText(
       textAlign: TextAlign.center,
       text: const TextSpan(
-        style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, height: 1.3),
+        style: TextStyle(
+          fontSize: 26,
+          fontWeight: FontWeight.w800,
+          height: 1.3,
+        ),
         children: [
           TextSpan(
             text: 'Your batchmates\nare ',
@@ -235,7 +251,10 @@ class _StatsPill extends StatelessWidget {
       decoration: BoxDecoration(
         color: SplashScreen._pillBg,
         borderRadius: BorderRadius.circular(100),
-        border: Border.all(color: SplashScreen._gold.withValues(alpha:0.2), width: 1),
+        border: Border.all(
+          color: SplashScreen._gold.withValues(alpha: 0.2),
+          width: 1,
+        ),
       ),
       child: RichText(
         text: const TextSpan(
@@ -290,7 +309,10 @@ class _GetStartedButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: SplashScreen._btnBg,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: SplashScreen._gold.withValues(alpha:0.3), width: 1),
+          border: Border.all(
+            color: SplashScreen._gold.withValues(alpha: 0.3),
+            width: 1,
+          ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -299,7 +321,10 @@ class _GetStartedButton extends StatelessWidget {
               width: 18,
               height: 18,
               decoration: BoxDecoration(
-                border: Border.all(color: SplashScreen._gold.withValues(alpha:0.6), width: 1.5),
+                border: Border.all(
+                  color: SplashScreen._gold.withValues(alpha: 0.6),
+                  width: 1.5,
+                ),
                 borderRadius: BorderRadius.circular(4),
               ),
             ),
@@ -332,7 +357,10 @@ class _LoginButton extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 15),
         decoration: BoxDecoration(
-          border: Border.all(color: SplashScreen._gold.withValues(alpha:0.2), width: 1),
+          border: Border.all(
+            color: SplashScreen._gold.withValues(alpha: 0.2),
+            width: 1,
+          ),
           borderRadius: BorderRadius.circular(12),
         ),
         child: const Text(

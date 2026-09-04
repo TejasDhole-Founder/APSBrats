@@ -1,4 +1,6 @@
 import 'package:apsbrat_frontend/core/constants/api_endpoints.dart';
+import 'package:apsbrat_frontend/core/network/api_response.dart';
+import 'package:apsbrat_frontend/features/onboarding/data/models/availability_model.dart';
 import 'package:apsbrat_frontend/features/onboarding/data/models/identity_registration_model.dart';
 import 'package:apsbrat_frontend/features/onboarding/data/models/school_history_registration_model.dart';
 import 'package:apsbrat_frontend/features/onboarding/data/models/social_link_registration_model.dart';
@@ -7,6 +9,23 @@ import 'package:dio/dio.dart';
 
 class OnboardingRegistrationService {
   const OnboardingRegistrationService();
+
+  Future<Availability> usernameAvailability(Dio dio, String username) =>
+      _availability(dio, ApiEndpoints.usersUsernameAvailable, {
+        'username': username,
+      });
+
+  Future<Availability> phoneAvailability(Dio dio, String phone) =>
+      _availability(dio, ApiEndpoints.usersPhoneAvailable, {'phone': phone});
+
+  Future<Availability> _availability(
+    Dio dio,
+    String path,
+    Map<String, dynamic> query,
+  ) async {
+    final res = await dio.get<dynamic>(path, queryParameters: query);
+    return Availability.fromJson(dataMap(res));
+  }
 
   Future<String> registerSequential({
     required Dio dio,

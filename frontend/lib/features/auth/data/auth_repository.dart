@@ -5,10 +5,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-const kAccessTokenKey = 'access_token';
-const kRefreshTokenKey = 'refresh_token';
-const kUserIdKey = 'user_id';
-
 class AuthRepository {
   AuthRepository(this._dio, this._storage);
 

@@ -1,5 +1,6 @@
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
 import 'package:apsbrat_frontend/features/auth/presentation/providers/auth_provider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -82,6 +83,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   onPressed: () => context.go('/onboarding'),
                   child: const Text("New here? Create an account", style: TextStyle(color: Colors.white70)),
                 ),
+                if (kDebugMode)
+                  TextButton(
+                    onPressed: state.loading
+                        ? null
+                        : () async {
+                            final ok = await controller.devSkipLogin();
+                            if (ok && context.mounted) context.go('/home');
+                          },
+                    child: const Text('Skip login (dev)', style: TextStyle(color: AppColors.gold)),
+                  ),
               ],
             ),
           ),

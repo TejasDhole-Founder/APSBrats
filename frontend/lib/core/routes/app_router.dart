@@ -1,3 +1,4 @@
+import 'package:apsbrat_frontend/features/auth/data/auth_repository.dart';
 import 'package:apsbrat_frontend/features/auth/presentation/screens/login_screen.dart';
 import 'package:apsbrat_frontend/features/auth/presentation/screens/splash_screen.dart';
 import 'package:apsbrat_frontend/features/chat/presentation/screens/chat_screen.dart';
@@ -5,7 +6,6 @@ import 'package:apsbrat_frontend/features/classroom/presentation/screens/classro
 import 'package:apsbrat_frontend/features/feed/presentation/screens/home_screen.dart';
 import 'package:apsbrat_frontend/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:apsbrat_frontend/features/onboarding/presentation/screens/onboarding_identity_screen.dart';
-import 'package:apsbrat_frontend/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:apsbrat_frontend/features/onboarding/presentation/screens/onboarding_schools_screen.dart';
 import 'package:apsbrat_frontend/features/onboarding/presentation/screens/onboarding_socials_screen.dart';
 import 'package:apsbrat_frontend/features/onboarding/presentation/screens/onboarding_verify_screen.dart';
@@ -14,69 +14,87 @@ import 'package:apsbrat_frontend/features/search/presentation/screens/search_scr
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+// Routes are nested so go_router builds a real back stack: the system back
+// button pops to the previous screen instead of closing the app.
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: '/splash',
+    initialLocation: '/',
+    redirect: (context, state) async {
+      if (state.matchedLocation != '/') return null;
+      try {
+        final userId = await ref.read(authRepositoryProvider).currentUserId();
+        if (userId != null && userId.isNotEmpty) return '/home';
+      } catch (_) {
+        // Storage unreadable — treat as logged out and stay on the welcome screen.
+      }
+      return null;
+    },
     routes: [
       GoRoute(
-        path: '/splash',
+        path: '/',
         builder: (context, state) => const SplashScreen(),
-      ),
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
-      GoRoute(
-        path: '/onboarding',
-        builder: (context, state) => const OnboardingScreen(),
-      ),
-      GoRoute(
-        path: '/onboarding/identity',
-        builder: (context, state) => const OnboardingIdentityScreen(),
-      ),
-      GoRoute(
-        path: '/onboarding/verify',
-        builder: (context, state) => const OnboardingVerifyScreen(),
-      ),
-      GoRoute(
-        path: '/onboarding/schools',
-        builder: (context, state) => const OnboardingSchoolsScreen(),
-      ),
-      GoRoute(
-        path: '/onboarding/socials',
-        builder: (context, state) => const OnboardingSocialsScreen(),
+        routes: [
+          GoRoute(
+            path: 'login',
+            builder: (context, state) => const LoginScreen(),
+          ),
+          GoRoute(
+            path: 'onboarding',
+            builder: (context, state) => const OnboardingIdentityScreen(),
+            routes: [
+              GoRoute(
+                path: 'verify',
+                builder: (context, state) => const OnboardingVerifyScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'schools',
+                    builder: (context, state) => const OnboardingSchoolsScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'socials',
+                        builder: (context, state) => const OnboardingSocialsScreen(),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
       ),
       GoRoute(
         path: '/home',
         builder: (context, state) => const HomeScreen(),
-      ),
-      GoRoute(
-        path: '/profile/:username',
-        builder: (context, state) {
-          return ProfileScreen(username: state.pathParameters['username'] ?? '');
-        },
-      ),
-      GoRoute(
-        path: '/classroom/:id',
-        builder: (context, state) {
-          return ClassroomScreen(classroomId: state.pathParameters['id'] ?? '');
-        },
-      ),
-      GoRoute(
-        path: '/chat/:conversationId',
-        builder: (context, state) {
-          return ChatScreen(
-            conversationId: state.pathParameters['conversationId'] ?? '',
-          );
-        },
-      ),
-      GoRoute(
-        path: '/search',
-        builder: (context, state) => const SearchScreen(),
-      ),
-      GoRoute(
-        path: '/notifications',
-        builder: (context, state) => const NotificationsScreen(),
+        routes: [
+          GoRoute(
+            path: 'search',
+            builder: (context, state) => const SearchScreen(),
+          ),
+          GoRoute(
+            path: 'notifications',
+            builder: (context, state) => const NotificationsScreen(),
+          ),
+          GoRoute(
+            path: 'profile/:username',
+            builder: (context, state) {
+              return ProfileScreen(username: state.pathParameters['username'] ?? '');
+            },
+          ),
+          GoRoute(
+            path: 'classroom/:id',
+            builder: (context, state) {
+              return ClassroomScreen(classroomId: state.pathParameters['id'] ?? '');
+            },
+          ),
+          GoRoute(
+            path: 'chat/:conversationId',
+            builder: (context, state) {
+              return ChatScreen(
+                conversationId: state.pathParameters['conversationId'] ?? '',
+              );
+            },
+          ),
+        ],
       ),
     ],
   );

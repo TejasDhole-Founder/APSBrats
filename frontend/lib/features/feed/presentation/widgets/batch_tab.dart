@@ -20,9 +20,7 @@ class _BatchTabState extends State<BatchTab> {
   List<AppPerson> get _filtered {
     Iterable<AppPerson> list = dummyBatchmates;
     if (_schoolFilter != 'all') {
-      list = list.where(
-        (p) => p.school.toLowerCase().contains(_schoolFilter),
-      );
+      list = list.where((p) => p.school.toLowerCase().contains(_schoolFilter));
     }
     if (_query.isNotEmpty) {
       final q = _query.toLowerCase();
@@ -132,27 +130,36 @@ class _BatchTabState extends State<BatchTab> {
         ),
 
         Expanded(
-          child: ListView.separated(
-            padding: const EdgeInsets.all(18),
-            itemCount: filtered.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemBuilder: (context, i) {
-              final p = filtered[i];
-              final isConnected = _connected.contains(p.name);
-              return _BatchmateCard(
-                person: p,
-                connected: isConnected,
-                onTap: () => widget.onOpenBatchmate(p),
-                onConnect: () => setState(() {
-                  if (isConnected) {
-                    _connected.remove(p.name);
-                  } else {
-                    _connected.add(p.name);
-                  }
-                }),
-              );
-            },
-          ),
+          child: filtered.isEmpty
+              ? const Center(
+                  child: EmptyState(
+                    icon: Icons.people_outline_rounded,
+                    title: 'No batchmates yet',
+                    message:
+                        'When people from your schools join APS Brat, they will show up here.',
+                  ),
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.all(18),
+                  itemCount: filtered.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  itemBuilder: (context, i) {
+                    final p = filtered[i];
+                    final isConnected = _connected.contains(p.name);
+                    return _BatchmateCard(
+                      person: p,
+                      connected: isConnected,
+                      onTap: () => widget.onOpenBatchmate(p),
+                      onConnect: () => setState(() {
+                        if (isConnected) {
+                          _connected.remove(p.name);
+                        } else {
+                          _connected.add(p.name);
+                        }
+                      }),
+                    );
+                  },
+                ),
         ),
       ],
     );
@@ -184,7 +191,9 @@ class _SchoolTab extends StatelessWidget {
         decoration: BoxDecoration(
           color: active ? AppColors.gold : Colors.white.withValues(alpha: 0.08),
           border: Border.all(
-            color: active ? AppColors.gold : Colors.white.withValues(alpha: 0.25),
+            color: active
+                ? AppColors.gold
+                : Colors.white.withValues(alpha: 0.25),
           ),
           borderRadius: BorderRadius.circular(100),
         ),
@@ -215,9 +224,7 @@ class _FilterChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: active ? kCrimsonLight : Colors.white,
-        border: Border.all(
-          color: active ? const Color(0x3F7B1414) : kBorder,
-        ),
+        border: Border.all(color: active ? const Color(0x3F7B1414) : kBorder),
         borderRadius: BorderRadius.circular(100),
       ),
       child: Text(
@@ -347,7 +354,11 @@ class _BatchmateCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    const Icon(Icons.location_on_rounded, size: 11, color: kTxt3),
+                    const Icon(
+                      Icons.location_on_rounded,
+                      size: 11,
+                      color: kTxt3,
+                    ),
                     const SizedBox(width: 2),
                     Text(
                       person.city,

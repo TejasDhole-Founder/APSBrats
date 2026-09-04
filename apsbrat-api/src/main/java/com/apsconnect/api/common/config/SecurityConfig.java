@@ -43,6 +43,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/schools/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/users/username-available").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/users/phone-available").permitAll()
                         .requestMatchers("/api/v1/users/*/school-history/**").permitAll()
                         .requestMatchers("/api/v1/users/*/social-links/**").permitAll()
                         .requestMatchers("/api/v1/admin/**").hasAnyRole("ADMIN", "MODERATOR")

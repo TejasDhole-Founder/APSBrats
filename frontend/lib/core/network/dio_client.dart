@@ -7,9 +7,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
-const _kAccessTokenKey = 'access_token';
-const _kRefreshTokenKey = 'refresh_token';
-const _kUserIdKey = 'user_id';
+const kAccessTokenKey = 'access_token';
+const kRefreshTokenKey = 'refresh_token';
+const kUserIdKey = 'user_id';
 
 final secureStorageProvider = Provider<FlutterSecureStorage>(
   (ref) => const FlutterSecureStorage(),
@@ -46,7 +46,7 @@ final dioProvider = Provider<Dio>((ref) {
   Future<String?>? refreshInFlight;
 
   Future<String?> refreshAccessToken() async {
-    final refreshToken = await secureStorage.read(key: _kRefreshTokenKey);
+    final refreshToken = await secureStorage.read(key: kRefreshTokenKey);
     if (refreshToken == null || refreshToken.isEmpty) {
       return null;
     }
@@ -62,9 +62,9 @@ final dioProvider = Provider<Dio>((ref) {
       if (newAccess == null || newAccess.isEmpty) {
         return null;
       }
-      await secureStorage.write(key: _kAccessTokenKey, value: newAccess);
+      await secureStorage.write(key: kAccessTokenKey, value: newAccess);
       if (newRefresh != null && newRefresh.isNotEmpty) {
-        await secureStorage.write(key: _kRefreshTokenKey, value: newRefresh);
+        await secureStorage.write(key: kRefreshTokenKey, value: newRefresh);
       }
       return newAccess;
     } on DioException {
@@ -73,16 +73,16 @@ final dioProvider = Provider<Dio>((ref) {
   }
 
   Future<void> clearSession() async {
-    await secureStorage.delete(key: _kAccessTokenKey);
-    await secureStorage.delete(key: _kRefreshTokenKey);
-    await secureStorage.delete(key: _kUserIdKey);
+    await secureStorage.delete(key: kAccessTokenKey);
+    await secureStorage.delete(key: kRefreshTokenKey);
+    await secureStorage.delete(key: kUserIdKey);
     ref.read(sessionExpiredProvider.notifier).state = true;
   }
 
   dio.interceptors.add(
     InterceptorsWrapper(
       onRequest: (options, handler) async {
-        final token = await secureStorage.read(key: _kAccessTokenKey);
+        final token = await secureStorage.read(key: kAccessTokenKey);
         if (token != null && token.isNotEmpty) {
           options.headers['Authorization'] = 'Bearer $token';
         }

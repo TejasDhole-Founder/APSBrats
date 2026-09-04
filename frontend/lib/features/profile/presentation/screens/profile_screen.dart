@@ -9,9 +9,7 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('@$username')),
-      body: Center(
-        child: Text('Profile screen for @$username'),
-      ),
+      body: Center(child: Text('Profile screen for @$username')),
     );
   }
 }

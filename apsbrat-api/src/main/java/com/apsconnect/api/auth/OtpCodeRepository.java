@@ -8,5 +8,4 @@ import java.util.UUID;
 public interface OtpCodeRepository extends JpaRepository<OtpCode, UUID> {
     Optional<OtpCode> findTopByPhoneAndConsumedFalseOrderByCreatedAtDesc(String phone);
 
-    void deleteAllByPhone(String phone);
 }

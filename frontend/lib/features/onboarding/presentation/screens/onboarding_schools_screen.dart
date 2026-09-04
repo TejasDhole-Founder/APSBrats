@@ -34,15 +34,18 @@ class _OnboardingSchoolsScreenState
           'Add every school you attended — even one year counts. Your batchmates are waiting.',
       footer: _Footer(
         onNext: () {
-          final valid =
-              ref.read(onboardingFlowProvider.notifier).validateSchoolDrafts();
+          final valid = ref
+              .read(onboardingFlowProvider.notifier)
+              .validateSchoolDrafts();
           if (!valid) {
-            setState(() =>
-                _error = 'Please select a school, class from, and class to for each card.');
+            setState(
+              () => _error =
+                  'Please select a school, class from, and class to for each card.',
+            );
             return;
           }
           setState(() => _error = null);
-          context.go('/onboarding/socials');
+          context.go('/onboarding/verify/schools/socials');
         },
         error: _error,
       ),
@@ -54,8 +57,9 @@ class _OnboardingSchoolsScreenState
               ref.read(onboardingFlowProvider.notifier).addSchoolDraft(),
           onRemove: (i) =>
               ref.read(onboardingFlowProvider.notifier).removeSchoolDraft(i),
-          onUpdate: (i, draft) =>
-              ref.read(onboardingFlowProvider.notifier).updateSchoolDraft(i, draft),
+          onUpdate: (i, draft) => ref
+              .read(onboardingFlowProvider.notifier)
+              .updateSchoolDraft(i, draft),
         ),
         loading: () => const Padding(
           padding: EdgeInsets.symmetric(vertical: 48),
@@ -71,21 +75,32 @@ class _OnboardingSchoolsScreenState
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 
-final _schoolsProvider =
-    FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
-  final dio = ref.read(dioProvider);
-  final response = await dio.get<dynamic>(
-    ApiEndpoints.schools,
-    queryParameters: const {'page': 0, 'size': 200},
-  );
-  final payload = response.data as Map<String, dynamic>;
-  final raw = payload['data'] as List<dynamic>? ?? [];
-  return raw.whereType<Map<String, dynamic>>().toList();
-});
+final _schoolsProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>(
+  (ref) async {
+    final dio = ref.read(dioProvider);
+    final response = await dio.get<dynamic>(
+      ApiEndpoints.schools,
+      queryParameters: const {'page': 0, 'size': 200},
+    );
+    final payload = response.data as Map<String, dynamic>;
+    final raw = payload['data'] as List<dynamic>? ?? [];
+    return raw.whereType<Map<String, dynamic>>().toList();
+  },
+);
 
 const _classes = [
-  '1st', '2nd', '3rd', '4th', '5th', '6th',
-  '7th', '8th', '9th', '10th', '11th', '12th',
+  '1st',
+  '2nd',
+  '3rd',
+  '4th',
+  '5th',
+  '6th',
+  '7th',
+  '8th',
+  '9th',
+  '10th',
+  '11th',
+  '12th',
 ];
 
 const _sections = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
@@ -218,8 +233,9 @@ class _SchoolCardState extends State<_SchoolCard> {
             padding: const EdgeInsets.fromLTRB(14, 10, 8, 10),
             decoration: BoxDecoration(
               color: AppColors.crimson.withValues(alpha: 0.05),
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(11)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(11),
+              ),
             ),
             child: Row(
               children: [
@@ -406,19 +422,19 @@ class _SchoolAutocomplete extends StatelessWidget {
         });
       },
       onSelected: (school) {
-        onChanged(entry.copyWith(
-          schoolId: school['id']?.toString() ?? '',
-          schoolName: school['name']?.toString() ?? '',
-        ));
+        onChanged(
+          entry.copyWith(
+            schoolId: school['id']?.toString() ?? '',
+            schoolName: school['name']?.toString() ?? '',
+          ),
+        );
       },
       fieldViewBuilder: (context, ctrl, focusNode, onSubmitted) {
         return TextFormField(
           controller: ctrl,
           focusNode: focusNode,
           style: const TextStyle(fontSize: 13),
-          decoration: _fieldDecoration(
-            hintText: 'Search from APS schools...',
-          ),
+          decoration: _fieldDecoration(hintText: 'Search from APS schools...'),
         );
       },
       optionsViewBuilder: (context, onSelected, options) {
@@ -487,8 +503,11 @@ class _AddSchoolButton extends StatelessWidget {
       width: double.infinity,
       child: OutlinedButton.icon(
         onPressed: onPressed,
-        icon: const Icon(Icons.add_circle_outline_rounded,
-            size: 16, color: AppColors.crimson),
+        icon: const Icon(
+          Icons.add_circle_outline_rounded,
+          size: 16,
+          color: AppColors.crimson,
+        ),
         label: const Text(
           'I went to another APS school too',
           style: TextStyle(
@@ -513,10 +532,7 @@ class _AddSchoolButton extends StatelessWidget {
 // ── Footer ────────────────────────────────────────────────────────────────────
 
 class _Footer extends StatelessWidget {
-  const _Footer({
-    required this.onNext,
-    this.error,
-  });
+  const _Footer({required this.onNext, this.error});
 
   final VoidCallback onNext;
   final String? error;
@@ -616,10 +632,12 @@ class _DropField extends StatelessWidget {
           initialValue: value,
           isExpanded: true,
           items: items
-              .map((v) => DropdownMenuItem<String>(
-                    value: v,
-                    child: Text(v, style: const TextStyle(fontSize: 13)),
-                  ))
+              .map(
+                (v) => DropdownMenuItem<String>(
+                  value: v,
+                  child: Text(v, style: const TextStyle(fontSize: 13)),
+                ),
+              )
               .toList(),
           onChanged: (v) {
             if (v != null) onChanged(v);

@@ -13,7 +13,6 @@ public interface UserSchoolHistoryRepository extends JpaRepository<UserSchoolHis
 
     List<UserSchoolHistory> findAllByUser_Id(UUID userId);
 
-    long countByUser_Id(UUID userId);
 
     // Batch loader (one query, school eager-joined) to avoid N+1 when building many PersonDtos.
     @Query("SELECT h FROM UserSchoolHistory h JOIN FETCH h.school WHERE h.user.id IN :ids")

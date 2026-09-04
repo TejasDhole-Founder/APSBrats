@@ -1,5 +1,6 @@
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class OnboardingFrame extends StatefulWidget {
   const OnboardingFrame({
@@ -35,7 +36,40 @@ class _OnboardingFrameState extends State<OnboardingFrame> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
-    final shellWidth = width < 380 ? width - 24 : 325.0;
+    final isPhone = width < 600;
+
+    final content = Column(
+      children: [
+        _Header(
+          step: widget.step,
+          title: widget.title,
+          subtitle: widget.subtitle,
+          headerAction: widget.headerAction,
+        ),
+        widget.child,
+        if (widget.footer != null) widget.footer!,
+      ],
+    );
+
+    if (isPhone) {
+      final insets = MediaQuery.paddingOf(context);
+      return AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light,
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          body: SingleChildScrollView(
+            controller: _scrollController,
+            child: Column(
+              children: [
+                Container(height: insets.top, color: AppColors.crimsonDark),
+                content,
+                SizedBox(height: insets.bottom + 16),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: AppColors.cream,
@@ -48,7 +82,7 @@ class _OnboardingFrameState extends State<OnboardingFrame> {
               controller: _scrollController,
               padding: const EdgeInsets.fromLTRB(12, 20, 12, 24),
               child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: shellWidth),
+                constraints: const BoxConstraints(maxWidth: 420),
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: AppRadius.phone,
@@ -57,52 +91,13 @@ class _OnboardingFrameState extends State<OnboardingFrame> {
                   ),
                   child: ClipRRect(
                     borderRadius: AppRadius.phone,
-                    child: Column(
-                      children: [
-                        const _StatusBar(),
-                        _Header(
-                          step: widget.step,
-                          title: widget.title,
-                          subtitle: widget.subtitle,
-                          headerAction: widget.headerAction,
-                        ),
-                        widget.child,
-                        if (widget.footer != null) widget.footer!,
-                      ],
-                    ),
+                    child: content,
                   ),
                 ),
               ),
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-// ── Status bar ────────────────────────────────────────────────────────────────
-
-class _StatusBar extends StatelessWidget {
-  const _StatusBar();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: AppColors.crimson,
-      padding: const EdgeInsets.fromLTRB(20, 11, 20, 8),
-      child: const Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text('9:41', style: TextStyle(fontSize: 11, color: Colors.white)),
-          Row(
-            children: [
-              Icon(Icons.network_cell, color: Colors.white, size: 14),
-              SizedBox(width: 4),
-              Icon(Icons.battery_full_rounded, color: Colors.white, size: 14),
-            ],
-          ),
-        ],
       ),
     );
   }
@@ -171,10 +166,19 @@ class _Header extends StatelessWidget {
                   const SizedBox(width: 9),
                   RichText(
                     text: const TextSpan(
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                      ),
                       children: [
-                        TextSpan(text: 'APS ', style: TextStyle(color: Colors.white)),
-                        TextSpan(text: 'Brat', style: TextStyle(color: AppColors.gold)),
+                        TextSpan(
+                          text: 'APS ',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        TextSpan(
+                          text: 'Brat',
+                          style: TextStyle(color: AppColors.gold),
+                        ),
                       ],
                     ),
                   ),
@@ -186,14 +190,22 @@ class _Header extends StatelessWidget {
               // Title — last word gold
               RichText(
                 text: TextSpan(
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, height: 1.25),
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    height: 1.25,
+                  ),
                   children: _splitTitle(title),
                 ),
               ),
               const SizedBox(height: 6),
               Text(
                 subtitle,
-                style: const TextStyle(fontSize: 12, color: Colors.white70, height: 1.5),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.white70,
+                  height: 1.5,
+                ),
               ),
               const SizedBox(height: 16),
               // 4-step breadcrumb
@@ -206,7 +218,8 @@ class _Header extends StatelessWidget {
                       active: step == _steps[i].index,
                       done: step > _steps[i].index,
                     ),
-                    if (i < _steps.length - 1) const Expanded(child: _StepLine()),
+                    if (i < _steps.length - 1)
+                      const Expanded(child: _StepLine()),
                   ],
                 ],
               ),
@@ -222,7 +235,9 @@ class _Header extends StatelessWidget {
             height: 26,
             decoration: const BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.elliptical(160, 26)),
+              borderRadius: BorderRadius.vertical(
+                top: Radius.elliptical(160, 26),
+              ),
             ),
           ),
         ),
@@ -233,12 +248,23 @@ class _Header extends StatelessWidget {
   List<TextSpan> _splitTitle(String t) {
     final words = t.trim().split(' ');
     if (words.length <= 1) {
-      return [TextSpan(text: t, style: const TextStyle(color: AppColors.gold))];
+      return [
+        TextSpan(
+          text: t,
+          style: const TextStyle(color: AppColors.gold),
+        ),
+      ];
     }
     final last = words.removeLast();
     return [
-      TextSpan(text: '${words.join(' ')} ', style: const TextStyle(color: Colors.white)),
-      TextSpan(text: last, style: const TextStyle(color: AppColors.gold)),
+      TextSpan(
+        text: '${words.join(' ')} ',
+        style: const TextStyle(color: Colors.white),
+      ),
+      TextSpan(
+        text: last,
+        style: const TextStyle(color: AppColors.gold),
+      ),
     ];
   }
 }
@@ -268,8 +294,8 @@ class _StepNode extends StatelessWidget {
             color: active
                 ? AppColors.gold
                 : done
-                    ? AppColors.gold.withValues(alpha: 0.5)
-                    : Colors.transparent,
+                ? AppColors.gold.withValues(alpha: 0.5)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(20),
             border: (active || done)
                 ? null

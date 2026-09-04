@@ -1,25 +1,12 @@
-class ApiResponse<T> {
-  ApiResponse({
-    required this.success,
-    this.message,
-    this.data,
-    this.error,
-  });
+import 'package:dio/dio.dart';
 
-  final bool success;
-  final String? message;
-  final T? data;
-  final String? error;
+// The backend always wraps payloads in { success, data, message, error }.
+// These helpers unwrap `data` so repositories stay one-liners.
 
-  factory ApiResponse.fromJson(
-    Map<String, dynamic> json,
-    T Function(dynamic json)? parser,
-  ) {
-    return ApiResponse<T>(
-      success: (json['success'] as bool?) ?? false,
-      message: json['message'] as String?,
-      error: json['error'] as String?,
-      data: parser != null ? parser(json['data']) : json['data'] as T?,
-    );
-  }
+List<T> dataList<T>(Response<dynamic> res, T Function(Map<String, dynamic>) fromJson) {
+  final list = (res.data['data'] as List?) ?? const [];
+  return list.map((e) => fromJson(e as Map<String, dynamic>)).toList();
 }
+
+Map<String, dynamic> dataMap(Response<dynamic> res) =>
+    (res.data['data'] as Map<String, dynamic>?) ?? const {};

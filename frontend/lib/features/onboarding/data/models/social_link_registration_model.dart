@@ -17,7 +17,13 @@ class SocialLinkRegistrationModel {
     void add(String platform, String handle, {String? label}) {
       final cleaned = handle.trim();
       if (cleaned.isEmpty) return;
-      list.add(SocialLinkRegistrationModel(platform: platform, handle: cleaned, label: label));
+      list.add(
+        SocialLinkRegistrationModel(
+          platform: platform,
+          handle: cleaned,
+          label: label,
+        ),
+      );
     }
 
     add('INSTAGRAM', flow.instagram);
@@ -27,17 +33,15 @@ class SocialLinkRegistrationModel {
     add(
       'CUSTOM',
       flow.customHandle,
-      label: flow.customLabel.trim().isEmpty ? 'Other' : flow.customLabel.trim(),
+      label: flow.customLabel.trim().isEmpty
+          ? 'Other'
+          : flow.customLabel.trim(),
     );
 
     return list;
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'handle': handle,
-      'label': label,
-      'isVisible': true,
-    };
+    return {'handle': handle, 'label': label, 'isVisible': true};
   }
 }

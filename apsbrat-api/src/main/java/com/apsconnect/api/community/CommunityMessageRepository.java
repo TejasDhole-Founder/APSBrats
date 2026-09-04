@@ -9,7 +9,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface CommunityMessageRepository extends JpaRepository<CommunityMessage, UUID> {
-    List<CommunityMessage> findAllByCommunity_IdOrderByCreatedAtAsc(UUID communityId);
 
     List<CommunityMessage> findByCommunity_IdOrderByCreatedAtDesc(UUID communityId, Pageable pageable);
 

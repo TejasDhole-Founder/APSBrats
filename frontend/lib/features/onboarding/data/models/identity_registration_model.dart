@@ -32,7 +32,9 @@ class IdentityRegistrationModel {
       email: flow.email.trim().isEmpty ? null : flow.email.trim().toLowerCase(),
       dob: _parseDob(flow.dob.trim()),
       city: flow.city.trim().isEmpty ? null : flow.city.trim(),
-      profession: flow.profession.trim().isEmpty ? null : flow.profession.trim(),
+      profession: flow.profession.trim().isEmpty
+          ? null
+          : flow.profession.trim(),
       gender: flow.gender.isEmpty ? null : flow.gender,
       currentStatus: flow.isStudent ? 'STUDENT' : 'ALUMNI',
     );

@@ -175,7 +175,10 @@ class OnboardingFlowNotifier extends StateNotifier<OnboardingFlowState> {
 
   bool validateSchoolDrafts() {
     return state.schoolHistory.every(
-      (item) => item.schoolId.isNotEmpty && item.classFrom.isNotEmpty && item.classTo.isNotEmpty,
+      (item) =>
+          item.schoolId.isNotEmpty &&
+          item.classFrom.isNotEmpty &&
+          item.classTo.isNotEmpty,
     );
   }
 
@@ -204,5 +207,5 @@ class OnboardingFlowNotifier extends StateNotifier<OnboardingFlowState> {
 
 final onboardingFlowProvider =
     StateNotifierProvider<OnboardingFlowNotifier, OnboardingFlowState>(
-  (ref) => OnboardingFlowNotifier(),
-);
+      (ref) => OnboardingFlowNotifier(),
+    );

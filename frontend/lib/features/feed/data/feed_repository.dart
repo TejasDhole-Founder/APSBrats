@@ -1,5 +1,6 @@
 import 'package:apsbrat_frontend/core/constants/api_endpoints.dart';
 import 'package:apsbrat_frontend/core/models/person.dart';
+import 'package:apsbrat_frontend/core/network/api_response.dart';
 import 'package:apsbrat_frontend/core/network/dio_client.dart';
 import 'package:apsbrat_frontend/features/feed/data/feed_models.dart';
 import 'package:dio/dio.dart';
@@ -11,24 +12,30 @@ class FeedRepository {
 
   Future<List<FeedEvent>> activity() async {
     final res = await _dio.get<dynamic>(ApiEndpoints.feedActivity);
-    final list = (res.data['data'] as List?) ?? const [];
-    return list.map((e) => FeedEvent.fromJson(e as Map<String, dynamic>)).toList();
+    return dataList(res, FeedEvent.fromJson);
   }
 
   Future<List<Person>> recentJoins() async {
     final res = await _dio.get<dynamic>(ApiEndpoints.feedRecentJoins);
-    final list = (res.data['data'] as List?) ?? const [];
-    return list.map((e) => Person.fromJson(e as Map<String, dynamic>)).toList();
+    return dataList(res, Person.fromJson);
   }
 
   Future<BatchmateBanner> banner() async {
     final res = await _dio.get<dynamic>(ApiEndpoints.feedBanner);
-    return BatchmateBanner.fromJson(res.data['data'] as Map<String, dynamic>? ?? const {});
+    return BatchmateBanner.fromJson(dataMap(res));
   }
 }
 
-final feedRepositoryProvider = Provider<FeedRepository>((ref) => FeedRepository(ref.watch(dioProvider)));
+final feedRepositoryProvider = Provider<FeedRepository>(
+  (ref) => FeedRepository(ref.watch(dioProvider)),
+);
 
-final feedActivityProvider = FutureProvider<List<FeedEvent>>((ref) => ref.watch(feedRepositoryProvider).activity());
-final recentJoinsProvider = FutureProvider<List<Person>>((ref) => ref.watch(feedRepositoryProvider).recentJoins());
-final batchmateBannerProvider = FutureProvider<BatchmateBanner>((ref) => ref.watch(feedRepositoryProvider).banner());
+final feedActivityProvider = FutureProvider<List<FeedEvent>>(
+  (ref) => ref.watch(feedRepositoryProvider).activity(),
+);
+final recentJoinsProvider = FutureProvider<List<Person>>(
+  (ref) => ref.watch(feedRepositoryProvider).recentJoins(),
+);
+final batchmateBannerProvider = FutureProvider<BatchmateBanner>(
+  (ref) => ref.watch(feedRepositoryProvider).banner(),
+);

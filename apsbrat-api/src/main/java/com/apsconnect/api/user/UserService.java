@@ -24,6 +24,7 @@ public class UserService {
     private static final Pattern PHONE = Pattern.compile("^\\+?[1-9]\\d{7,14}$");
     private static final Pattern EMAIL = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
     private static final Pattern USERNAME = Pattern.compile("^[a-zA-Z][a-zA-Z0-9_]{2,19}$");
+    private static final String PHONE_MESSAGE = "Phone must be a valid number in international (E.164) format";
     private static final int MIN_AGE = 13;
     private static final int MAX_AGE = 120;
     private static final Set<String> RESERVED_USERNAMES = Set.of(
@@ -39,6 +40,31 @@ public class UserService {
     public List<PersonDto> getUsers(int page, int size) {
         return personService.toPeople(
                 userRepository.findAllByDeletedAtNull(PageRequest.of(page, size)).getContent());
+    }
+
+    @Transactional(readOnly = true)
+    public AvailabilityDto usernameAvailability(String username) {
+        String normalized = username == null ? "" : username.trim();
+        String problem = usernameProblem(normalized);
+        if (problem != null) {
+            return AvailabilityDto.no(problem);
+        }
+        if (userRepository.existsByUsername(normalized)) {
+            return AvailabilityDto.no("This username already exists. Please select something else.");
+        }
+        return AvailabilityDto.ok();
+    }
+
+    @Transactional(readOnly = true)
+    public AvailabilityDto phoneAvailability(String phone) {
+        String normalized = phone == null ? "" : phone.trim();
+        if (!PHONE.matcher(normalized).matches()) {
+            return AvailabilityDto.no(PHONE_MESSAGE);
+        }
+        if (userRepository.existsByPhone(normalized)) {
+            return AvailabilityDto.no("This phone number is already registered. Please log in instead.");
+        }
+        return AvailabilityDto.ok();
     }
 
     @Transactional
@@ -103,18 +129,12 @@ public class UserService {
             throw badRequest("Full name is required");
         }
         if (phone.isBlank() || !PHONE.matcher(phone).matches()) {
-            throw badRequest("Phone must be a valid number in international (E.164) format");
+            throw badRequest(PHONE_MESSAGE);
         }
         if (!username.isBlank()) {
-            if (!USERNAME.matcher(username).matches()) {
-                throw badRequest("Username must be 3-20 chars, start with a letter, letters/digits/underscore only");
-            }
-            String lower = username.toLowerCase();
-            if (RESERVED_USERNAMES.contains(lower)) {
-                throw badRequest("This username is reserved");
-            }
-            if (BLOCKED_USERNAME_TERMS.stream().anyMatch(lower::contains)) {
-                throw badRequest("This username is not allowed");
+            String problem = usernameProblem(username);
+            if (problem != null) {
+                throw badRequest(problem);
             }
         }
         if (email != null && !email.isBlank() && !EMAIL.matcher(email).matches()) {
@@ -135,15 +155,41 @@ public class UserService {
         }
     }
 
+    /** Returns why the username is not acceptable, or null when it passes the format/reserved rules. */
+    private String usernameProblem(String username) {
+        if (!USERNAME.matcher(username).matches()) {
+            return "Username must be 3-20 chars, start with a letter, letters/digits/underscore only";
+        }
+        String lower = username.toLowerCase();
+        if (RESERVED_USERNAMES.contains(lower)) {
+            return "This username is reserved";
+        }
+        if (BLOCKED_USERNAME_TERMS.stream().anyMatch(lower::contains)) {
+            return "This username is not allowed";
+        }
+        return null;
+    }
+
     private AppException badRequest(String message) {
         return new AppException(message, HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_ERROR);
     }
 
     private void validatePasswordStrength(String password) {
-        boolean hasUpper = password.chars().anyMatch(Character::isUpperCase);
-        boolean hasLower = password.chars().anyMatch(Character::isLowerCase);
-        boolean hasDigit = password.chars().anyMatch(Character::isDigit);
-        boolean hasSpecial = password.chars().anyMatch(ch -> !Character.isLetterOrDigit(ch));
+        boolean hasUpper = false;
+        boolean hasLower = false;
+        boolean hasDigit = false;
+        boolean hasSpecial = false;
+        for (char ch : password.toCharArray()) {
+            if (Character.isUpperCase(ch)) {
+                hasUpper = true;
+            } else if (Character.isLowerCase(ch)) {
+                hasLower = true;
+            } else if (Character.isDigit(ch)) {
+                hasDigit = true;
+            } else if (!Character.isLetterOrDigit(ch)) {
+                hasSpecial = true;
+            }
+        }
 
         if (!hasUpper || !hasLower || !hasDigit || !hasSpecial) {
             throw new AppException(

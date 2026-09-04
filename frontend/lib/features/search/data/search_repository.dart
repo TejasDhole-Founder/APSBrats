@@ -1,5 +1,6 @@
 import 'package:apsbrat_frontend/core/constants/api_endpoints.dart';
 import 'package:apsbrat_frontend/core/models/person.dart';
+import 'package:apsbrat_frontend/core/network/api_response.dart';
 import 'package:apsbrat_frontend/core/network/dio_client.dart';
 import 'package:apsbrat_frontend/features/community/data/community_models.dart';
 import 'package:dio/dio.dart';
@@ -24,7 +25,7 @@ class SearchRepository {
 
   Future<SearchResult> search(String query) async {
     final res = await _dio.get<dynamic>(ApiEndpoints.search, queryParameters: {'q': query});
-    return SearchResult.fromJson(res.data['data'] as Map<String, dynamic>? ?? const {});
+    return SearchResult.fromJson(dataMap(res));
   }
 }
 

@@ -62,8 +62,9 @@ public class CommunityService {
 
     @Transactional(readOnly = true)
     public CursorPage<CommunityMessageDto> messages(UUID currentUserId, UUID communityId, String cursor, int limit) {
-        communityRepository.findById(communityId)
-                .orElseThrow(() -> new AppException("Community not found", HttpStatus.NOT_FOUND));
+        if (!communityRepository.existsById(communityId)) {
+            throw new AppException("Community not found", HttpStatus.NOT_FOUND);
+        }
         if (!memberRepository.existsByCommunity_IdAndUser_Id(communityId, currentUserId)) {
             throw new AppException("Not a member of this community", HttpStatus.FORBIDDEN);
         }
@@ -117,11 +118,12 @@ public class CommunityService {
         message.setCreatedAt(LocalDateTime.now());
         message = messageRepository.save(message);
 
+        PersonDto person = personService.toPerson(sender);
         CommunityMessageDto broadcast = new CommunityMessageDto(message.getId(), sender.getId(),
-                personService.toPerson(sender), message.getBody(), false, message.getCreatedAt());
+                person, message.getBody(), false, message.getCreatedAt());
         realtimeService.publishCommunityMessage(communityId, broadcast);
 
-        return new CommunityMessageDto(message.getId(), sender.getId(), personService.toPerson(sender),
+        return new CommunityMessageDto(message.getId(), sender.getId(), person,
                 message.getBody(), true, message.getCreatedAt());
     }
 

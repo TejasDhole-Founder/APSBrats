@@ -54,7 +54,9 @@ class _OnboardingSocialsScreenState
   }
 
   Future<void> _finish() async {
-    ref.read(onboardingFlowProvider.notifier).saveSocials(
+    ref
+        .read(onboardingFlowProvider.notifier)
+        .saveSocials(
           instagram: _instagramCtrl.text.trim(),
           linkedin: _linkedinCtrl.text.trim(),
           whatsapp: _whatsappCtrl.text.trim(),
@@ -72,8 +74,10 @@ class _OnboardingSocialsScreenState
 
     final dio = ref.read(dioProvider);
     try {
-      await const OnboardingRegistrationService()
-          .registerSequential(dio: dio, flow: flow);
+      await const OnboardingRegistrationService().registerSequential(
+        dio: dio,
+        flow: flow,
+      );
 
       ref.read(onboardingFlowProvider.notifier).reset();
       if (!mounted) return;
@@ -307,12 +311,16 @@ class _SocialField extends StatelessWidget {
             style: const TextStyle(fontSize: 13),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle:
-                  const TextStyle(color: Color(0xFFBBBBBB), fontSize: 13),
+              hintStyle: const TextStyle(
+                color: Color(0xFFBBBBBB),
+                fontSize: 13,
+              ),
               filled: true,
               fillColor: Colors.white,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 10,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
@@ -323,8 +331,10 @@ class _SocialField extends StatelessWidget {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide:
-                    const BorderSide(color: AppColors.crimson, width: 1.5),
+                borderSide: const BorderSide(
+                  color: AppColors.crimson,
+                  width: 1.5,
+                ),
               ),
             ),
           ),
@@ -352,11 +362,7 @@ class _CardDivider extends StatelessWidget {
 // ── Footer ────────────────────────────────────────────────────────────────────
 
 class _Footer extends StatelessWidget {
-  const _Footer({
-    required this.submitting,
-    required this.onFinish,
-    this.error,
-  });
+  const _Footer({required this.submitting, required this.onFinish, this.error});
 
   final bool submitting;
   final VoidCallback onFinish;
@@ -385,8 +391,9 @@ class _Footer extends StatelessWidget {
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.crimsonDark,
               foregroundColor: Colors.white,
-              disabledBackgroundColor:
-                  AppColors.crimsonDark.withValues(alpha: 0.5),
+              disabledBackgroundColor: AppColors.crimsonDark.withValues(
+                alpha: 0.5,
+              ),
               shape: const StadiumBorder(),
               padding: const EdgeInsets.symmetric(vertical: 14),
               minimumSize: const Size(double.infinity, 0),

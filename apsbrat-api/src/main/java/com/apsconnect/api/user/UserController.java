@@ -37,6 +37,16 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(userService.registerUser(request), "User registered successfully"));
     }
 
+    @GetMapping("/username-available")
+    public ResponseEntity<ApiResponse<AvailabilityDto>> usernameAvailable(@RequestParam String username) {
+        return ResponseEntity.ok(ApiResponse.success(userService.usernameAvailability(username)));
+    }
+
+    @GetMapping("/phone-available")
+    public ResponseEntity<ApiResponse<AvailabilityDto>> phoneAvailable(@RequestParam String phone) {
+        return ResponseEntity.ok(ApiResponse.success(userService.phoneAvailability(phone)));
+    }
+
     @PutMapping("/{userId}/password")
     public ResponseEntity<ApiResponse<Void>> changePassword(
             @PathVariable UUID userId,

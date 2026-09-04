@@ -1,4 +1,5 @@
 import 'package:apsbrat_frontend/core/constants/api_endpoints.dart';
+import 'package:apsbrat_frontend/core/network/api_response.dart';
 import 'package:apsbrat_frontend/core/network/dio_client.dart';
 import 'package:apsbrat_frontend/features/notifications/data/notification_models.dart';
 import 'package:dio/dio.dart';
@@ -10,13 +11,12 @@ class NotificationRepository {
 
   Future<List<AppNotification>> list() async {
     final res = await _dio.get<dynamic>(ApiEndpoints.notifications);
-    final list = (res.data['data'] as List?) ?? const [];
-    return list.map((e) => AppNotification.fromJson(e as Map<String, dynamic>)).toList();
+    return dataList(res, AppNotification.fromJson);
   }
 
   Future<int> unreadCount() async {
     final res = await _dio.get<dynamic>(ApiEndpoints.notificationsUnreadCount);
-    return ((res.data['data'] as Map<String, dynamic>)['count'] as num?)?.toInt() ?? 0;
+    return (dataMap(res)['count'] as num?)?.toInt() ?? 0;
   }
 
   Future<void> markRead(String id) async => _dio.post<dynamic>(ApiEndpoints.notificationRead(id));

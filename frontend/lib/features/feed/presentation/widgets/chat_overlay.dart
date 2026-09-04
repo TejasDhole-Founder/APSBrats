@@ -17,6 +17,8 @@ class ChatOverlay extends StatefulWidget {
 }
 
 class _ChatOverlayState extends State<ChatOverlay> {
+  static final _random = Random();
+
   final _ctrl = TextEditingController();
   final _scrollCtrl = ScrollController();
   final _messages = <(String, String)>[...dummyChatHistory];
@@ -37,10 +39,12 @@ class _ChatOverlayState extends State<ChatOverlay> {
     _ctrl.clear();
     _scrollToBottom();
 
+    // The fake auto-reply only runs in demo mode.
+    if (!kShowDemoContent) return;
     _replyTimer?.cancel();
     _replyTimer = Timer(const Duration(milliseconds: 1200), () {
       if (!mounted) return;
-      final reply = dummyAutoReplies[Random().nextInt(dummyAutoReplies.length)];
+      final reply = dummyAutoReplies[_random.nextInt(dummyAutoReplies.length)];
       setState(() => _messages.add(('them', reply)));
       _scrollToBottom();
     });
@@ -139,8 +143,9 @@ class _ChatOverlayState extends State<ChatOverlay> {
                   final (who, text) = _messages[i];
                   final isMe = who == 'me';
                   return Row(
-                    mainAxisAlignment:
-                        isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+                    mainAxisAlignment: isMe
+                        ? MainAxisAlignment.end
+                        : MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       if (!isMe) ...[
@@ -242,8 +247,10 @@ class _ChatOverlayState extends State<ChatOverlay> {
                         style: const TextStyle(fontSize: 13, color: kTxt),
                         decoration: InputDecoration(
                           hintText: 'Type a message...',
-                          hintStyle:
-                              const TextStyle(color: kTxt3, fontSize: 13),
+                          hintStyle: const TextStyle(
+                            color: kTxt3,
+                            fontSize: 13,
+                          ),
                           filled: true,
                           fillColor: const Color(0xFFFDF9F9),
                           contentPadding: const EdgeInsets.symmetric(

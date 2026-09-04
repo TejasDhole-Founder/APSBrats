@@ -41,11 +41,11 @@ public class JwtService {
     }
 
     public String generateAccessToken(UUID userId, String phone, String role) {
-        return build(userId, refreshTokenExpiryFor(false), "access", phone, null, role);
+        return build(userId, accessTokenExpiry, "access", phone, null, role);
     }
 
     public String generateRefreshToken(UUID userId, String jti) {
-        return build(userId, refreshTokenExpiryFor(true), "refresh", null, jti, null);
+        return build(userId, refreshTokenExpiry, "refresh", null, jti, null);
     }
 
     public String parseJti(String token) {
@@ -67,10 +67,6 @@ public class JwtService {
 
     public boolean isRefreshToken(String token) {
         return "refresh".equals(parse(token).get("type", String.class));
-    }
-
-    private long refreshTokenExpiryFor(boolean refresh) {
-        return refresh ? refreshTokenExpiry : accessTokenExpiry;
     }
 
     private String build(UUID userId, long ttlMillis, String type, String phone, String jti, String role) {

@@ -6,31 +6,11 @@ export 'package:apsbrat_frontend/core/theme/app_color_palette.dart';
 class AppTextStyles {
   const AppTextStyles._();
 
-  static const headerTitle = TextStyle(
-    fontSize: 21,
-    fontWeight: FontWeight.w900,
-    color: Colors.white,
-    height: 1.26,
-    shadows: [Shadow(blurRadius: 12, color: Colors.black54)],
-  );
-
   static const fieldLabel = TextStyle(
     fontSize: 10,
     fontWeight: FontWeight.w900,
     letterSpacing: 0.9,
     color: AppColors.textSecondary,
-  );
-
-  static const fieldInput = TextStyle(
-    fontSize: 13,
-    color: AppColors.inputText,
-  );
-
-  static const ctaButton = TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.w900,
-    letterSpacing: 0.5,
-    color: AppColors.gold,
   );
 }
 
@@ -39,8 +19,6 @@ class AppRadius {
 
   static const sm = BorderRadius.all(Radius.circular(9));
   static const md = BorderRadius.all(Radius.circular(12));
-  static const lg = BorderRadius.all(Radius.circular(14));
-  static const pill = BorderRadius.all(Radius.circular(100));
   static const phone = BorderRadius.all(Radius.circular(40));
 }
 

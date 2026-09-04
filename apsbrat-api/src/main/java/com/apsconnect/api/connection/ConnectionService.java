@@ -89,19 +89,15 @@ public class ConnectionService {
 
     @Transactional(readOnly = true)
     public String statusWith(UUID currentUserId, UUID otherUserId) {
-        for (Connection c : connectionRepository.findBetween(currentUserId, otherUserId)) {
-            boolean iRequested = c.getRequester().getId().equals(currentUserId);
-            if (c.getStatus() == ConnectionStatus.ACCEPTED) {
-                return "CONNECTED";
-            }
-            return iRequested ? "PENDING_OUT" : "PENDING_IN";
+        List<Connection> between = connectionRepository.findBetween(currentUserId, otherUserId);
+        if (between.isEmpty()) {
+            return "NONE";
         }
-        return "NONE";
-    }
-
-    @Transactional(readOnly = true)
-    public long acceptedCount(UUID userId) {
-        return connectionRepository.countAcceptedForUser(userId);
+        Connection c = between.get(0);
+        if (c.getStatus() == ConnectionStatus.ACCEPTED) {
+            return "CONNECTED";
+        }
+        return c.getRequester().getId().equals(currentUserId) ? "PENDING_OUT" : "PENDING_IN";
     }
 
     private User other(Connection c, UUID currentUserId) {

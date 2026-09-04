@@ -67,8 +67,9 @@ class CrimsonHeader extends StatelessWidget {
             height: 22,
             decoration: BoxDecoration(
               color: waveColor,
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.elliptical(160, 22)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.elliptical(160, 22),
+              ),
             ),
           ),
         ),
@@ -106,11 +107,7 @@ class FeedIconBtn extends StatelessWidget {
 // ── Search bar ────────────────────────────────────────────────────────────────
 
 class FeedSearchBar extends StatelessWidget {
-  const FeedSearchBar({
-    super.key,
-    required this.hint,
-    required this.onChanged,
-  });
+  const FeedSearchBar({super.key, required this.hint, required this.onChanged});
 
   final String hint;
   final ValueChanged<String> onChanged;
@@ -201,6 +198,57 @@ class AvatarCircle extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+// ── Empty state ───────────────────────────────────────────────────────────────
+
+class EmptyState extends StatelessWidget {
+  const EmptyState({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.message,
+  });
+
+  final IconData icon;
+  final String title;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 36),
+      child: Column(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: const BoxDecoration(
+              color: kCrimsonLight,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 26, color: kCrimsonMed),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: kTxt,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 12, color: kTxt3, height: 1.5),
+          ),
+        ],
+      ),
     );
   }
 }

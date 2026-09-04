@@ -20,16 +20,23 @@ class SchoolHistoryRegistrationModel {
   final bool isPrimary;
 
   factory SchoolHistoryRegistrationModel.fromDraft(SchoolHistoryDraft draft) {
-    final classFrom = int.tryParse(draft.classFrom.replaceAll(RegExp(r'[^0-9]'), '')) ?? 1;
-    final classTo = int.tryParse(draft.classTo.replaceAll(RegExp(r'[^0-9]'), '')) ?? classFrom;
+    final classFrom =
+        int.tryParse(draft.classFrom.replaceAll(RegExp(r'[^0-9]'), '')) ?? 1;
+    final classTo =
+        int.tryParse(draft.classTo.replaceAll(RegExp(r'[^0-9]'), '')) ??
+        classFrom;
     final batchEnd = int.tryParse(draft.yearLeft) ?? DateTime.now().year;
-    final batchStart = int.tryParse(draft.yearJoined) ?? (batchEnd - (classTo - classFrom).clamp(0, 20));
+    final batchStart =
+        int.tryParse(draft.yearJoined) ??
+        (batchEnd - (classTo - classFrom).clamp(0, 20));
 
     return SchoolHistoryRegistrationModel(
       schoolId: draft.schoolId,
       classFrom: classFrom,
       classTo: classTo,
-      section: draft.section.trim().isEmpty ? 'A' : draft.section.trim().toUpperCase(),
+      section: draft.section.trim().isEmpty
+          ? 'A'
+          : draft.section.trim().toUpperCase(),
       batchStart: batchStart,
       batchEnd: batchEnd,
       isPrimary: draft.isMostMissed,

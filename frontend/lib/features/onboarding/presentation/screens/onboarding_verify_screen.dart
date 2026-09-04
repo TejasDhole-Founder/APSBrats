@@ -36,16 +36,23 @@ class _OnboardingVerifyScreenState
   @override
   void dispose() {
     _timer?.cancel();
-    for (final c in _controllers) { c.dispose(); }
-    for (final f in _focusNodes) { f.dispose(); }
+    for (final c in _controllers) {
+      c.dispose();
+    }
+    for (final f in _focusNodes) {
+      f.dispose();
+    }
     super.dispose();
   }
 
   void _startCountdown() {
     _timer?.cancel();
-    setState(() => _countdown = 60);
+    _countdown = 60;
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (!mounted) { t.cancel(); return; }
+      if (!mounted) {
+        t.cancel();
+        return;
+      }
       setState(() {
         if (_countdown > 0) {
           _countdown--;
@@ -58,12 +65,24 @@ class _OnboardingVerifyScreenState
 
   void _resend() {
     if (_countdown > 0) return;
-    for (final c in _controllers) { c.clear(); }
+    for (final c in _controllers) {
+      c.clear();
+    }
     _focusNodes.first.requestFocus();
-    _startCountdown();
+    setState(_startCountdown);
   }
 
   String get _otp => _controllers.map((c) => c.text).join();
+
+  String get _phoneLabel {
+    final p = ref.read(onboardingFlowProvider).phone;
+    return p.isEmpty ? '+91 98765 43210' : '+91 $p';
+  }
+
+  String get _emailLabel => ref.read(onboardingFlowProvider).email.trim();
+
+  /// Email is optional — it is only verified when the user gave one.
+  bool get _hasEmail => _emailLabel.isNotEmpty;
 
   String get _timerLabel {
     final m = _countdown ~/ 60;
@@ -73,38 +92,47 @@ class _OnboardingVerifyScreenState
 
   void _verify() {
     if (_otp.length < 6) return;
-    for (final c in _controllers) { c.clear(); }
-    if (_step == _VerifyStep.phone) {
+    for (final c in _controllers) {
+      c.clear();
+    }
+    if (_step == _VerifyStep.phone && _hasEmail) {
       _startCountdown();
       setState(() => _step = _VerifyStep.email);
-    } else {
-      _timer?.cancel();
-      setState(() => _step = _VerifyStep.done);
+      return;
     }
+    _timer?.cancel();
+    setState(() => _step = _VerifyStep.done);
   }
 
   @override
   Widget build(BuildContext context) {
-    final flow = ref.read(onboardingFlowProvider);
-    final phone = flow.phone.isEmpty ? '+91 98765 43210' : '+91 ${flow.phone}';
-    final email = flow.email.isEmpty ? 'user@example.com' : flow.email;
+    final phone = _phoneLabel;
+    final email = _emailLabel;
+    final hasEmail = _hasEmail;
 
     final title = switch (_step) {
       _VerifyStep.phone => 'Verify your phone number.',
       _VerifyStep.email => 'Verify your email address.',
-      _VerifyStep.done => 'Account fully verified.',
+      _VerifyStep.done =>
+        hasEmail ? 'Account fully verified.' : 'Phone number verified.',
     };
     final subtitle = switch (_step) {
-      _VerifyStep.phone => 'Step 1 of 2 — OTP sent to your number.',
+      _VerifyStep.phone =>
+        hasEmail
+            ? 'Step 1 of 2 — OTP sent to your number.'
+            : 'OTP sent to your number.',
       _VerifyStep.email => 'Step 2 of 2 — OTP sent to your email.',
-      _VerifyStep.done => 'Both phone and email confirmed.',
+      _VerifyStep.done =>
+        hasEmail
+            ? 'Both phone and email confirmed.'
+            : 'Your account is confirmed.',
     };
 
     return OnboardingFrame(
       step: 2,
       title: title,
       subtitle: subtitle,
-      footer: _buildFooter(context, phone, email),
+      footer: _buildFooter(context),
       child: _buildBody(phone, email),
     );
   }
@@ -117,18 +145,17 @@ class _OnboardingVerifyScreenState
       padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
       child: switch (_step) {
         _VerifyStep.phone => _otpBody(
-            icon: Icons.smartphone_outlined,
-            titleParts: ('Enter the OTP sent\nto your ', 'phone'),
-            target: phone,
-            isPhone: true,
-          ),
+          icon: Icons.smartphone_outlined,
+          titleParts: ('Enter the OTP sent\nto your ', 'phone'),
+          target: phone,
+          isPhone: true,
+        ),
         _VerifyStep.email => _otpBody(
-            icon: Icons.email_outlined,
-            titleParts: ('Enter the OTP sent\nto your ', 'email'),
-            target: email,
-            isPhone: false,
-            phoneVerified: true,
-          ),
+          icon: Icons.email_outlined,
+          titleParts: ('Enter the OTP sent\nto your ', 'email'),
+          target: email,
+          isPhone: false,
+        ),
         _VerifyStep.done => _doneBody(phone, email),
       },
     );
@@ -139,7 +166,6 @@ class _OnboardingVerifyScreenState
     required (String, String) titleParts,
     required String target,
     required bool isPhone,
-    bool phoneVerified = false,
   }) {
     return Column(
       children: [
@@ -211,9 +237,7 @@ class _OnboardingVerifyScreenState
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w800,
-                  color: _countdown > 0
-                      ? const Color(0xFFCCC4B8)
-                      : _crimson,
+                  color: _countdown > 0 ? const Color(0xFFCCC4B8) : _crimson,
                 ),
               ),
             ),
@@ -246,33 +270,20 @@ class _OnboardingVerifyScreenState
         ),
         const SizedBox(height: 20),
 
-        // Status cards (only on email step)
+        // On the email step, show that the phone is already done.
         if (!isPhone) ...[
           _VerifyCard(
             icon: Icons.smartphone_outlined,
             title: 'Phone number',
-            value: _controllers.isNotEmpty
-                ? ref.read(onboardingFlowProvider).phone.isEmpty
-                    ? '+91 98765 43210'
-                    : '+91 ${ref.read(onboardingFlowProvider).phone}'
-                : '',
-            verified: phoneVerified,
-          ),
-          const SizedBox(height: 8),
-          _VerifyCard(
-            icon: Icons.email_outlined,
-            title: 'Email address',
-            value: ref.read(onboardingFlowProvider).email.isEmpty
-                ? 'user@example.com'
-                : ref.read(onboardingFlowProvider).email,
-            verified: false,
+            value: _phoneLabel,
+            verified: true,
           ),
           const SizedBox(height: 12),
         ],
 
         // Wrong contact link
         GestureDetector(
-          onTap: () => context.go('/onboarding/identity'),
+          onTap: () => context.go('/onboarding'),
           child: RichText(
             text: TextSpan(
               style: const TextStyle(fontSize: 12, color: Color(0xFF9A9280)),
@@ -304,27 +315,34 @@ class _OnboardingVerifyScreenState
           decoration: BoxDecoration(
             color: AppColors.gold.withValues(alpha: 0.12),
             shape: BoxShape.circle,
-            border: Border.all(color: AppColors.gold.withValues(alpha: 0.4), width: 1.5),
+            border: Border.all(
+              color: AppColors.gold.withValues(alpha: 0.4),
+              width: 1.5,
+            ),
           ),
-          child: const Icon(Icons.verified_user_outlined, size: 28, color: AppColors.gold),
+          child: const Icon(
+            Icons.verified_user_outlined,
+            size: 28,
+            color: AppColors.gold,
+          ),
         ),
         const SizedBox(height: 20),
 
         // Title
         RichText(
           textAlign: TextAlign.center,
-          text: const TextSpan(
-            style: TextStyle(
+          text: TextSpan(
+            style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w800,
               height: 1.3,
             ),
             children: [
               TextSpan(
-                text: 'Both verified.\n',
-                style: TextStyle(color: Color(0xFF1A0A0A)),
+                text: _hasEmail ? 'Both verified.\n' : 'Phone verified.\n',
+                style: const TextStyle(color: Color(0xFF1A0A0A)),
               ),
-              TextSpan(
+              const TextSpan(
                 text: "You're all set.",
                 style: TextStyle(color: _crimson),
               ),
@@ -332,10 +350,16 @@ class _OnboardingVerifyScreenState
           ),
         ),
         const SizedBox(height: 10),
-        const Text(
-          'Your phone and email are confirmed.\nYour account is now secure.',
+        Text(
+          _hasEmail
+              ? 'Your phone and email are confirmed.\nYour account is now secure.'
+              : 'Your phone number is confirmed.\nYour account is now secure.',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 13, color: Color(0xFF9A9280), height: 1.5),
+          style: const TextStyle(
+            fontSize: 13,
+            color: Color(0xFF9A9280),
+            height: 1.5,
+          ),
         ),
         const SizedBox(height: 24),
 
@@ -345,13 +369,15 @@ class _OnboardingVerifyScreenState
           value: phone,
           verified: true,
         ),
-        const SizedBox(height: 8),
-        _VerifyCard(
-          icon: Icons.email_outlined,
-          title: 'Email address',
-          value: email,
-          verified: true,
-        ),
+        if (_hasEmail) ...[
+          const SizedBox(height: 8),
+          _VerifyCard(
+            icon: Icons.email_outlined,
+            title: 'Email address',
+            value: email,
+            verified: true,
+          ),
+        ],
         const SizedBox(height: 12),
       ],
     );
@@ -359,12 +385,12 @@ class _OnboardingVerifyScreenState
 
   // ── Footer ────────────────────────────────────────────────────────────────
 
-  Widget _buildFooter(BuildContext context, String phone, String email) {
+  Widget _buildFooter(BuildContext context) {
     if (_step == _VerifyStep.done) {
       return _ActionButton(
         label: 'Next — add my schools',
         icon: Icons.arrow_forward,
-        onTap: () => context.go('/onboarding/schools'),
+        onTap: () => context.go('/onboarding/verify/schools'),
       );
     }
     return _ActionButton(
@@ -413,11 +439,17 @@ class _OtpRow extends StatelessWidget {
               contentPadding: EdgeInsets.zero,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: _crimson.withValues(alpha: 0.25), width: 1.5),
+                borderSide: BorderSide(
+                  color: _crimson.withValues(alpha: 0.25),
+                  width: 1.5,
+                ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: _crimson.withValues(alpha: 0.25), width: 1.5),
+                borderSide: BorderSide(
+                  color: _crimson.withValues(alpha: 0.25),
+                  width: 1.5,
+                ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -458,9 +490,7 @@ class _VerifyCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: verified
-            ? AppColors.gold.withValues(alpha: 0.08)
-            : Colors.white,
+        color: verified ? AppColors.gold.withValues(alpha: 0.08) : Colors.white,
         borderRadius: AppRadius.md,
         border: Border.all(
           color: verified
@@ -480,8 +510,11 @@ class _VerifyCard extends StatelessWidget {
                   : const Color(0xFFF5F0EA),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, size: 16,
-                color: verified ? AppColors.gold : const Color(0xFF9A9280)),
+            child: Icon(
+              icon,
+              size: 16,
+              color: verified ? AppColors.gold : const Color(0xFF9A9280),
+            ),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -498,7 +531,10 @@ class _VerifyCard extends StatelessWidget {
                 ),
                 Text(
                   value,
-                  style: const TextStyle(fontSize: 11, color: Color(0xFF9A9280)),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFF9A9280),
+                  ),
                 ),
               ],
             ),
@@ -523,7 +559,9 @@ class _VerifyCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: verified ? AppColors.crimson : const Color(0xFF9A9280),
+                    color: verified
+                        ? AppColors.crimson
+                        : const Color(0xFF9A9280),
                   ),
                 ),
               ],

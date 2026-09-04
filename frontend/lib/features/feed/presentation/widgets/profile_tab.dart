@@ -1,6 +1,13 @@
+import 'package:apsbrat_frontend/core/constants/social_platforms.dart';
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
+import 'package:apsbrat_frontend/features/feed/data/dummy_data.dart';
 import 'package:apsbrat_frontend/features/feed/presentation/widgets/feed_shared.dart';
+import 'package:apsbrat_frontend/features/auth/data/auth_repository.dart';
+import 'package:apsbrat_frontend/features/profile/data/profile_models.dart';
+import 'package:apsbrat_frontend/features/profile/data/profile_repository.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ProfileTab extends StatelessWidget {
   const ProfileTab({super.key});
@@ -39,77 +46,100 @@ class ProfileTab extends StatelessWidget {
                             shape: BoxShape.circle,
                           ),
                           alignment: Alignment.center,
-                          child: const Text(
-                            'AS',
-                            style: TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.w800,
-                              color: kGoldDark,
-                            ),
-                          ),
+                          child: kShowDemoContent
+                              ? const Text(
+                                  'AS',
+                                  style: TextStyle(
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.w800,
+                                    color: kGoldDark,
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.person_outline_rounded,
+                                  size: 34,
+                                  color: kGoldDark,
+                                ),
                         ),
                         const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black26,
-                            border: Border.all(
-                              color: AppColors.gold.withValues(alpha: 0.4),
+                        if (kShowDemoContent)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 3,
                             ),
-                            borderRadius: BorderRadius.circular(100),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.verified_user_rounded,
-                                size: 12,
-                                color: AppColors.gold,
+                            decoration: BoxDecoration(
+                              color: Colors.black26,
+                              border: Border.all(
+                                color: AppColors.gold.withValues(alpha: 0.4),
                               ),
-                              SizedBox(width: 4),
-                              Text(
-                                'Verified',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
+                              borderRadius: BorderRadius.circular(100),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.verified_user_rounded,
+                                  size: 12,
                                   color: AppColors.gold,
                                 ),
-                              ),
-                            ],
+                                SizedBox(width: 4),
+                                Text(
+                                  'Verified',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.gold,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
                         const SizedBox(height: 10),
-                        const Text(
-                          'Arjun Singh',
-                          style: TextStyle(
+                        Text(
+                          kShowDemoContent ? 'Arjun Singh' : 'Your profile',
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
                           ),
                         ),
-                        const Text(
-                          '@arjun.singh · New Delhi',
-                          style: TextStyle(fontSize: 12, color: Colors.white54),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'NDA Cadet · Army brat through and through 🪖\nAPS Patiala → APS Pune → APS Delhi',
-                          style: TextStyle(
+                        Text(
+                          kShowDemoContent
+                              ? '@arjun.singh · New Delhi'
+                              : 'Your details appear here after setup',
+                          style: const TextStyle(
                             fontSize: 12,
-                            color: Colors.white70,
-                            height: 1.55,
+                            color: Colors.white54,
                           ),
-                          textAlign: TextAlign.center,
                         ),
+                        if (kShowDemoContent) ...[
+                          const SizedBox(height: 8),
+                          const Text(
+                            'NDA Cadet · Army brat through and through 🪖\nAPS Patiala → APS Pune → APS Delhi',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white70,
+                              height: 1.55,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                         const SizedBox(height: 14),
-                        const Row(
+                        Row(
                           children: [
-                            _StatItem(value: '34', label: 'Batchmates'),
-                            _StatItem(value: '3', label: 'Schools'),
-                            _StatItem(value: '12', label: 'Connected'),
+                            _StatItem(
+                              value: kShowDemoContent ? '34' : '0',
+                              label: 'Batchmates',
+                            ),
+                            _StatItem(
+                              value: kShowDemoContent ? '3' : '0',
+                              label: 'Schools',
+                            ),
+                            _StatItem(
+                              value: kShowDemoContent ? '12' : '0',
+                              label: 'Connected',
+                            ),
                           ],
                         ),
                       ],
@@ -147,50 +177,37 @@ class ProfileTab extends StatelessWidget {
               children: [
                 const SectionLabel('My APS Schools'),
                 const SizedBox(height: 10),
-                const _SchoolPill(
-                  number: 1,
-                  name: 'APS Patiala',
-                  years: 'Class 10–12 · Section 12A · 2019–2022',
-                  mostMissed: true,
-                ),
-                const SizedBox(height: 8),
-                const _SchoolPill(
-                  number: 2,
-                  name: 'APS Pune',
-                  years: 'Class 6–9 · Section 9C · 2015–2019',
-                ),
-                const SizedBox(height: 8),
-                const _SchoolPill(
-                  number: 3,
-                  name: 'APS Delhi Cantt',
-                  years: 'Class 1–5 · 2010–2015',
-                ),
+                if (!kShowDemoContent)
+                  const EmptyState(
+                    icon: Icons.school_outlined,
+                    title: 'No schools yet',
+                    message:
+                        'The APS schools you add during onboarding will be listed here.',
+                  ),
+                if (kShowDemoContent) ...[
+                  const _SchoolPill(
+                    number: 1,
+                    name: 'APS Patiala',
+                    years: 'Class 10–12 · Section 12A · 2019–2022',
+                    mostMissed: true,
+                  ),
+                  const SizedBox(height: 8),
+                  const _SchoolPill(
+                    number: 2,
+                    name: 'APS Pune',
+                    years: 'Class 6–9 · Section 9C · 2015–2019',
+                  ),
+                  const SizedBox(height: 8),
+                  const _SchoolPill(
+                    number: 3,
+                    name: 'APS Delhi Cantt',
+                    years: 'Class 1–5 · 2010–2015',
+                  ),
+                ],
                 const SizedBox(height: 20),
                 const SectionLabel('Socials'),
                 const SizedBox(height: 10),
-                _SocialRow(
-                  iconBg: const Color(0xFFFCE4EC),
-                  icon: Icons.camera_alt_rounded,
-                  iconColor: const Color(0xFFC2185B),
-                  name: 'Instagram',
-                  value: '@arjun.rawat',
-                ),
-                const SizedBox(height: 7),
-                _SocialRow(
-                  iconBg: const Color(0xFFE8F5E9),
-                  icon: Icons.chat_rounded,
-                  iconColor: const Color(0xFF25D366),
-                  name: 'WhatsApp',
-                  value: '+91 98765 43210',
-                ),
-                const SizedBox(height: 7),
-                _SocialRow(
-                  iconBg: const Color(0xFFE3F2FD),
-                  icon: Icons.work_rounded,
-                  iconColor: const Color(0xFF0077B5),
-                  name: 'LinkedIn',
-                  value: 'arjun-singh-nda',
-                ),
+                const _SocialsSection(),
                 const SizedBox(height: 32),
               ],
             ),
@@ -306,10 +323,7 @@ class _SchoolPill extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text(
-                  years,
-                  style: const TextStyle(fontSize: 11, color: kTxt3),
-                ),
+                Text(years, style: const TextStyle(fontSize: 11, color: kTxt3)),
               ],
             ),
           ),
@@ -337,61 +351,384 @@ class _SchoolPill extends StatelessWidget {
 
 // ── Social row ────────────────────────────────────────────────────────────────
 
-class _SocialRow extends StatelessWidget {
-  const _SocialRow({
-    required this.iconBg,
-    required this.icon,
-    required this.iconColor,
-    required this.name,
-    required this.value,
-  });
+// ── Socials section ───────────────────────────────────────────────────────────
+//
+// Same layout as the registration socials page: every platform always gets a
+// box. A saved handle fills the box; a missing one shows the blank hint.
 
-  final Color iconBg;
-  final IconData icon;
-  final Color iconColor;
-  final String name;
-  final String value;
+class _SocialsSection extends ConsumerWidget {
+  const _SocialsSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final links =
+        ref.watch(mySocialLinksProvider).valueOrNull ?? const <SocialLink>[];
+    final custom = _linkFor(links, kCustomSocialPlatform.key);
+
+    return Column(
+      children: [
+        _SocialsCard(
+          children: [
+            for (int i = 0; i < kSocialPlatforms.length; i++) ...[
+              if (i > 0) const Divider(height: 1, color: kBorder),
+              _SocialBox(
+                info: kSocialPlatforms[i],
+                value: _linkFor(links, kSocialPlatforms[i].key)?.handle,
+                onTap: () => _edit(
+                  context,
+                  ref,
+                  kSocialPlatforms[i],
+                  _linkFor(links, kSocialPlatforms[i].key),
+                ),
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: 12),
+        _SocialsCard(
+          children: [
+            _SocialBox(
+              info: kCustomSocialPlatform,
+              name: custom?.label,
+              value: custom?.handle,
+              onTap: () => _edit(context, ref, kCustomSocialPlatform, custom),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> _edit(
+    BuildContext context,
+    WidgetRef ref,
+    SocialPlatformInfo info,
+    SocialLink? current,
+  ) async {
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => _EditSocialSheet(
+        info: info,
+        initialHandle: current?.handle ?? '',
+        initialLabel: current?.label ?? '',
+        onSave: (handle, label) async {
+          final userId = await ref.read(authRepositoryProvider).currentUserId();
+          if (userId == null || userId.isEmpty) {
+            throw StateError('Not logged in');
+          }
+          await ref
+              .read(profileRepositoryProvider)
+              .saveSocialLink(
+                userId: userId,
+                platform: info.key,
+                handle: handle,
+                label: info.key == kCustomSocialPlatform.key ? label : null,
+              );
+        },
+      ),
+    );
+
+    if (saved == true) {
+      ref.invalidate(mySocialLinksProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('${info.name} saved')));
+      }
+    }
+  }
+
+  SocialLink? _linkFor(List<SocialLink> links, String platformKey) {
+    for (final link in links) {
+      if (link.platform == platformKey && link.handle.isNotEmpty) return link;
+    }
+    return null;
+  }
+}
+
+class _SocialsCard extends StatelessWidget {
+  const _SocialsCard({required this.children});
+
+  final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(13, 10, 13, 10),
+      width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: kBorder, width: 1.5),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 30,
-            height: 30,
-            decoration: BoxDecoration(
-              color: iconBg,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, size: 16, color: iconColor),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.crimson.withValues(alpha: 0.2),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.crimson.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              name,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: kTxt,
+        ],
+      ),
+      child: Column(children: children),
+    );
+  }
+}
+
+class _SocialBox extends StatelessWidget {
+  const _SocialBox({
+    required this.info,
+    required this.onTap,
+    this.value,
+    this.name,
+  });
+
+  final SocialPlatformInfo info;
+  final VoidCallback onTap;
+  final String? value;
+  final String? name;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasValue = value != null && value!.isNotEmpty;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 22,
+                height: 22,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: info.badgeColor,
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                child: Text(
+                  info.badge,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w900,
+                    height: 1,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 7),
+              Text(
+                (name ?? info.name).toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.7,
+                  color: AppColors.crimson,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          GestureDetector(
+            onTap: onTap,
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFDDDDDD)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      hasValue ? value! : info.hint,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: hasValue ? kTxt : const Color(0xFFBBBBBB),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.edit_outlined, size: 16, color: kTxt3),
+                ],
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Edit social sheet ─────────────────────────────────────────────────────────
+
+class _EditSocialSheet extends StatefulWidget {
+  const _EditSocialSheet({
+    required this.info,
+    required this.initialHandle,
+    required this.initialLabel,
+    required this.onSave,
+  });
+
+  final SocialPlatformInfo info;
+  final String initialHandle;
+  final String initialLabel;
+  final Future<void> Function(String handle, String label) onSave;
+
+  @override
+  State<_EditSocialSheet> createState() => _EditSocialSheetState();
+}
+
+class _EditSocialSheetState extends State<_EditSocialSheet> {
+  late final _handleCtrl = TextEditingController(text: widget.initialHandle);
+  late final _labelCtrl = TextEditingController(text: widget.initialLabel);
+  bool _saving = false;
+  String? _error;
+
+  bool get _isCustom => widget.info.key == kCustomSocialPlatform.key;
+
+  @override
+  void dispose() {
+    _handleCtrl.dispose();
+    _labelCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final handle = _handleCtrl.text.trim();
+    final label = _labelCtrl.text.trim();
+    if (handle.isEmpty) {
+      setState(() => _error = 'Please enter a handle or link.');
+      return;
+    }
+    if (_isCustom && label.isEmpty) {
+      setState(() => _error = 'Please give this link a label.');
+      return;
+    }
+
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      await widget.onSave(handle, label);
+      if (mounted) Navigator.of(context).pop(true);
+    } on DioException catch (e) {
+      final payload = e.response?.data;
+      var message = 'Could not save. Please try again.';
+      if (payload is Map<String, dynamic> && payload['error'] is String) {
+        message = payload['error'] as String;
+      }
+      if (mounted) {
+        setState(() {
+          _saving = false;
+          _error = message;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _saving = false;
+          _error = 'Could not save. Please try again.';
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final keyboard = MediaQuery.viewInsetsOf(context).bottom;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(20, 16, 20, 20 + keyboard),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Text(
-            value,
+            'Edit ${widget.info.name}',
             style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: kCrimsonMed,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: kTxt,
             ),
           ),
+          const SizedBox(height: 14),
+          if (_isCustom) ...[
+            _field(_labelCtrl, 'Label — Portfolio · YouTube · GitHub'),
+            const SizedBox(height: 10),
+          ],
+          _field(_handleCtrl, widget.info.hint, autofocus: !_isCustom),
+          if (_error != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              _error!,
+              style: const TextStyle(fontSize: 12, color: Colors.redAccent),
+            ),
+          ],
+          const SizedBox(height: 16),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.crimson,
+              minimumSize: const Size(double.infinity, 46),
+              shape: const StadiumBorder(),
+            ),
+            onPressed: _saving ? null : _save,
+            child: _saving
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Text(
+                    'Save',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _field(
+    TextEditingController ctrl,
+    String hint, {
+    bool autofocus = false,
+  }) {
+    OutlineInputBorder border(Color color, [double width = 1]) {
+      return OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: color, width: width),
+      );
+    }
+
+    return TextField(
+      controller: ctrl,
+      autofocus: autofocus,
+      style: const TextStyle(fontSize: 13, color: kTxt),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: const TextStyle(color: Color(0xFFBBBBBB), fontSize: 13),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 10,
+        ),
+        border: border(const Color(0xFFDDDDDD)),
+        enabledBorder: border(const Color(0xFFDDDDDD)),
+        focusedBorder: border(AppColors.crimson, 1.5),
       ),
     );
   }
@@ -451,165 +788,152 @@ class _SettingsSheetState extends State<_SettingsSheet> {
               controller: ctrl,
               padding: EdgeInsets.zero,
               children: [
-                _SettingsSection(label: 'Account', rows: [
-                  _SettingsRow(
-                    iconBg: kCrimsonLight,
-                    icon: Icons.person_rounded,
-                    iconColor: kCrimsonMed,
-                    title: 'Edit profile',
-                    subtitle: 'Name, photo, bio, username',
-                    trailing: const Icon(
-                      Icons.chevron_right_rounded,
-                      size: 18,
-                      color: kTxt3,
+                _SettingsSection(
+                  label: 'Account',
+                  rows: [
+                    _SettingsRow(
+                      iconBg: kCrimsonLight,
+                      icon: Icons.person_rounded,
+                      iconColor: kCrimsonMed,
+                      title: 'Edit profile',
+                      subtitle: 'Name, photo, bio, username',
+                      onTap: () {},
                     ),
-                    onTap: () {},
-                  ),
-                  _SettingsRow(
-                    iconBg: kGoldLight,
-                    icon: Icons.school_rounded,
-                    iconColor: kGoldDark,
-                    title: 'My schools',
-                    subtitle: 'Add or edit APS schools',
-                    trailing: const Icon(
-                      Icons.chevron_right_rounded,
-                      size: 18,
-                      color: kTxt3,
+                    _SettingsRow(
+                      iconBg: kGoldLight,
+                      icon: Icons.school_rounded,
+                      iconColor: kGoldDark,
+                      title: 'My schools',
+                      subtitle: 'Add or edit APS schools',
+                      onTap: () {},
                     ),
-                    onTap: () {},
-                  ),
-                  _SettingsRow(
-                    iconBg: kCrimsonLight,
-                    icon: Icons.link_rounded,
-                    iconColor: kCrimsonMed,
-                    title: 'Social links',
-                    subtitle: 'Instagram, WhatsApp, LinkedIn',
-                    trailing: const Icon(
-                      Icons.chevron_right_rounded,
-                      size: 18,
-                      color: kTxt3,
+                    _SettingsRow(
+                      iconBg: kCrimsonLight,
+                      icon: Icons.link_rounded,
+                      iconColor: kCrimsonMed,
+                      title: 'Social links',
+                      subtitle: 'Instagram, WhatsApp, LinkedIn',
+                      onTap: () {},
                     ),
-                    onTap: () {},
-                  ),
-                ]),
-                _SettingsSection(label: 'Privacy', rows: [
-                  _SettingsRow(
-                    iconBg: kGoldLight,
-                    icon: Icons.visibility_rounded,
-                    iconColor: kGoldDark,
-                    title: 'Profile visibility',
-                    subtitle: 'Who can see your profile',
-                    trailing: const Text(
-                      'Batchmates only',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: kCrimsonMed,
+                  ],
+                ),
+                _SettingsSection(
+                  label: 'Privacy',
+                  rows: [
+                    _SettingsRow(
+                      iconBg: kGoldLight,
+                      icon: Icons.visibility_rounded,
+                      iconColor: kGoldDark,
+                      title: 'Profile visibility',
+                      subtitle: 'Who can see your profile',
+                      trailing: const Text(
+                        'Batchmates only',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: kCrimsonMed,
+                        ),
                       ),
+                      onTap: () {},
                     ),
-                    onTap: () {},
-                  ),
-                  _SettingsRow(
-                    iconBg: kCrimsonLight,
-                    icon: Icons.phone_rounded,
-                    iconColor: kCrimsonMed,
-                    title: 'Show phone number',
-                    subtitle: 'Visible to connected batchmates',
-                    trailing: _Toggle(
-                      value: _showPhone,
-                      onChanged: (v) => setState(() => _showPhone = v),
+                    _SettingsRow(
+                      iconBg: kCrimsonLight,
+                      icon: Icons.phone_rounded,
+                      iconColor: kCrimsonMed,
+                      title: 'Show phone number',
+                      subtitle: 'Visible to connected batchmates',
+                      trailing: _Toggle(
+                        value: _showPhone,
+                        onChanged: (v) => setState(() => _showPhone = v),
+                      ),
+                      onTap: () {},
                     ),
-                    onTap: () {},
-                  ),
-                  _SettingsRow(
-                    iconBg: kGoldLight,
-                    icon: Icons.visibility_off_rounded,
-                    iconColor: kGoldDark,
-                    title: 'Show profile views',
-                    subtitle: 'Let others know you viewed them',
-                    trailing: _Toggle(
-                      value: _showProfileViews,
-                      onChanged: (v) => setState(() => _showProfileViews = v),
+                    _SettingsRow(
+                      iconBg: kGoldLight,
+                      icon: Icons.visibility_off_rounded,
+                      iconColor: kGoldDark,
+                      title: 'Show profile views',
+                      subtitle: 'Let others know you viewed them',
+                      trailing: _Toggle(
+                        value: _showProfileViews,
+                        onChanged: (v) => setState(() => _showProfileViews = v),
+                      ),
+                      onTap: () {},
                     ),
-                    onTap: () {},
-                  ),
-                ]),
-                _SettingsSection(label: 'Notifications', rows: [
-                  _SettingsRow(
-                    iconBg: kCrimsonLight,
-                    icon: Icons.notifications_rounded,
-                    iconColor: kCrimsonMed,
-                    title: 'New batchmate joins',
-                    subtitle: 'Alert when someone from your batch joins',
-                    trailing: _Toggle(
-                      value: _notifyJoins,
-                      onChanged: (v) => setState(() => _notifyJoins = v),
+                  ],
+                ),
+                _SettingsSection(
+                  label: 'Notifications',
+                  rows: [
+                    _SettingsRow(
+                      iconBg: kCrimsonLight,
+                      icon: Icons.notifications_rounded,
+                      iconColor: kCrimsonMed,
+                      title: 'New batchmate joins',
+                      subtitle: 'Alert when someone from your batch joins',
+                      trailing: _Toggle(
+                        value: _notifyJoins,
+                        onChanged: (v) => setState(() => _notifyJoins = v),
+                      ),
+                      onTap: () {},
                     ),
-                    onTap: () {},
-                  ),
-                  _SettingsRow(
-                    iconBg: kGoldLight,
-                    icon: Icons.chat_bubble_rounded,
-                    iconColor: kGoldDark,
-                    title: 'New messages',
-                    subtitle: 'Push notification for messages',
-                    trailing: _Toggle(
-                      value: _notifyMessages,
-                      onChanged: (v) => setState(() => _notifyMessages = v),
+                    _SettingsRow(
+                      iconBg: kGoldLight,
+                      icon: Icons.chat_bubble_rounded,
+                      iconColor: kGoldDark,
+                      title: 'New messages',
+                      subtitle: 'Push notification for messages',
+                      trailing: _Toggle(
+                        value: _notifyMessages,
+                        onChanged: (v) => setState(() => _notifyMessages = v),
+                      ),
+                      onTap: () {},
                     ),
-                    onTap: () {},
-                  ),
-                  _SettingsRow(
-                    iconBg: kCrimsonLight,
-                    icon: Icons.person_add_rounded,
-                    iconColor: kCrimsonMed,
-                    title: 'Connection requests',
-                    subtitle: 'When someone wants to connect',
-                    trailing: _Toggle(
-                      value: _notifyRequests,
-                      onChanged: (v) => setState(() => _notifyRequests = v),
+                    _SettingsRow(
+                      iconBg: kCrimsonLight,
+                      icon: Icons.person_add_rounded,
+                      iconColor: kCrimsonMed,
+                      title: 'Connection requests',
+                      subtitle: 'When someone wants to connect',
+                      trailing: _Toggle(
+                        value: _notifyRequests,
+                        onChanged: (v) => setState(() => _notifyRequests = v),
+                      ),
+                      onTap: () {},
                     ),
-                    onTap: () {},
-                  ),
-                ]),
-                _SettingsSection(label: 'Support', rows: [
-                  _SettingsRow(
-                    iconBg: const Color(0xFFF0EDE5),
-                    icon: Icons.help_outline_rounded,
-                    iconColor: const Color(0xFF6A6050),
-                    title: 'Help & FAQ',
-                    subtitle: 'Common questions answered',
-                    trailing: const Icon(
-                      Icons.chevron_right_rounded,
-                      size: 18,
-                      color: kTxt3,
+                  ],
+                ),
+                _SettingsSection(
+                  label: 'Support',
+                  rows: [
+                    _SettingsRow(
+                      iconBg: const Color(0xFFF0EDE5),
+                      icon: Icons.help_outline_rounded,
+                      iconColor: const Color(0xFF6A6050),
+                      title: 'Help & FAQ',
+                      subtitle: 'Common questions answered',
+                      onTap: () {},
                     ),
-                    onTap: () {},
-                  ),
-                  _SettingsRow(
-                    iconBg: const Color(0xFFF0EDE5),
-                    icon: Icons.flag_outlined,
-                    iconColor: const Color(0xFF6A6050),
-                    title: 'Report a problem',
-                    subtitle: 'Something not working right?',
-                    trailing: const Icon(
-                      Icons.chevron_right_rounded,
-                      size: 18,
-                      color: kTxt3,
+                    _SettingsRow(
+                      iconBg: const Color(0xFFF0EDE5),
+                      icon: Icons.flag_outlined,
+                      iconColor: const Color(0xFF6A6050),
+                      title: 'Report a problem',
+                      subtitle: 'Something not working right?',
+                      onTap: () {},
                     ),
-                    onTap: () {},
-                  ),
-                  _SettingsRow(
-                    iconBg: const Color(0xFFFEF3F3),
-                    icon: Icons.logout_rounded,
-                    iconColor: const Color(0xFFC53030),
-                    title: 'Log out',
-                    subtitle: 'You can log back in anytime',
-                    titleColor: const Color(0xFFC53030),
-                    trailing: const SizedBox.shrink(),
-                    onTap: () {},
-                  ),
-                ]),
+                    _SettingsRow(
+                      iconBg: const Color(0xFFFEF3F3),
+                      icon: Icons.logout_rounded,
+                      iconColor: const Color(0xFFC53030),
+                      title: 'Log out',
+                      subtitle: 'You can log back in anytime',
+                      titleColor: const Color(0xFFC53030),
+                      trailing: const SizedBox.shrink(),
+                      onTap: () {},
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 20),
               ],
             ),
@@ -657,8 +981,12 @@ class _SettingsRow extends StatelessWidget {
     required this.iconColor,
     required this.title,
     required this.subtitle,
-    required this.trailing,
     required this.onTap,
+    this.trailing = const Icon(
+      Icons.chevron_right_rounded,
+      size: 18,
+      color: kTxt3,
+    ),
     this.titleColor = kTxt,
   });
 
@@ -746,9 +1074,7 @@ class _Toggle extends StatelessWidget {
             decoration: const BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(color: Color(0x20000000), blurRadius: 3),
-              ],
+              boxShadow: [BoxShadow(color: Color(0x20000000), blurRadius: 3)],
             ),
           ),
         ),

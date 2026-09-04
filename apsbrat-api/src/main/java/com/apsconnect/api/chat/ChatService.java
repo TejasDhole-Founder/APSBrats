@@ -42,19 +42,9 @@ public class ChatService {
         Map<UUID, PersonDto> byId = personService.toPeople(others).stream()
                 .collect(Collectors.toMap(PersonDto::id, Function.identity(), (a, b) -> a));
 
-        return conversations.stream().map(c -> {
-            User o = other(c, currentUserId);
-            var last = messageRepository.findTopByConversation_IdOrderByCreatedAtDesc(c.getId()).orElse(null);
-            long unreadCount = messageRepository
-                    .countByConversation_IdAndSender_IdNotAndReadAtIsNull(c.getId(), currentUserId);
-            return new ConversationDto(
-                    c.getId(),
-                    byId.get(o.getId()),
-                    last != null ? last.getBody() : null,
-                    last != null ? last.getCreatedAt() : c.getCreatedAt(),
-                    unreadCount > 0,
-                    unreadCount);
-        }).toList();
+        return conversations.stream()
+                .map(c -> toDto(c, currentUserId, byId.get(other(c, currentUserId).getId())))
+                .toList();
     }
 
     @Transactional
@@ -67,7 +57,8 @@ public class ChatService {
                 .orElseThrow(() -> new AppException("User not found", HttpStatus.NOT_FOUND));
         ensureNotBlocked(currentUserId, otherUserId);
         Conversation conversation = findOrCreate(currentUserId, otherUserId);
-        return toDto(conversation, currentUserId);
+        PersonDto other = personService.toPerson(other(conversation, currentUserId));
+        return toDto(conversation, currentUserId, other);
     }
 
     @Transactional(readOnly = true)
@@ -135,8 +126,9 @@ public class ChatService {
     }
 
     private Conversation findOrCreate(UUID currentUserId, UUID otherUserId) {
-        UUID low = currentUserId.compareTo(otherUserId) <= 0 ? currentUserId : otherUserId;
-        UUID high = low.equals(currentUserId) ? otherUserId : currentUserId;
+        boolean currentIsLow = currentUserId.compareTo(otherUserId) <= 0;
+        UUID low = currentIsLow ? currentUserId : otherUserId;
+        UUID high = currentIsLow ? otherUserId : currentUserId;
 
         return conversationRepository.findByUserA_IdAndUserB_Id(low, high)
                 .orElseGet(() -> {
@@ -158,14 +150,13 @@ public class ChatService {
         return conversation;
     }
 
-    private ConversationDto toDto(Conversation c, UUID currentUserId) {
-        User other = other(c, currentUserId);
+    private ConversationDto toDto(Conversation c, UUID currentUserId, PersonDto other) {
         var last = messageRepository.findTopByConversation_IdOrderByCreatedAtDesc(c.getId()).orElse(null);
         long unreadCount = messageRepository
                 .countByConversation_IdAndSender_IdNotAndReadAtIsNull(c.getId(), currentUserId);
         return new ConversationDto(
                 c.getId(),
-                personService.toPerson(other),
+                other,
                 last != null ? last.getBody() : null,
                 last != null ? last.getCreatedAt() : c.getCreatedAt(),
                 unreadCount > 0,

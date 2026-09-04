@@ -47,6 +47,23 @@ class AuthController extends StateNotifier<AuthState> {
     }
   }
 
+  // TEMPORARY dev shortcut — logs in as the seeded demo user. Remove before release.
+  static const _devPhone = '919999000001';
+  static const _devOtp = '000000';
+
+  Future<bool> devSkipLogin() async {
+    state = state.copyWith(loading: true, error: null);
+    try {
+      await _repo.requestOtp(_devPhone);
+      final user = await _repo.verifyOtp(_devPhone, _devOtp);
+      state = state.copyWith(loading: false, user: user);
+      return true;
+    } catch (e) {
+      state = state.copyWith(loading: false, error: 'Skip failed — is the API running?');
+      return false;
+    }
+  }
+
   Future<void> logout() async {
     await _repo.logout();
     state = const AuthState();
@@ -55,8 +72,4 @@ class AuthController extends StateNotifier<AuthState> {
 
 final authControllerProvider = StateNotifierProvider<AuthController, AuthState>((ref) {
   return AuthController(ref.watch(authRepositoryProvider));
-});
-
-final currentUserIdProvider = FutureProvider<String?>((ref) {
-  return ref.watch(authRepositoryProvider).currentUserId();
 });

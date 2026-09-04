@@ -22,22 +22,17 @@ class _HomeScreenState extends State<HomeScreen> {
   AppPerson? _batchmatePerson;
 
   void _openChat(AppPerson p) => setState(() {
-        _chatPerson = p;
-        _batchmatePerson = null;
-      });
+    _chatPerson = p;
+    _batchmatePerson = null;
+  });
 
   void _openBatchmate(AppPerson p) => setState(() {
-        _batchmatePerson = p;
-        _chatPerson = null;
-      });
+    _batchmatePerson = p;
+    _chatPerson = null;
+  });
 
   void _closeChat() => setState(() => _chatPerson = null);
   void _closeBatchmate() => setState(() => _batchmatePerson = null);
-
-  void _messageFromBatchmate(AppPerson p) => setState(() {
-        _batchmatePerson = null;
-        _chatPerson = p;
-      });
 
   @override
   Widget build(BuildContext context) {
@@ -75,14 +70,11 @@ class _HomeScreenState extends State<HomeScreen> {
               BatchmateOverlay(
                 person: _batchmatePerson!,
                 onBack: _closeBatchmate,
-                onMessage: _messageFromBatchmate,
+                onMessage: _openChat,
               ),
 
             if (_chatPerson != null)
-              ChatOverlay(
-                person: _chatPerson!,
-                onBack: _closeChat,
-              ),
+              ChatOverlay(person: _chatPerson!, onBack: _closeChat),
           ],
         ),
       ),
@@ -130,15 +122,21 @@ class _BottomNav extends StatelessWidget {
                       Icon(
                         active ? activeIcon : inactiveIcon,
                         size: 22,
-                        color: active ? AppColors.crimson : const Color(0xFFAAAAAA),
+                        color: active
+                            ? AppColors.crimson
+                            : const Color(0xFFAAAAAA),
                       ),
                       const SizedBox(height: 3),
                       Text(
                         label,
                         style: TextStyle(
                           fontSize: 10,
-                          fontWeight: active ? FontWeight.w700 : FontWeight.w400,
-                          color: active ? AppColors.crimson : const Color(0xFFAAAAAA),
+                          fontWeight: active
+                              ? FontWeight.w700
+                              : FontWeight.w400,
+                          color: active
+                              ? AppColors.crimson
+                              : const Color(0xFFAAAAAA),
                         ),
                       ),
                       const SizedBox(height: 2),

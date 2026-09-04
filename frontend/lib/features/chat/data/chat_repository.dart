@@ -1,4 +1,5 @@
 import 'package:apsbrat_frontend/core/constants/api_endpoints.dart';
+import 'package:apsbrat_frontend/core/network/api_response.dart';
 import 'package:apsbrat_frontend/core/network/dio_client.dart';
 import 'package:apsbrat_frontend/core/network/paged_result.dart';
 import 'package:apsbrat_frontend/features/chat/data/chat_models.dart';
@@ -11,13 +12,12 @@ class ChatRepository {
 
   Future<List<Conversation>> conversations() async {
     final res = await _dio.get<dynamic>(ApiEndpoints.conversations);
-    final list = (res.data['data'] as List?) ?? const [];
-    return list.map((e) => Conversation.fromJson(e as Map<String, dynamic>)).toList();
+    return dataList(res, Conversation.fromJson);
   }
 
   Future<Conversation> openWith(String userId) async {
     final res = await _dio.post<dynamic>(ApiEndpoints.conversationWith(userId));
-    return Conversation.fromJson(res.data['data'] as Map<String, dynamic>);
+    return Conversation.fromJson(dataMap(res));
   }
 
   Future<PagedResult<ChatMessage>> messages(String conversationId, {String? cursor, int limit = 30}) async {
@@ -28,8 +28,8 @@ class ChatRepository {
         'limit': limit,
       },
     );
-    final data = res.data['data'] as Map<String, dynamic>?;
-    if (data == null) {
+    final data = dataMap(res);
+    if (data.isEmpty) {
       return PagedResult.empty<ChatMessage>();
     }
     return PagedResult.fromJson(data, ChatMessage.fromJson);
@@ -40,7 +40,7 @@ class ChatRepository {
       ApiEndpoints.conversationMessages(conversationId),
       data: {'body': body},
     );
-    return ChatMessage.fromJson(res.data['data'] as Map<String, dynamic>);
+    return ChatMessage.fromJson(dataMap(res));
   }
 
   Future<void> markRead(String conversationId) async {

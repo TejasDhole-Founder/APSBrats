@@ -51,8 +51,7 @@ class _BatchmateOverlayState extends State<BatchmateOverlay> {
                                   width: 32,
                                   height: 32,
                                   decoration: BoxDecoration(
-                                    color:
-                                        Colors.white.withValues(alpha: 0.12),
+                                    color: Colors.white.withValues(alpha: 0.12),
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(
@@ -71,8 +70,10 @@ class _BatchmateOverlayState extends State<BatchmateOverlay> {
                             height: 72,
                             decoration: BoxDecoration(
                               color: p.bg,
-                              border:
-                                  Border.all(color: AppColors.gold, width: 3),
+                              border: Border.all(
+                                color: AppColors.gold,
+                                width: 3,
+                              ),
                               shape: BoxShape.circle,
                             ),
                             alignment: Alignment.center,
@@ -112,11 +113,11 @@ class _BatchmateOverlayState extends State<BatchmateOverlay> {
                                   vertical: 3,
                                 ),
                                 decoration: BoxDecoration(
-                                  color:
-                                      AppColors.gold.withValues(alpha: 0.2),
+                                  color: AppColors.gold.withValues(alpha: 0.2),
                                   border: Border.all(
-                                    color:
-                                        AppColors.gold.withValues(alpha: 0.3),
+                                    color: AppColors.gold.withValues(
+                                      alpha: 0.3,
+                                    ),
                                   ),
                                   borderRadius: BorderRadius.circular(100),
                                 ),
@@ -190,8 +191,7 @@ class _BatchmateOverlayState extends State<BatchmateOverlay> {
                           child: FilledButton.icon(
                             style: FilledButton.styleFrom(
                               backgroundColor: AppColors.crimson,
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 11),
+                              padding: const EdgeInsets.symmetric(vertical: 11),
                               shape: const StadiumBorder(),
                             ),
                             onPressed: () => widget.onMessage(p),
@@ -223,8 +223,9 @@ class _BatchmateOverlayState extends State<BatchmateOverlay> {
                                     : kCrimsonLight,
                                 border: Border.all(
                                   color: _connected
-                                      ? const Color(0xFF065F46)
-                                          .withValues(alpha: 0.3)
+                                      ? const Color(
+                                          0xFF065F46,
+                                        ).withValues(alpha: 0.3)
                                       : const Color(0x2F7B1414),
                                 ),
                                 borderRadius: BorderRadius.circular(100),

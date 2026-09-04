@@ -118,7 +118,9 @@ class _ToggleItem extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: active ? AppColors.crimson : Colors.white.withValues(alpha: 0.7),
+              color: active
+                  ? AppColors.crimson
+                  : Colors.white.withValues(alpha: 0.7),
             ),
           ),
         ),
@@ -132,22 +134,36 @@ class _ToggleItem extends StatelessWidget {
 class _CommunitiesView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    if (dummyCommunities.isEmpty && dummyDiscoverCommunities.isEmpty) {
+      return const Center(
+        child: EmptyState(
+          icon: Icons.groups_outlined,
+          title: 'No communities yet',
+          message:
+              'Your class and school communities appear here automatically once your school history is set.',
+        ),
+      );
+    }
     return ListView(
       padding: const EdgeInsets.fromLTRB(18, 16, 18, 24),
       children: [
         const SectionLabel('YOUR AUTO-JOINED COMMUNITIES'),
         const SizedBox(height: 10),
-        ...dummyCommunities.map((c) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: _CommunityCard(community: c),
-            )),
+        ...dummyCommunities.map(
+          (c) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _CommunityCard(community: c),
+          ),
+        ),
         const SizedBox(height: 8),
         const SectionLabel('DISCOVER MORE'),
         const SizedBox(height: 10),
-        ...dummyDiscoverCommunities.map((c) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: _DiscoverCard(community: c),
-            )),
+        ...dummyDiscoverCommunities.map(
+          (c) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _DiscoverCard(community: c),
+          ),
+        ),
       ],
     );
   }
@@ -229,7 +245,11 @@ class _CommunityCard extends StatelessWidget {
                     const SizedBox(height: 5),
                     Row(
                       children: [
-                        const Icon(Icons.people_outline_rounded, size: 12, color: kTxt3),
+                        const Icon(
+                          Icons.people_outline_rounded,
+                          size: 12,
+                          color: kTxt3,
+                        ),
                         const SizedBox(width: 3),
                         Text(
                           '${community.members} members',
@@ -276,10 +296,13 @@ class _CommunityCard extends StatelessWidget {
                       color: Colors.white,
                     ),
                   ),
-                ),
-              if (community.unreadCount == 0)
+                )
+              else
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.gold.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(100),
@@ -303,7 +326,10 @@ class _CommunityCard extends StatelessWidget {
               children: [
                 TextSpan(
                   text: '${community.lastSender}: ',
-                  style: const TextStyle(fontWeight: FontWeight.w700, color: kTxt),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: kTxt,
+                  ),
                 ),
                 TextSpan(text: community.lastMessage),
               ],
@@ -512,21 +538,30 @@ class _DirectMessagesView extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(18, 14, 18, 10),
-          child: FeedSearchBar(
-            hint: 'Search messages...',
-            onChanged: (_) {},
-          ),
+          child: FeedSearchBar(hint: 'Search messages...', onChanged: (_) {}),
         ),
         Expanded(
-          child: ListView.separated(
-            padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
-            itemCount: dummyMessages.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
-            itemBuilder: (context, i) {
-              final m = dummyMessages[i];
-              return _MessageCard(msg: m, onTap: () => onOpenChat(m.person));
-            },
-          ),
+          child: dummyMessages.isEmpty
+              ? const Center(
+                  child: EmptyState(
+                    icon: Icons.chat_bubble_outline_rounded,
+                    title: 'No messages yet',
+                    message:
+                        'Connect with a batchmate and say hi — your chats will show up here.',
+                  ),
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+                  itemCount: dummyMessages.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemBuilder: (context, i) {
+                    final m = dummyMessages[i];
+                    return _MessageCard(
+                      msg: m,
+                      onTap: () => onOpenChat(m.person),
+                    );
+                  },
+                ),
         ),
       ],
     );
@@ -582,8 +617,9 @@ class _MessageCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12,
                       color: msg.unread ? kTxt2 : kTxt3,
-                      fontWeight:
-                          msg.unread ? FontWeight.w500 : FontWeight.w400,
+                      fontWeight: msg.unread
+                          ? FontWeight.w500
+                          : FontWeight.w400,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),

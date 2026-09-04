@@ -4,6 +4,8 @@ class ApiEndpoints {
   // Existing
   static const schools = '/schools';
   static const users = '/users';
+  static const usersUsernameAvailable = '/users/username-available';
+  static const usersPhoneAvailable = '/users/phone-available';
 
   // Auth
   static const authRequestOtp = '/auth/request-otp';
@@ -27,9 +29,11 @@ class ApiEndpoints {
   // Connections
   static const connections = '/connections';
   static const connectionsPending = '/connections/pending';
-  static String connectionStatus(String userId) => '/connections/$userId/status';
+  static String connectionStatus(String userId) =>
+      '/connections/$userId/status';
   static String connectionRequest(String userId) => '/connections/$userId';
-  static String connectionAccept(String userId) => '/connections/$userId/accept';
+  static String connectionAccept(String userId) =>
+      '/connections/$userId/accept';
 
   // Communities
   static const communities = '/communities';
@@ -41,8 +45,10 @@ class ApiEndpoints {
 
   // Conversations (DMs)
   static const conversations = '/conversations';
-  static String conversationWith(String userId) => '/conversations/with/$userId';
-  static String conversationMessages(String id) => '/conversations/$id/messages';
+  static String conversationWith(String userId) =>
+      '/conversations/with/$userId';
+  static String conversationMessages(String id) =>
+      '/conversations/$id/messages';
   static String conversationRead(String id) => '/conversations/$id/read';
 
   // Notifications
@@ -56,4 +62,7 @@ class ApiEndpoints {
 
   // Profiles
   static String profile(String username) => '/profiles/$username';
+  static String userSocialLinks(String userId) => '/users/$userId/social-links';
+  static String userSocialLink(String userId, String platform) =>
+      '/users/$userId/social-links/$platform';
 }

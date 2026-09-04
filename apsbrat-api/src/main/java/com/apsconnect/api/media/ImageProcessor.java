@@ -49,12 +49,7 @@ public class ImageProcessor {
             throw bad("Unsupported or corrupt image");
         }
 
-        BufferedImage scaled = scaleWithinBounds(source);
-        BufferedImage rgb = new BufferedImage(scaled.getWidth(), scaled.getHeight(), BufferedImage.TYPE_INT_RGB);
-        Graphics2D g = rgb.createGraphics();
-        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        g.drawImage(scaled, 0, 0, null);
-        g.dispose();
+        BufferedImage rgb = scaleToRgb(source);
 
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -67,21 +62,19 @@ public class ImageProcessor {
         }
     }
 
-    private BufferedImage scaleWithinBounds(BufferedImage source) {
+    // One pass: scale within MAX_DIMENSION and convert to RGB in a single draw.
+    private BufferedImage scaleToRgb(BufferedImage source) {
         int w = source.getWidth();
         int h = source.getHeight();
-        if (w <= MAX_DIMENSION && h <= MAX_DIMENSION) {
-            return source;
-        }
-        double scale = Math.min((double) MAX_DIMENSION / w, (double) MAX_DIMENSION / h);
+        double scale = Math.min(1.0, Math.min((double) MAX_DIMENSION / w, (double) MAX_DIMENSION / h));
         int nw = Math.max(1, (int) Math.round(w * scale));
         int nh = Math.max(1, (int) Math.round(h * scale));
-        BufferedImage resized = new BufferedImage(nw, nh, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = resized.createGraphics();
+        BufferedImage rgb = new BufferedImage(nw, nh, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = rgb.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
         g.drawImage(source, 0, 0, nw, nh, null);
         g.dispose();
-        return resized;
+        return rgb;
     }
 
     private AppException bad(String message) {

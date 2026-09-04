@@ -13,7 +13,6 @@ import java.util.UUID;
 
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, UUID> {
 
-    List<ChatMessage> findAllByConversation_IdOrderByCreatedAtAsc(UUID conversationId);
 
     List<ChatMessage> findByConversation_IdOrderByCreatedAtDesc(UUID conversationId, Pageable pageable);
 
@@ -24,7 +23,6 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, UUID> 
 
     long countByConversation_IdAndSender_IdNotAndReadAtIsNull(UUID conversationId, UUID senderId);
 
-    List<ChatMessage> findAllBySender_IdOrderByCreatedAtAsc(UUID senderId);
 
     @Modifying
     @Query("""

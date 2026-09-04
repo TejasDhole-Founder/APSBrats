@@ -49,15 +49,11 @@ class Person {
 
   // Deterministic avatar colors derived from the name, so the UI keeps its
   // colourful avatars without the backend needing to store colors.
-  Color get bg {
-    final palette = _avatarPalette[name.hashCode.abs() % _avatarPalette.length];
-    return palette.$1;
-  }
+  (Color, Color) get _colors => _avatarPalette[name.hashCode.abs() % _avatarPalette.length];
 
-  Color get fg {
-    final palette = _avatarPalette[name.hashCode.abs() % _avatarPalette.length];
-    return palette.$2;
-  }
+  Color get bg => _colors.$1;
+
+  Color get fg => _colors.$2;
 }
 
 const _avatarPalette = <(Color, Color)>[

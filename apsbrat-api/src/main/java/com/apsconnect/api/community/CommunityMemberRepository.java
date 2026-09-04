@@ -9,7 +9,6 @@ import java.util.UUID;
 public interface CommunityMemberRepository extends JpaRepository<CommunityMember, UUID> {
     List<CommunityMember> findAllByUser_IdOrderByJoinedAtDesc(UUID userId);
 
-    List<CommunityMember> findAllByCommunity_Id(UUID communityId);
 
     // Only the avatars we actually render — avoids loading the full membership.
     List<CommunityMember> findTop5ByCommunity_IdOrderByJoinedAtAsc(UUID communityId);

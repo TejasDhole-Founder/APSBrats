@@ -12,7 +12,6 @@ public interface ConnectionRepository extends JpaRepository<Connection, UUID> {
 
     Optional<Connection> findByRequester_IdAndAddressee_Id(UUID requesterId, UUID addresseeId);
 
-    List<Connection> findAllByRequester_IdOrAddressee_Id(UUID requesterId, UUID addresseeId);
 
     @Query("""
             SELECT c FROM Connection c

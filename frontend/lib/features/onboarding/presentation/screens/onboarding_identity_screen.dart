@@ -1,9 +1,13 @@
+import 'package:apsbrat_frontend/core/network/dio_client.dart';
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
+import 'package:apsbrat_frontend/features/onboarding/data/services/onboarding_registration_service.dart';
+import 'package:apsbrat_frontend/features/onboarding/presentation/providers/availability_checker.dart';
 import 'package:apsbrat_frontend/features/onboarding/presentation/providers/onboarding_flow_provider.dart';
 import 'package:apsbrat_frontend/features/onboarding/presentation/widgets/onboarding_frame.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 class OnboardingIdentityScreen extends ConsumerStatefulWidget {
   const OnboardingIdentityScreen({super.key});
@@ -20,6 +24,8 @@ class _OnboardingIdentityScreenState
   final _lastNameController = TextEditingController();
   final _usernameController = TextEditingController();
   final _phoneController = TextEditingController();
+  late final AvailabilityChecker _usernameCheck;
+  late final AvailabilityChecker _phoneCheck;
   final _emailController = TextEditingController();
   final _dobController = TextEditingController();
   final _cityController = TextEditingController();
@@ -41,12 +47,27 @@ class _OnboardingIdentityScreenState
     _professionController.text = s.profession;
     _gender = s.gender.isEmpty ? null : s.gender;
     _isStudent = s.isStudent;
+    const service = OnboardingRegistrationService();
+    _usernameCheck = AvailabilityChecker(
+      controller: _usernameController,
+      fetch: (v) => service.usernameAvailability(ref.read(dioProvider), v),
+    )..addListener(_refresh);
+    _phoneCheck = AvailabilityChecker(
+      controller: _phoneController,
+      fetch: (v) => service.phoneAvailability(ref.read(dioProvider), v),
+    )..addListener(_refresh);
+  }
+
+  void _refresh() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
+    _usernameCheck.dispose();
+    _phoneCheck.dispose();
     _usernameController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
@@ -56,9 +77,19 @@ class _OnboardingIdentityScreenState
     super.dispose();
   }
 
-  void _next() {
+  Future<void> _next() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    ref.read(onboardingFlowProvider.notifier).saveIdentity(
+    if (!await _usernameCheck.passes()) {
+      _usernameCheck.focus.requestFocus();
+      return;
+    }
+    if (!await _phoneCheck.passes()) {
+      _phoneCheck.focus.requestFocus();
+      return;
+    }
+    ref
+        .read(onboardingFlowProvider.notifier)
+        .saveIdentity(
           firstName: _firstNameController.text.trim(),
           lastName: _lastNameController.text.trim(),
           username: _usernameController.text.trim(),
@@ -70,7 +101,7 @@ class _OnboardingIdentityScreenState
           gender: _gender ?? '',
           isStudent: _isStudent,
         );
-    context.go('/onboarding/verify');
+    if (mounted) context.go('/onboarding/verify');
   }
 
   Future<void> _pickDob() async {
@@ -82,8 +113,7 @@ class _OnboardingIdentityScreenState
       lastDate: DateTime(now.year - 5),
     );
     if (picked != null) {
-      _dobController.text =
-          '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
+      _dobController.text = DateFormat('dd/MM/yyyy').format(picked);
     }
   }
 
@@ -100,6 +130,8 @@ class _OnboardingIdentityScreenState
           firstNameController: _firstNameController,
           lastNameController: _lastNameController,
           usernameController: _usernameController,
+          usernameCheck: _usernameCheck,
+          phoneCheck: _phoneCheck,
           phoneController: _phoneController,
           emailController: _emailController,
           dobController: _dobController,
@@ -123,6 +155,8 @@ class _FormBody extends StatelessWidget {
     required this.firstNameController,
     required this.lastNameController,
     required this.usernameController,
+    required this.usernameCheck,
+    required this.phoneCheck,
     required this.phoneController,
     required this.emailController,
     required this.dobController,
@@ -138,6 +172,8 @@ class _FormBody extends StatelessWidget {
   final TextEditingController firstNameController;
   final TextEditingController lastNameController;
   final TextEditingController usernameController;
+  final AvailabilityChecker usernameCheck;
+  final AvailabilityChecker phoneCheck;
   final TextEditingController phoneController;
   final TextEditingController emailController;
   final TextEditingController dobController;
@@ -207,19 +243,29 @@ class _FormBody extends StatelessWidget {
           // First Name + Last Name
           Row(
             children: [
-              Expanded(child: _labeledField('FIRST NAME', TextFormField(
-                controller: firstNameController,
-                decoration: _dec('Arjun'),
-                validator: _required,
-                textCapitalization: TextCapitalization.words,
-              ))),
+              Expanded(
+                child: _labeledField(
+                  'FIRST NAME',
+                  TextFormField(
+                    controller: firstNameController,
+                    decoration: _dec('Arjun'),
+                    validator: _required,
+                    textCapitalization: TextCapitalization.words,
+                  ),
+                ),
+              ),
               const SizedBox(width: 10),
-              Expanded(child: _labeledField('LAST NAME', TextFormField(
-                controller: lastNameController,
-                decoration: _dec('Singh'),
-                validator: _required,
-                textCapitalization: TextCapitalization.words,
-              ))),
+              Expanded(
+                child: _labeledField(
+                  'LAST NAME',
+                  TextFormField(
+                    controller: lastNameController,
+                    decoration: _dec('Singh'),
+                    validator: _required,
+                    textCapitalization: TextCapitalization.words,
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -229,16 +275,26 @@ class _FormBody extends StatelessWidget {
             'USERNAME',
             TextFormField(
               controller: usernameController,
-              decoration: _dec('@arjun.singh'),
+              focusNode: usernameCheck.focus,
+              decoration: _dec(
+                '@arjun.singh',
+                suffix: _availabilitySuffix(usernameCheck),
+              ).copyWith(errorText: usernameCheck.error),
               validator: _required,
             ),
-            hint: 'Your unique handle — how others find you',
+            hint: _availabilityHint(
+              usernameCheck,
+              idle: 'Your unique handle — how others find you',
+              ok: 'Username is available',
+            ),
+            hintColor: usernameCheck.confirmed ? Colors.green : null,
           ),
           const SizedBox(height: 12),
 
           // Contact Details
           _ContactCard(
             phoneController: phoneController,
+            phoneCheck: phoneCheck,
             emailController: emailController,
             dec: _dec,
           ),
@@ -249,42 +305,68 @@ class _FormBody extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: _labeledField('DATE OF BIRTH', TextFormField(
-                  controller: dobController,
-                  readOnly: true,
-                  onTap: onPickDob,
-                  decoration: _dec('DD / MM / YYYY',
-                    suffix: const Icon(Icons.calendar_today_outlined, size: 16, color: _hint),
+                child: _labeledField(
+                  'DATE OF BIRTH',
+                  TextFormField(
+                    controller: dobController,
+                    readOnly: true,
+                    onTap: onPickDob,
+                    decoration: _dec(
+                      'DD / MM / YYYY',
+                      suffix: const Icon(
+                        Icons.calendar_today_outlined,
+                        size: 16,
+                        color: _hint,
+                      ),
+                    ),
                   ),
-                )),
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _labeledField('GENDER', DropdownButtonFormField<String>(
-                  initialValue: gender,
-                  hint: const Text('Select', style: TextStyle(fontSize: 13, color: _hint)),
-                  decoration: _dec('').copyWith(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                child: _labeledField(
+                  'GENDER',
+                  DropdownButtonFormField<String>(
+                    initialValue: gender,
+                    isDense: true,
+                    isExpanded: true,
+                    hint: const Text(
+                      'Select',
+                      style: TextStyle(fontSize: 13, color: _hint),
+                    ),
+                    decoration: _dec(''),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF1A0A0A),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'MALE', child: Text('Male')),
+                      DropdownMenuItem(value: 'FEMALE', child: Text('Female')),
+                      DropdownMenuItem(
+                        value: 'NON_BINARY',
+                        child: Text('Non-binary'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'PREFER_NOT',
+                        child: Text('Prefer not to say'),
+                      ),
+                    ],
+                    onChanged: onGenderChanged,
                   ),
-                  style: const TextStyle(fontSize: 13, color: Color(0xFF1A0A0A)),
-                  items: const [
-                    DropdownMenuItem(value: 'MALE', child: Text('Male')),
-                    DropdownMenuItem(value: 'FEMALE', child: Text('Female')),
-                    DropdownMenuItem(value: 'NON_BINARY', child: Text('Non-binary')),
-                    DropdownMenuItem(value: 'PREFER_NOT', child: Text('Prefer not to say')),
-                  ],
-                  onChanged: onGenderChanged,
-                )),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 12),
 
           // Current city
-          _labeledField('CURRENT CITY', TextFormField(
-            controller: cityController,
-            decoration: _dec('Where are you based right now?'),
-          )),
+          _labeledField(
+            'CURRENT CITY',
+            TextFormField(
+              controller: cityController,
+              decoration: _dec('Where are you based right now?'),
+            ),
+          ),
           const SizedBox(height: 12),
 
           // Profession
@@ -308,7 +390,12 @@ class _FormBody extends StatelessWidget {
     );
   }
 
-  Widget _labeledField(String label, Widget field, {String? hint}) {
+  Widget _labeledField(
+    String label,
+    Widget field, {
+    String? hint,
+    Color? hintColor,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -317,7 +404,13 @@ class _FormBody extends StatelessWidget {
         field,
         if (hint != null) ...[
           const SizedBox(height: 3),
-          Text(hint, style: const TextStyle(fontSize: 10, color: Color(0xFF9A9280))),
+          Text(
+            hint,
+            style: TextStyle(
+              fontSize: 10,
+              color: hintColor ?? const Color(0xFF9A9280),
+            ),
+          ),
         ],
       ],
     );
@@ -325,6 +418,46 @@ class _FormBody extends StatelessWidget {
 
   static String? _required(String? v) =>
       (v == null || v.trim().isEmpty) ? 'Required' : null;
+}
+
+// ── Availability helpers (shared by the username and phone fields) ────────────
+
+/// Spinner while checking, green tick when confirmed available, else nothing.
+Widget? _availabilitySuffix(AvailabilityChecker check) {
+  if (check.checking) {
+    return const Padding(
+      padding: EdgeInsets.all(13),
+      child: SizedBox(
+        width: 14,
+        height: 14,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: _FormBody._hint,
+        ),
+      ),
+    );
+  }
+  if (check.confirmed) {
+    return const Icon(
+      Icons.check_circle_rounded,
+      size: 18,
+      color: Colors.green,
+    );
+  }
+  return null;
+}
+
+/// Helper text under the field. Null while an error is showing (the red error
+/// text takes its place); otherwise checking / [ok] / the normal [idle] hint.
+String? _availabilityHint(
+  AvailabilityChecker check, {
+  required String idle,
+  required String ok,
+}) {
+  if (check.error != null) return null;
+  if (check.checking) return 'Checking availability…';
+  if (check.confirmed) return ok;
+  return idle;
 }
 
 // ── Profile photo card ────────────────────────────────────────────────────────
@@ -356,8 +489,19 @@ class _PhotoCard extends StatelessWidget {
             child: const Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.camera_alt_outlined, size: 18, color: Color(0xFF9A9280)),
-                Text('PHOTO', style: TextStyle(fontSize: 7, color: Color(0xFF9A9280), letterSpacing: 0.5)),
+                Icon(
+                  Icons.camera_alt_outlined,
+                  size: 18,
+                  color: Color(0xFF9A9280),
+                ),
+                Text(
+                  'PHOTO',
+                  style: TextStyle(
+                    fontSize: 7,
+                    color: Color(0xFF9A9280),
+                    letterSpacing: 0.5,
+                  ),
+                ),
               ],
             ),
           ),
@@ -368,12 +512,20 @@ class _PhotoCard extends StatelessWidget {
               children: [
                 Text(
                   'Add a profile photo',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1A0A0A)),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1A0A0A),
+                  ),
                 ),
                 SizedBox(height: 2),
                 Text(
                   'Help your batchmates recognise you after all these years',
-                  style: TextStyle(fontSize: 11, color: Color(0xFF9A9280), height: 1.4),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFF9A9280),
+                    height: 1.4,
+                  ),
                 ),
               ],
             ),
@@ -389,11 +541,13 @@ class _PhotoCard extends StatelessWidget {
 class _ContactCard extends StatelessWidget {
   const _ContactCard({
     required this.phoneController,
+    required this.phoneCheck,
     required this.emailController,
     required this.dec,
   });
 
   final TextEditingController phoneController;
+  final AvailabilityChecker phoneCheck;
   final TextEditingController emailController;
   final InputDecoration Function(String, {Widget? suffix, String? prefix}) dec;
 
@@ -424,13 +578,22 @@ class _ContactCard extends StatelessWidget {
           // Phone row
           Row(
             children: [
-              const Icon(Icons.phone_outlined, size: 16, color: Color(0xFF9A9280)),
+              const Icon(
+                Icons.phone_outlined,
+                size: 16,
+                color: Color(0xFF9A9280),
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: TextFormField(
                   controller: phoneController,
+                  focusNode: phoneCheck.focus,
                   keyboardType: TextInputType.phone,
-                  decoration: dec('Phone number', prefix: '+91 '),
+                  decoration: dec(
+                    'Phone number',
+                    prefix: '+91 ',
+                    suffix: _availabilitySuffix(phoneCheck),
+                  ).copyWith(errorText: phoneCheck.error),
                   validator: (v) =>
                       (v == null || v.trim().isEmpty) ? 'Required' : null,
                 ),
@@ -441,21 +604,35 @@ class _ContactCard extends StatelessWidget {
           // Email row
           Row(
             children: [
-              const Icon(Icons.email_outlined, size: 16, color: Color(0xFF9A9280)),
+              const Icon(
+                Icons.email_outlined,
+                size: 16,
+                color: Color(0xFF9A9280),
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: TextFormField(
                   controller: emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: dec('arjun@example.com'),
+                  decoration: dec('Email address (optional)'),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 6),
-          const Text(
-            'Used to verify you later — not shown publicly',
-            style: TextStyle(fontSize: 10, color: Color(0xFF9A9280)),
+          Text(
+            _availabilityHint(
+                  phoneCheck,
+                  idle: 'Used to verify you later — not shown publicly',
+                  ok: 'Phone number is available',
+                ) ??
+                'Used to verify you later — not shown publicly',
+            style: TextStyle(
+              fontSize: 10,
+              color: phoneCheck.confirmed
+                  ? Colors.green
+                  : const Color(0xFF9A9280),
+            ),
           ),
         ],
       ),
@@ -480,8 +657,16 @@ class _StatusToggle extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _Chip(label: 'APS Alumni', active: !isStudent, onTap: () => onChanged(false)),
-          _Chip(label: 'Current student', active: isStudent, onTap: () => onChanged(true)),
+          _Chip(
+            label: 'APS Alumni',
+            active: !isStudent,
+            onTap: () => onChanged(false),
+          ),
+          _Chip(
+            label: 'Current student',
+            active: isStudent,
+            onTap: () => onChanged(true),
+          ),
         ],
       ),
     );
