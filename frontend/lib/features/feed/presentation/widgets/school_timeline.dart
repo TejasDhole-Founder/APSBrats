@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
 import 'package:apsbrat_frontend/features/feed/presentation/widgets/feed_shared.dart';
+import 'package:apsbrat_frontend/features/onboarding/presentation/widgets/school_history_editor.dart';
 import 'package:apsbrat_frontend/features/profile/data/profile_models.dart';
 import 'package:flutter/material.dart';
 
@@ -135,6 +136,9 @@ class _TimelineItem extends StatelessWidget {
     );
     if (school.section.isNotEmpty) {
       classLabel.write(' · Section ${school.section}');
+    }
+    if (streamLabel(school.stream).isNotEmpty) {
+      classLabel.write(' · ${streamLabel(school.stream)}');
     }
     final years = _yearsLabel(math.max(1, school.batchEnd - school.batchStart));
 

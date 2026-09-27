@@ -3,12 +3,14 @@ import 'package:apsbrat_frontend/features/auth/presentation/screens/login_screen
 import 'package:apsbrat_frontend/features/auth/presentation/screens/splash_screen.dart';
 import 'package:apsbrat_frontend/features/chat/presentation/screens/chat_screen.dart';
 import 'package:apsbrat_frontend/features/classroom/presentation/screens/classroom_screen.dart';
+import 'package:apsbrat_frontend/features/connections/presentation/requests_screen.dart';
 import 'package:apsbrat_frontend/features/feed/presentation/screens/home_screen.dart';
 import 'package:apsbrat_frontend/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:apsbrat_frontend/features/onboarding/presentation/screens/onboarding_identity_screen.dart';
 import 'package:apsbrat_frontend/features/onboarding/presentation/screens/onboarding_schools_screen.dart';
 import 'package:apsbrat_frontend/features/onboarding/presentation/screens/onboarding_socials_screen.dart';
-import 'package:apsbrat_frontend/features/onboarding/presentation/screens/onboarding_verify_screen.dart';
+import 'package:apsbrat_frontend/features/profile/presentation/screens/edit_profile_screen.dart';
+import 'package:apsbrat_frontend/features/profile/presentation/screens/edit_schools_screen.dart';
 import 'package:apsbrat_frontend/features/profile/presentation/screens/profile_screen.dart';
 import 'package:apsbrat_frontend/features/search/presentation/screens/search_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,8 +24,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) async {
       if (state.matchedLocation != '/') return null;
       try {
-        final userId = await ref.read(authRepositoryProvider).currentUserId();
-        if (userId != null && userId.isNotEmpty) return '/home';
+        final repo = ref.read(authRepositoryProvider);
+        final userId = await repo.currentUserId();
+        if (userId == null || userId.isEmpty) return null;
+        // Signed in but never finished the onboarding profile step (e.g. the
+        // app was closed mid-flow) — resume there instead of /home.
+        return (await repo.onboardingDone()) ? '/home' : '/onboarding';
       } catch (_) {
         // Storage unreadable — treat as logged out and stay on the welcome screen.
       }
@@ -43,18 +49,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const OnboardingIdentityScreen(),
             routes: [
               GoRoute(
-                path: 'verify',
-                builder: (context, state) => const OnboardingVerifyScreen(),
+                path: 'schools',
+                builder: (context, state) => const OnboardingSchoolsScreen(),
                 routes: [
                   GoRoute(
-                    path: 'schools',
-                    builder: (context, state) => const OnboardingSchoolsScreen(),
-                    routes: [
-                      GoRoute(
-                        path: 'socials',
-                        builder: (context, state) => const OnboardingSocialsScreen(),
-                      ),
-                    ],
+                    path: 'socials',
+                    builder: (context, state) =>
+                        const OnboardingSocialsScreen(),
                   ),
                 ],
               ),
@@ -75,15 +76,29 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const NotificationsScreen(),
           ),
           GoRoute(
-            path: 'profile/:username',
+            path: 'requests',
+            builder: (context, state) => const RequestsScreen(),
+          ),
+          GoRoute(
+            path: 'edit-profile',
+            builder: (context, state) => const EditProfileScreen(),
+          ),
+          GoRoute(
+            path: 'edit-schools',
+            builder: (context, state) => const EditSchoolsScreen(),
+          ),
+          GoRoute(
+            path: 'profile/:id',
             builder: (context, state) {
-              return ProfileScreen(username: state.pathParameters['username'] ?? '');
+              return ProfileScreen(userId: state.pathParameters['id'] ?? '');
             },
           ),
           GoRoute(
             path: 'classroom/:id',
             builder: (context, state) {
-              return ClassroomScreen(classroomId: state.pathParameters['id'] ?? '');
+              return ClassroomScreen(
+                classroomId: state.pathParameters['id'] ?? '',
+              );
             },
           ),
           GoRoute(

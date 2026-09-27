@@ -32,10 +32,7 @@ class ApsBratApp extends ConsumerWidget {
           color: flavor == AppFlavor.prod
               ? Colors.transparent
               : AppColors.goldDark.withValues(alpha: 0.92),
-          textStyle: const TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-          ),
+          textStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700),
           child: child ?? const SizedBox.shrink(),
         );
       },

@@ -1,7 +1,6 @@
 package com.apsconnect.api.community;
 
 import com.apsconnect.api.common.exception.AppException;
-import com.apsconnect.api.common.realtime.RealtimeService;
 import com.apsconnect.api.common.response.CursorPage;
 import com.apsconnect.api.common.util.CursorSupport;
 import com.apsconnect.api.user.PersonDto;
@@ -31,7 +30,6 @@ public class CommunityService {
     private final CommunityMessageRepository messageRepository;
     private final UserRepository userRepository;
     private final PersonService personService;
-    private final RealtimeService realtimeService;
 
     @Transactional(readOnly = true)
     public List<CommunityDto> myCommunities(UUID currentUserId) {
@@ -119,9 +117,6 @@ public class CommunityService {
         message = messageRepository.save(message);
 
         PersonDto person = personService.toPerson(sender);
-        CommunityMessageDto broadcast = new CommunityMessageDto(message.getId(), sender.getId(),
-                person, message.getBody(), false, message.getCreatedAt());
-        realtimeService.publishCommunityMessage(communityId, broadcast);
 
         return new CommunityMessageDto(message.getId(), sender.getId(), person,
                 message.getBody(), true, message.getCreatedAt());

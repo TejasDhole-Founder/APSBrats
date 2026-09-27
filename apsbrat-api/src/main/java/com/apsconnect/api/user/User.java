@@ -19,16 +19,18 @@ public class User {
     @GeneratedValue
     private UUID id;
 
-    @Column(nullable = false, unique = true)
+    /** Null until the onboarding profile step runs — a bare account exists from the moment the email is verified. */
+    @Column(unique = true)
     private String username;
 
-    @Column(nullable = false)
     private String fullName;
 
-    @Column(nullable = false, unique = true)
+    /** Legacy contact field. No longer collected at signup and never used for login. */
+    @Column(unique = true)
     private String phone;
 
-    @Column(unique = true)
+    /** The login identity — email + OTP, or Google via Firebase, both resolve here. */
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(name = "password_hash")

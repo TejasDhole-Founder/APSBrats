@@ -21,10 +21,12 @@ dependencies:
   image_picker: ^1.1.2
   flutter_image_compress: ^2.3.0
   reactive_forms: ^14.3.0
-  socket_io_client: ^2.0.3+1
+  stomp_dart_client: ^2.0.0
   firebase_messaging: ^14.9.4
   flutter_local_notifications: ^19.4.2
   firebase_core: ^2.31.1
+  firebase_auth: ^4.17.4
+  google_sign_in: ^6.2.1
   intl: ^0.18.1
   url_launcher: ^6.3.0
   video_player: ^2.9.1

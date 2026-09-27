@@ -7,6 +7,7 @@ class SchoolHistoryDraft {
     this.classFrom = '',
     this.classTo = '',
     this.section = '',
+    this.stream = '',
     this.yearJoined = '',
     this.yearLeft = '',
     this.isMostMissed = false,
@@ -17,6 +18,9 @@ class SchoolHistoryDraft {
   final String classFrom;
   final String classTo;
   final String section;
+
+  /// Stream code (see kStreams), only for entries reaching Class 11/12.
+  final String stream;
   final String yearJoined;
   final String yearLeft;
   final bool isMostMissed;
@@ -27,6 +31,7 @@ class SchoolHistoryDraft {
     String? classFrom,
     String? classTo,
     String? section,
+    String? stream,
     String? yearJoined,
     String? yearLeft,
     bool? isMostMissed,
@@ -37,6 +42,7 @@ class SchoolHistoryDraft {
       classFrom: classFrom ?? this.classFrom,
       classTo: classTo ?? this.classTo,
       section: section ?? this.section,
+      stream: stream ?? this.stream,
       yearJoined: yearJoined ?? this.yearJoined,
       yearLeft: yearLeft ?? this.yearLeft,
       isMostMissed: isMostMissed ?? this.isMostMissed,
@@ -44,12 +50,100 @@ class SchoolHistoryDraft {
   }
 }
 
+/// Why the school list cannot be saved yet, or null when every card is complete
+/// and no two schools overlap in classes or years.
+String? schoolDraftsProblem(List<SchoolHistoryDraft> drafts) {
+  if (drafts.isEmpty) return 'Add at least one school.';
+  final incomplete = drafts.any(
+    (d) => d.schoolId.isEmpty || d.classFrom.isEmpty || d.classTo.isEmpty,
+  );
+  if (incomplete) {
+    return 'Please select a school, class from, and class to for each card.';
+  }
+  for (final d in drafts) {
+    final joined = int.tryParse(d.yearJoined);
+    final left = int.tryParse(d.yearLeft);
+    if (joined != null && left != null && left < joined) {
+      return '${_label(d)}: year left cannot be before year joined.';
+    }
+    if (_classTo(d) < _classFrom(d)) {
+      return '${_label(d)}: "class to" cannot be lower than "class from".';
+    }
+    if (needsStream(d) && d.stream.isEmpty) {
+      return 'Pick the stream (Science / Commerce / Arts) for ${_label(d)}.';
+    }
+  }
+  return schoolOverlapProblem(drafts);
+}
+
+/// A student is in one school at a time, so two entries may not share a
+/// class or an academic year. Sessions run April to March, so one school
+/// ending in 2019 and the next starting in 2019 is fine; 8-9 in 2018-2020
+/// and 10-12 in 2019-2021 is not.
+String? schoolOverlapProblem(List<SchoolHistoryDraft> drafts) {
+  for (var i = 0; i < drafts.length; i++) {
+    for (var j = i + 1; j < drafts.length; j++) {
+      final a = drafts[i];
+      final b = drafts[j];
+      final classesOverlap =
+          _classFrom(a) <= _classTo(b) && _classFrom(b) <= _classTo(a);
+      if (classesOverlap) {
+        return '${_label(a)} and ${_label(b)} overlap in classes. '
+            'Each class can belong to only one school.';
+      }
+      final (aStart, aEnd) = _years(a);
+      final (bStart, bEnd) = _years(b);
+      final yearsOverlap = aStart < bEnd && bStart < aEnd;
+      if (yearsOverlap) {
+        return '${_label(a)} ($aStart-$aEnd) and ${_label(b)} ($bStart-$bEnd) '
+            'overlap in years. You can only be in one school at a time.';
+      }
+      // Lower classes must come earlier in time than higher classes.
+      final aFirst = _classTo(a) < _classFrom(b);
+      final earlierEnd = aFirst ? aEnd : bEnd;
+      final laterStart = aFirst ? bStart : aStart;
+      if (earlierEnd > laterStart) {
+        return '${_label(a)} and ${_label(b)}: the lower classes must be '
+            'in the earlier years.';
+      }
+    }
+  }
+  return null;
+}
+
+/// Stream is chosen in Class 11, so only entries reaching 11 or 12 have one.
+const kStreamFirstClass = 11;
+
+bool needsStream(SchoolHistoryDraft d) => _classTo(d) >= kStreamFirstClass;
+
+/// Dropdown labels are "10th" etc.; only the digits matter.
+int _classNumber(String label) =>
+    int.tryParse(label.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+
+int _classFrom(SchoolHistoryDraft d) => _classNumber(d.classFrom);
+int _classTo(SchoolHistoryDraft d) => _classNumber(d.classTo);
+
+/// Years as they will be saved: a missing "left" means this year and a
+/// missing "joined" means left minus the number of classes (same rule as the
+/// API payload builder).
+(int, int) _years(SchoolHistoryDraft d) {
+  final end = int.tryParse(d.yearLeft) ?? DateTime.now().year;
+  final start =
+      int.tryParse(d.yearJoined) ??
+      (end - (_classTo(d) - _classFrom(d)).clamp(0, 20));
+  return (start, end);
+}
+
+String _label(SchoolHistoryDraft d) {
+  final name = d.schoolName.isEmpty ? 'School' : d.schoolName;
+  return '$name (Class ${d.classFrom}-${d.classTo})';
+}
+
 class OnboardingFlowState {
   const OnboardingFlowState({
     this.firstName = '',
     this.lastName = '',
     this.username = '',
-    this.phone = '',
     this.email = '',
     this.dob = '',
     this.city = '',
@@ -68,7 +162,6 @@ class OnboardingFlowState {
   final String firstName;
   final String lastName;
   final String username;
-  final String phone;
   final String email;
   final String dob;
   final String city;
@@ -89,7 +182,6 @@ class OnboardingFlowState {
     String? firstName,
     String? lastName,
     String? username,
-    String? phone,
     String? email,
     String? dob,
     String? city,
@@ -108,7 +200,6 @@ class OnboardingFlowState {
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       username: username ?? this.username,
-      phone: phone ?? this.phone,
       email: email ?? this.email,
       dob: dob ?? this.dob,
       city: city ?? this.city,
@@ -133,7 +224,6 @@ class OnboardingFlowNotifier extends StateNotifier<OnboardingFlowState> {
     required String firstName,
     required String lastName,
     required String username,
-    required String phone,
     required String email,
     required String dob,
     required String city,
@@ -145,7 +235,6 @@ class OnboardingFlowNotifier extends StateNotifier<OnboardingFlowState> {
       firstName: firstName,
       lastName: lastName,
       username: username,
-      phone: phone,
       email: email,
       dob: dob,
       city: city,
@@ -171,15 +260,6 @@ class OnboardingFlowNotifier extends StateNotifier<OnboardingFlowState> {
     final next = [...state.schoolHistory];
     next[index] = draft;
     state = state.copyWith(schoolHistory: next);
-  }
-
-  bool validateSchoolDrafts() {
-    return state.schoolHistory.every(
-      (item) =>
-          item.schoolId.isNotEmpty &&
-          item.classFrom.isNotEmpty &&
-          item.classTo.isNotEmpty,
-    );
   }
 
   void saveSocials({

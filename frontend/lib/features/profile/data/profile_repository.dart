@@ -11,9 +11,22 @@ class ProfileRepository {
   ProfileRepository(this._dio);
   final Dio _dio;
 
-  Future<Profile> byUsername(String username) async {
-    final res = await _dio.get<dynamic>(ApiEndpoints.profile(username));
+  Future<Profile> byId(String userId) async {
+    final res = await _dio.get<dynamic>(ApiEndpoints.profile(userId));
     return Profile.fromJson(dataMap(res));
+  }
+
+  Future<PrivacySettings> mySettings() async {
+    final res = await _dio.get<dynamic>(ApiEndpoints.usersMeSettings);
+    return PrivacySettings.fromJson(dataMap(res));
+  }
+
+  Future<PrivacySettings> setPrivate(bool isPrivate) async {
+    final res = await _dio.put<dynamic>(
+      ApiEndpoints.usersMeSettings,
+      data: {'isPrivate': isPrivate},
+    );
+    return PrivacySettings.fromJson(dataMap(res));
   }
 
   /// The logged-in user's own account details (GET /users/me).
@@ -22,9 +35,49 @@ class ProfileRepository {
     return AuthUser.fromJson(dataMap(res));
   }
 
+  /// Saves the editable profile fields (PUT /users/me). Phone is not editable.
+  Future<AuthUser> updateMe({
+    required String fullName,
+    required String username,
+    String? email,
+    String? city,
+    String? profession,
+    String? gender,
+    String? dob,
+    String? bio,
+    String? currentStatus,
+  }) async {
+    final res = await _dio.put<dynamic>(
+      ApiEndpoints.usersMe,
+      data: {
+        'fullName': fullName,
+        'username': username,
+        'email': email,
+        'city': city,
+        'profession': profession,
+        'gender': gender,
+        'dob': dob,
+        'bio': bio,
+        'currentStatus': currentStatus,
+      },
+    );
+    return AuthUser.fromJson(dataMap(res));
+  }
+
   Future<List<SchoolHistory>> schoolHistory(String userId) async {
     final res = await _dio.get<dynamic>(ApiEndpoints.userSchoolHistory(userId));
     return dataList(res, SchoolHistory.fromJson);
+  }
+
+  /// Replaces the whole school list (the backend deletes and re-inserts).
+  Future<void> replaceSchoolHistory(
+    String userId,
+    List<Map<String, dynamic>> items,
+  ) async {
+    await _dio.post<dynamic>(
+      ApiEndpoints.userSchoolHistoryBulk(userId),
+      data: {'items': items},
+    );
   }
 
   Future<List<SocialLink>> socialLinks(String userId) async {
@@ -62,8 +115,13 @@ final profileRepositoryProvider = Provider<ProfileRepository>(
   (ref) => ProfileRepository(ref.watch(dioProvider)),
 );
 
+/// Keyed by user id (profiles are never addressed by username).
 final profileProvider = FutureProvider.family<Profile, String>(
-  (ref, username) => ref.watch(profileRepositoryProvider).byUsername(username),
+  (ref, userId) => ref.watch(profileRepositoryProvider).byId(userId),
+);
+
+final mySettingsProvider = FutureProvider<PrivacySettings>(
+  (ref) => ref.watch(profileRepositoryProvider).mySettings(),
 );
 
 /// The logged-in user, or null when nobody is logged in.

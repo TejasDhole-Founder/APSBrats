@@ -15,6 +15,8 @@ class Person {
     required this.profilePicUrl,
     required this.online,
     required this.tags,
+    this.mutualCount = 0,
+    this.relation = 'NONE',
   });
 
   final String id;
@@ -30,6 +32,12 @@ class Person {
   final bool online;
   final List<String> tags;
 
+  /// People connected to both me and this person.
+  final int mutualCount;
+
+  /// My relation to this person: NONE · PENDING_OUT · PENDING_IN · CONNECTED.
+  final String relation;
+
   factory Person.fromJson(Map<String, dynamic> json) {
     return Person(
       id: json['id']?.toString() ?? '',
@@ -43,13 +51,18 @@ class Person {
       currentStatus: json['currentStatus'] as String? ?? 'STUDENT',
       profilePicUrl: json['profilePicUrl'] as String?,
       online: json['online'] as bool? ?? false,
-      tags: (json['tags'] as List?)?.map((e) => e.toString()).toList() ?? const [],
+      tags:
+          (json['tags'] as List?)?.map((e) => e.toString()).toList() ??
+          const [],
+      mutualCount: (json['mutualCount'] as num?)?.toInt() ?? 0,
+      relation: json['relation'] as String? ?? 'NONE',
     );
   }
 
   // Deterministic avatar colors derived from the name, so the UI keeps its
   // colourful avatars without the backend needing to store colors.
-  (Color, Color) get _colors => _avatarPalette[name.hashCode.abs() % _avatarPalette.length];
+  (Color, Color) get _colors =>
+      _avatarPalette[name.hashCode.abs() % _avatarPalette.length];
 
   Color get bg => _colors.$1;
 

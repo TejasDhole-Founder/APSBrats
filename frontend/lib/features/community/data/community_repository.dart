@@ -25,13 +25,14 @@ class CommunityRepository {
     return Community.fromJson(dataMap(res));
   }
 
-  Future<PagedResult<CommunityMessage>> messages(String id, {String? cursor, int limit = 30}) async {
+  Future<PagedResult<CommunityMessage>> messages(
+    String id, {
+    String? cursor,
+    int limit = 30,
+  }) async {
     final res = await _dio.get<dynamic>(
       ApiEndpoints.communityMessages(id),
-      queryParameters: {
-        if (cursor != null) 'cursor': cursor,
-        'limit': limit,
-      },
+      queryParameters: {if (cursor != null) 'cursor': cursor, 'limit': limit},
     );
     final data = dataMap(res);
     if (data.isEmpty) {
@@ -41,22 +42,33 @@ class CommunityRepository {
   }
 
   Future<CommunityMessage> send(String id, String body) async {
-    final res = await _dio.post<dynamic>(ApiEndpoints.communityMessages(id), data: {'body': body});
+    final res = await _dio.post<dynamic>(
+      ApiEndpoints.communityMessages(id),
+      data: {'body': body},
+    );
     return CommunityMessage.fromJson(dataMap(res));
   }
 
-  Future<void> join(String id) async => _dio.post<dynamic>(ApiEndpoints.communityJoin(id));
-  Future<void> markRead(String id) async => _dio.post<dynamic>(ApiEndpoints.communityRead(id));
+  Future<void> join(String id) async =>
+      _dio.post<dynamic>(ApiEndpoints.communityJoin(id));
+  Future<void> markRead(String id) async =>
+      _dio.post<dynamic>(ApiEndpoints.communityRead(id));
 }
 
-final communityRepositoryProvider =
-    Provider<CommunityRepository>((ref) => CommunityRepository(ref.watch(dioProvider)));
+final communityRepositoryProvider = Provider<CommunityRepository>(
+  (ref) => CommunityRepository(ref.watch(dioProvider)),
+);
 
-final myCommunitiesProvider =
-    FutureProvider<List<Community>>((ref) => ref.watch(communityRepositoryProvider).myCommunities());
-final discoverCommunitiesProvider =
-    FutureProvider<List<DiscoverCommunity>>((ref) => ref.watch(communityRepositoryProvider).discover());
-final communityProvider =
-    FutureProvider.family<Community, String>((ref, id) => ref.watch(communityRepositoryProvider).get(id));
+final myCommunitiesProvider = FutureProvider<List<Community>>(
+  (ref) => ref.watch(communityRepositoryProvider).myCommunities(),
+);
+final discoverCommunitiesProvider = FutureProvider<List<DiscoverCommunity>>(
+  (ref) => ref.watch(communityRepositoryProvider).discover(),
+);
+final communityProvider = FutureProvider.family<Community, String>(
+  (ref, id) => ref.watch(communityRepositoryProvider).get(id),
+);
 final communityMessagesProvider =
-    FutureProvider.family<PagedResult<CommunityMessage>, String>((ref, id) => ref.watch(communityRepositoryProvider).messages(id));
+    FutureProvider.family<PagedResult<CommunityMessage>, String>(
+      (ref, id) => ref.watch(communityRepositoryProvider).messages(id),
+    );

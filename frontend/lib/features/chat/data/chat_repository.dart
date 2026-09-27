@@ -20,13 +20,14 @@ class ChatRepository {
     return Conversation.fromJson(dataMap(res));
   }
 
-  Future<PagedResult<ChatMessage>> messages(String conversationId, {String? cursor, int limit = 30}) async {
+  Future<PagedResult<ChatMessage>> messages(
+    String conversationId, {
+    String? cursor,
+    int limit = 30,
+  }) async {
     final res = await _dio.get<dynamic>(
       ApiEndpoints.conversationMessages(conversationId),
-      queryParameters: {
-        if (cursor != null) 'cursor': cursor,
-        'limit': limit,
-      },
+      queryParameters: {if (cursor != null) 'cursor': cursor, 'limit': limit},
     );
     final data = dataMap(res);
     if (data.isEmpty) {
@@ -48,8 +49,14 @@ class ChatRepository {
   }
 }
 
-final chatRepositoryProvider = Provider<ChatRepository>((ref) => ChatRepository(ref.watch(dioProvider)));
+final chatRepositoryProvider = Provider<ChatRepository>(
+  (ref) => ChatRepository(ref.watch(dioProvider)),
+);
 
-final conversationsProvider = FutureProvider<List<Conversation>>((ref) => ref.watch(chatRepositoryProvider).conversations());
+final conversationsProvider = FutureProvider<List<Conversation>>(
+  (ref) => ref.watch(chatRepositoryProvider).conversations(),
+);
 final conversationMessagesProvider =
-    FutureProvider.family<PagedResult<ChatMessage>, String>((ref, id) => ref.watch(chatRepositoryProvider).messages(id));
+    FutureProvider.family<PagedResult<ChatMessage>, String>(
+      (ref, id) => ref.watch(chatRepositoryProvider).messages(id),
+    );

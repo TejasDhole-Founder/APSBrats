@@ -1,11 +1,16 @@
 /// Mirrors the backend UserDto — the logged-in user's own account details.
+///
+/// [username] and [fullName] are null on a freshly-created account: the
+/// account exists the moment the email is verified, before onboarding has
+/// collected anything else. The app treats "no username yet" as "onboarding
+/// is not finished".
 class AuthUser {
   const AuthUser({
     required this.id,
-    required this.username,
-    required this.fullName,
-    required this.phone,
-    this.email,
+    required this.email,
+    this.username,
+    this.fullName,
+    this.phone,
     this.city,
     this.profession,
     this.gender,
@@ -17,10 +22,10 @@ class AuthUser {
   });
 
   final String id;
-  final String? username;
-  final String fullName;
-  final String? phone;
   final String? email;
+  final String? username;
+  final String? fullName;
+  final String? phone;
   final String? city;
   final String? profession;
   final String? gender;
@@ -30,13 +35,16 @@ class AuthUser {
   final String? currentStatus;
   final bool isVerified;
 
+  /// The onboarding profile step hasn't run yet.
+  bool get needsOnboarding => username == null || username!.isEmpty;
+
   factory AuthUser.fromJson(Map<String, dynamic> json) {
     return AuthUser(
       id: json['id']?.toString() ?? '',
-      username: json['username'] as String?,
-      fullName: json['fullName'] as String? ?? '',
-      phone: json['phone'] as String?,
       email: json['email'] as String?,
+      username: json['username'] as String?,
+      fullName: json['fullName'] as String?,
+      phone: json['phone'] as String?,
       city: json['city'] as String?,
       profession: json['profession'] as String?,
       gender: json['gender'] as String?,

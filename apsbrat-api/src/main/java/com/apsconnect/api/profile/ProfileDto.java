@@ -22,6 +22,9 @@ public record ProfileDto(
         long batchmatesCount,
         long schoolsCount,
         long connectedCount,
-        boolean restricted
+        /** Connections the viewer shares with this person (0 on own profile). */
+        int mutualCount,
+        /** True when the owner hides phone and socials from other users. */
+        boolean isPrivate
 ) {
 }

@@ -40,8 +40,8 @@ public class JwtService {
         this.refreshTokenExpiry = refreshTokenExpiry;
     }
 
-    public String generateAccessToken(UUID userId, String phone, String role) {
-        return build(userId, accessTokenExpiry, "access", phone, null, role);
+    public String generateAccessToken(UUID userId, String email, String role) {
+        return build(userId, accessTokenExpiry, "access", email, null, role);
     }
 
     public String generateRefreshToken(UUID userId, String jti) {
@@ -69,7 +69,7 @@ public class JwtService {
         return "refresh".equals(parse(token).get("type", String.class));
     }
 
-    private String build(UUID userId, long ttlMillis, String type, String phone, String jti, String role) {
+    private String build(UUID userId, long ttlMillis, String type, String email, String jti, String role) {
         Date now = new Date();
         var builder = Jwts.builder()
                 .subject(userId.toString())
@@ -77,8 +77,8 @@ public class JwtService {
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + ttlMillis))
                 .signWith(key);
-        if (phone != null) {
-            builder.claim("phone", phone);
+        if (email != null) {
+            builder.claim("email", email);
         }
         if (role != null) {
             builder.claim("role", role);

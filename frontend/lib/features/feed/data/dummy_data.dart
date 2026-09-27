@@ -31,22 +31,6 @@ class AppPerson {
   final bool online;
 }
 
-class AppChatMsg {
-  const AppChatMsg({
-    required this.person,
-    required this.preview,
-    required this.time,
-    this.unread = false,
-    this.unreadCount = 0,
-  });
-
-  final AppPerson person;
-  final String preview;
-  final String time;
-  final bool unread;
-  final int unreadCount;
-}
-
 // ── People ────────────────────────────────────────────────────────────────────
 
 const _pk = AppPerson(
@@ -163,7 +147,6 @@ const _rv = AppPerson(
 
 final dummyBatchmates = kShowDemoContent ? _batchmates : <AppPerson>[];
 final dummyRecentJoins = kShowDemoContent ? _recentJoins : <AppPerson>[];
-final dummyMessages = kShowDemoContent ? _messages : <AppChatMsg>[];
 final dummyChatHistory = kShowDemoContent ? _chatHistory : <(String, String)>[];
 
 const _batchmates = <AppPerson>[
@@ -179,34 +162,6 @@ const _batchmates = <AppPerson>[
   _rv,
 ];
 const _recentJoins = <AppPerson>[_pk, _rs, _vk, _sm, _at, _mj];
-
-const _messages = <AppChatMsg>[
-  AppChatMsg(
-    person: _rs,
-    preview: 'Yaar remember the canteen?? 😭',
-    time: '2 min ago',
-    unread: true,
-    unreadCount: 3,
-  ),
-  AppChatMsg(
-    person: _pk,
-    preview: 'Hahaha yes!! Sir used to make us...',
-    time: '1 hr',
-  ),
-  AppChatMsg(
-    person: _vk,
-    preview: 'Bhai this app is insane 🔥',
-    time: 'Yesterday',
-    unread: true,
-    unreadCount: 1,
-  ),
-  AppChatMsg(
-    person: _sm,
-    preview: 'Do you remember Mam from science?',
-    time: '2 days',
-  ),
-  AppChatMsg(person: _kr, preview: 'Pune cantt gang 🫡', time: '3 days'),
-];
 
 const _chatHistory = <(String, String)>[
   ('them', "Arjun! Oh my god, I can't believe you're on here too! 😭"),

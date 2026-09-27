@@ -3,7 +3,10 @@ import 'package:dio/dio.dart';
 // The backend always wraps payloads in { success, data, message, error }.
 // These helpers unwrap `data` so repositories stay one-liners.
 
-List<T> dataList<T>(Response<dynamic> res, T Function(Map<String, dynamic>) fromJson) {
+List<T> dataList<T>(
+  Response<dynamic> res,
+  T Function(Map<String, dynamic>) fromJson,
+) {
   final list = (res.data['data'] as List?) ?? const [];
   return list.map((e) => fromJson(e as Map<String, dynamic>)).toList();
 }

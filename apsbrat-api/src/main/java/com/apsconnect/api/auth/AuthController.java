@@ -20,13 +20,20 @@ public class AuthController {
     @PostMapping("/request-otp")
     public ResponseEntity<ApiResponse<Void>> requestOtp(@Valid @RequestBody RequestOtpRequest request,
                                                         HttpServletRequest http) {
-        authService.requestOtp(request.phone(), clientIp(http));
+        authService.requestOtp(request.email(), clientIp(http));
         return ResponseEntity.ok(ApiResponse.success(null, "OTP sent"));
     }
 
+    /** Logs in if this email already has an account, otherwise creates a bare one for onboarding to fill in. */
     @PostMapping("/verify-otp")
     public ResponseEntity<ApiResponse<AuthTokens>> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(authService.verifyOtp(request.phone(), request.code()), "Logged in"));
+        return ResponseEntity.ok(ApiResponse.success(authService.verifyOtp(request.email(), request.code()), "Logged in"));
+    }
+
+    /** Same log-in-or-create behaviour as verify-otp, keyed by the Google account's email. */
+    @PostMapping("/google")
+    public ResponseEntity<ApiResponse<AuthTokens>> google(@Valid @RequestBody GoogleSignInRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(authService.signInWithGoogle(request.idToken()), "Logged in"));
     }
 
     @PostMapping("/refresh")

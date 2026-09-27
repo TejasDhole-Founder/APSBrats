@@ -15,6 +15,10 @@ public record PersonDto(
         UserStatus currentStatus,
         String profilePicUrl,
         boolean online,
-        List<String> tags
+        List<String> tags,
+        /** People connected to both the viewer and this person (0 when unknown). */
+        int mutualCount,
+        /** Viewer's relation to this person: NONE · PENDING_OUT · PENDING_IN · CONNECTED. */
+        String relation
 ) {
 }

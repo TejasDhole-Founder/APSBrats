@@ -1,8 +1,11 @@
-import 'package:apsbrat_frontend/core/network/dio_client.dart';
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
-import 'package:apsbrat_frontend/features/onboarding/data/services/onboarding_registration_service.dart';
+import 'package:apsbrat_frontend/features/auth/data/auth_repository.dart';
+import 'package:apsbrat_frontend/features/auth/presentation/providers/auth_provider.dart';
+import 'package:apsbrat_frontend/features/onboarding/data/models/school_history_registration_model.dart';
+import 'package:apsbrat_frontend/features/onboarding/data/models/social_link_registration_model.dart';
 import 'package:apsbrat_frontend/features/onboarding/presentation/providers/onboarding_flow_provider.dart';
 import 'package:apsbrat_frontend/features/onboarding/presentation/widgets/onboarding_frame.dart';
+import 'package:apsbrat_frontend/features/profile/data/profile_repository.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -66,27 +69,60 @@ class _OnboardingSocialsScreenState
         );
 
     final flow = ref.read(onboardingFlowProvider);
+    // The account exists from the moment the email (or Google) was verified —
+    // this is filling in the profile that account still needs, not creating
+    // a new one.
+    final userId = ref.read(authControllerProvider).user?.id;
+    if (userId == null) {
+      setState(() => _error = 'Your session expired — please log in again.');
+      return;
+    }
 
     setState(() {
       _submitting = true;
       _error = null;
     });
 
-    final dio = ref.read(dioProvider);
     try {
-      await const OnboardingRegistrationService().registerSequential(
-        dio: dio,
-        flow: flow,
+      final profileRepo = ref.read(profileRepositoryProvider);
+
+      await profileRepo.updateMe(
+        fullName: flow.fullName,
+        username: flow.username,
+        dob: flow.dob.isEmpty ? null : flow.dob,
+        city: flow.city.isEmpty ? null : flow.city,
+        profession: flow.profession.isEmpty ? null : flow.profession,
+        gender: flow.gender.isEmpty ? null : flow.gender,
+        currentStatus: flow.isStudent ? 'STUDENT' : 'ALUMNI',
       );
 
+      final schoolItems = flow.schoolHistory
+          .where((item) => item.schoolId.isNotEmpty)
+          .map(SchoolHistoryRegistrationModel.fromDraft)
+          .map((item) => item.toJson())
+          .toList();
+      if (schoolItems.isNotEmpty) {
+        await profileRepo.replaceSchoolHistory(userId, schoolItems);
+      }
+
+      for (final social in SocialLinkRegistrationModel.fromFlow(flow)) {
+        await profileRepo.saveSocialLink(
+          userId: userId,
+          platform: social.platform,
+          handle: social.handle,
+          label: social.label,
+        );
+      }
+
+      await ref.read(authRepositoryProvider).markOnboardingDone();
       ref.read(onboardingFlowProvider.notifier).reset();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registration completed successfully')),
+        const SnackBar(content: Text('Profile completed')),
       );
       context.go('/home');
     } on DioException catch (e) {
-      String message = 'Registration failed';
+      String message = 'Could not save your profile';
       final payload = e.response?.data;
       if (payload is Map<String, dynamic>) {
         final err = payload['error'];
@@ -94,7 +130,7 @@ class _OnboardingSocialsScreenState
       }
       setState(() => _error = message);
     } catch (_) {
-      setState(() => _error = 'Registration failed');
+      setState(() => _error = 'Could not save your profile');
     } finally {
       if (mounted) setState(() => _submitting = false);
     }

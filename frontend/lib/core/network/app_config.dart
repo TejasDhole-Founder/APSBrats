@@ -32,5 +32,7 @@ class AppRemoteConfig {
 final appRemoteConfigProvider = FutureProvider<AppRemoteConfig>((ref) async {
   final dio = ref.watch(dioProvider);
   final res = await dio.get<dynamic>(ApiEndpoints.appConfig);
-  return AppRemoteConfig.fromJson((res.data['data'] as Map<String, dynamic>?) ?? const {});
+  return AppRemoteConfig.fromJson(
+    (res.data['data'] as Map<String, dynamic>?) ?? const {},
+  );
 });

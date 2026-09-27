@@ -20,7 +20,11 @@ class ErrorReporter {
     final previousOnError = FlutterError.onError;
     FlutterError.onError = (FlutterErrorDetails details) {
       previousOnError?.call(details);
-      report(details.exception, details.stack, context: details.context?.toString());
+      report(
+        details.exception,
+        details.stack,
+        context: details.context?.toString(),
+      );
     };
 
     PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
@@ -31,7 +35,10 @@ class ErrorReporter {
 
   /// Runs [body] in a guarded zone so uncaught async errors are captured.
   static void runGuarded(void Function() body) {
-    runZonedGuarded(body, (error, stack) => report(error, stack, context: 'Zone'));
+    runZonedGuarded(
+      body,
+      (error, stack) => report(error, stack, context: 'Zone'),
+    );
   }
 
   static void report(Object error, StackTrace? stack, {String? context}) {

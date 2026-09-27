@@ -18,5 +18,6 @@ class AccountRepository {
   }
 }
 
-final accountRepositoryProvider =
-    Provider<AccountRepository>((ref) => AccountRepository(ref.watch(dioProvider)));
+final accountRepositoryProvider = Provider<AccountRepository>(
+  (ref) => AccountRepository(ref.watch(dioProvider)),
+);

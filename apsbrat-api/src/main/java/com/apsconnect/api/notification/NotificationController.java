@@ -18,8 +18,8 @@ public class NotificationController {
     private final NotificationService notificationService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<NotificationDto>>> list() {
-        return ResponseEntity.ok(ApiResponse.success(notificationService.list(SecurityUtils.currentUserId())));
+    public ResponseEntity<ApiResponse<List<NotificationDto>>> list(@RequestParam(defaultValue = "0") int page) {
+        return ResponseEntity.ok(ApiResponse.success(notificationService.list(SecurityUtils.currentUserId(), page)));
     }
 
     @GetMapping("/unread-count")

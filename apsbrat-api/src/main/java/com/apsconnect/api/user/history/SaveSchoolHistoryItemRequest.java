@@ -2,7 +2,7 @@ package com.apsconnect.api.user.history;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
@@ -21,7 +21,8 @@ public record SaveSchoolHistoryItemRequest(
         @Max(value = 12, message = "classTo must be <= 12")
         Short classTo,
 
-        @NotBlank(message = "section is required")
+        /** Section letter, optional. Class number is never part of it ("D", not "12D"). */
+        @Pattern(regexp = "^[A-Za-z]{1,2}$", message = "section must be a letter like A or B")
         String section,
 
         @NotNull(message = "batchStart is required")
@@ -33,6 +34,9 @@ public record SaveSchoolHistoryItemRequest(
         @Min(value = 1900, message = "batchEnd must be valid year")
         @Max(value = 2200, message = "batchEnd must be valid year")
         Short batchEnd,
+
+        /** Required when classTo is 11 or 12, must be absent otherwise. */
+        Stream stream,
 
         Boolean isPrimary
 ) {

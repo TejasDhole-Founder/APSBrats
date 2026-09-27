@@ -1,5 +1,6 @@
 import 'package:apsbrat_frontend/core/network/dio_client.dart';
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
+import 'package:apsbrat_frontend/features/auth/presentation/providers/auth_provider.dart';
 import 'package:apsbrat_frontend/features/onboarding/data/services/onboarding_registration_service.dart';
 import 'package:apsbrat_frontend/features/onboarding/presentation/providers/availability_checker.dart';
 import 'package:apsbrat_frontend/features/onboarding/presentation/providers/onboarding_flow_provider.dart';
@@ -9,6 +10,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+/// First onboarding screen. The account (and its email) already exist by the
+/// time you land here — this only collects the rest: name, handle, dob, etc.
 class OnboardingIdentityScreen extends ConsumerStatefulWidget {
   const OnboardingIdentityScreen({super.key});
 
@@ -23,10 +26,7 @@ class _OnboardingIdentityScreenState
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _usernameController = TextEditingController();
-  final _phoneController = TextEditingController();
   late final AvailabilityChecker _usernameCheck;
-  late final AvailabilityChecker _phoneCheck;
-  final _emailController = TextEditingController();
   final _dobController = TextEditingController();
   final _cityController = TextEditingController();
   final _professionController = TextEditingController();
@@ -40,8 +40,6 @@ class _OnboardingIdentityScreenState
     _firstNameController.text = s.firstName;
     _lastNameController.text = s.lastName;
     _usernameController.text = s.username;
-    _phoneController.text = s.phone;
-    _emailController.text = s.email;
     _dobController.text = s.dob;
     _cityController.text = s.city;
     _professionController.text = s.profession;
@@ -51,10 +49,6 @@ class _OnboardingIdentityScreenState
     _usernameCheck = AvailabilityChecker(
       controller: _usernameController,
       fetch: (v) => service.usernameAvailability(ref.read(dioProvider), v),
-    )..addListener(_refresh);
-    _phoneCheck = AvailabilityChecker(
-      controller: _phoneController,
-      fetch: (v) => service.phoneAvailability(ref.read(dioProvider), v),
     )..addListener(_refresh);
   }
 
@@ -67,10 +61,7 @@ class _OnboardingIdentityScreenState
     _firstNameController.dispose();
     _lastNameController.dispose();
     _usernameCheck.dispose();
-    _phoneCheck.dispose();
     _usernameController.dispose();
-    _phoneController.dispose();
-    _emailController.dispose();
     _dobController.dispose();
     _cityController.dispose();
     _professionController.dispose();
@@ -83,25 +74,21 @@ class _OnboardingIdentityScreenState
       _usernameCheck.focus.requestFocus();
       return;
     }
-    if (!await _phoneCheck.passes()) {
-      _phoneCheck.focus.requestFocus();
-      return;
-    }
+    final email = ref.read(authControllerProvider).user?.email ?? '';
     ref
         .read(onboardingFlowProvider.notifier)
         .saveIdentity(
           firstName: _firstNameController.text.trim(),
           lastName: _lastNameController.text.trim(),
           username: _usernameController.text.trim(),
-          phone: _phoneController.text.trim(),
-          email: _emailController.text.trim(),
+          email: email,
           dob: _dobController.text.trim(),
           city: _cityController.text.trim(),
           profession: _professionController.text.trim(),
           gender: _gender ?? '',
           isStudent: _isStudent,
         );
-    if (mounted) context.go('/onboarding/verify');
+    if (mounted) context.go('/onboarding/schools');
   }
 
   Future<void> _pickDob() async {
@@ -119,21 +106,20 @@ class _OnboardingIdentityScreenState
 
   @override
   Widget build(BuildContext context) {
+    final email = ref.watch(authControllerProvider).user?.email ?? '';
     return Form(
       key: _formKey,
       child: OnboardingFrame(
         step: 1,
         title: 'First, tell us about yourself.',
         subtitle: 'Your batchmates will use this to find and recognise you.',
-        footer: _Footer(onNext: _next, onLogin: () => context.go('/login')),
+        footer: _Footer(onNext: _next),
         child: _FormBody(
           firstNameController: _firstNameController,
           lastNameController: _lastNameController,
           usernameController: _usernameController,
           usernameCheck: _usernameCheck,
-          phoneCheck: _phoneCheck,
-          phoneController: _phoneController,
-          emailController: _emailController,
+          email: email,
           dobController: _dobController,
           cityController: _cityController,
           professionController: _professionController,
@@ -156,9 +142,7 @@ class _FormBody extends StatelessWidget {
     required this.lastNameController,
     required this.usernameController,
     required this.usernameCheck,
-    required this.phoneCheck,
-    required this.phoneController,
-    required this.emailController,
+    required this.email,
     required this.dobController,
     required this.cityController,
     required this.professionController,
@@ -173,9 +157,7 @@ class _FormBody extends StatelessWidget {
   final TextEditingController lastNameController;
   final TextEditingController usernameController;
   final AvailabilityChecker usernameCheck;
-  final AvailabilityChecker phoneCheck;
-  final TextEditingController phoneController;
-  final TextEditingController emailController;
+  final String email;
   final TextEditingController dobController;
   final TextEditingController cityController;
   final TextEditingController professionController;
@@ -291,12 +273,41 @@ class _FormBody extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Contact Details
-          _ContactCard(
-            phoneController: phoneController,
-            phoneCheck: phoneCheck,
-            emailController: emailController,
-            dec: _dec,
+          // Email — already verified at login, shown for confirmation only.
+          _labeledField(
+            'EMAIL',
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 11,
+              ),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFAF8F5),
+                borderRadius: AppRadius.sm,
+                border: Border.all(color: _border, width: 1.5),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.verified_rounded,
+                    size: 16,
+                    color: Colors.green,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      email,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF1A0A0A),
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            hint: 'Verified — this is how you\'ll log back in',
           ),
           const SizedBox(height: 12),
 
@@ -420,7 +431,7 @@ class _FormBody extends StatelessWidget {
       (v == null || v.trim().isEmpty) ? 'Required' : null;
 }
 
-// ── Availability helpers (shared by the username and phone fields) ────────────
+// ── Availability helpers ────────────────────────────────────────────────────
 
 /// Spinner while checking, green tick when confirmed available, else nothing.
 Widget? _availabilitySuffix(AvailabilityChecker check) {
@@ -536,110 +547,6 @@ class _PhotoCard extends StatelessWidget {
   }
 }
 
-// ── Contact details card ──────────────────────────────────────────────────────
-
-class _ContactCard extends StatelessWidget {
-  const _ContactCard({
-    required this.phoneController,
-    required this.phoneCheck,
-    required this.emailController,
-    required this.dec,
-  });
-
-  final TextEditingController phoneController;
-  final AvailabilityChecker phoneCheck;
-  final TextEditingController emailController;
-  final InputDecoration Function(String, {Widget? suffix, String? prefix}) dec;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-      decoration: BoxDecoration(
-        borderRadius: AppRadius.md,
-        border: Border.all(
-          color: AppColors.crimson.withValues(alpha: 0.2),
-          width: 1.5,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'CONTACT DETAILS',
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.8,
-              color: AppColors.crimson,
-            ),
-          ),
-          const SizedBox(height: 8),
-          // Phone row
-          Row(
-            children: [
-              const Icon(
-                Icons.phone_outlined,
-                size: 16,
-                color: Color(0xFF9A9280),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextFormField(
-                  controller: phoneController,
-                  focusNode: phoneCheck.focus,
-                  keyboardType: TextInputType.phone,
-                  decoration: dec(
-                    'Phone number',
-                    prefix: '+91 ',
-                    suffix: _availabilitySuffix(phoneCheck),
-                  ).copyWith(errorText: phoneCheck.error),
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required' : null,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          // Email row
-          Row(
-            children: [
-              const Icon(
-                Icons.email_outlined,
-                size: 16,
-                color: Color(0xFF9A9280),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextFormField(
-                  controller: emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: dec('Email address (optional)'),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            _availabilityHint(
-                  phoneCheck,
-                  idle: 'Used to verify you later — not shown publicly',
-                  ok: 'Phone number is available',
-                ) ??
-                'Used to verify you later — not shown publicly',
-            style: TextStyle(
-              fontSize: 10,
-              color: phoneCheck.confirmed
-                  ? Colors.green
-                  : const Color(0xFF9A9280),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 // ── Status toggle ─────────────────────────────────────────────────────────────
 
 class _StatusToggle extends StatelessWidget {
@@ -709,80 +616,54 @@ class _Chip extends StatelessWidget {
 // ── Footer ────────────────────────────────────────────────────────────────────
 
 class _Footer extends StatelessWidget {
-  const _Footer({required this.onNext, required this.onLogin});
+  const _Footer({required this.onNext});
 
   final VoidCallback onNext;
-  final VoidCallback onLogin;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
-      child: Column(
-        children: [
-          // Next button
-          GestureDetector(
-            onTap: onNext,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 15),
-              decoration: BoxDecoration(
-                color: const Color(0xFF2A0808),
-                borderRadius: AppRadius.sm,
-                border: Border.all(
-                  color: AppColors.crimson.withValues(alpha: 0.4),
-                  width: 1,
+      child: GestureDetector(
+        onTap: onNext,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 15),
+          decoration: BoxDecoration(
+            color: const Color(0xFF2A0808),
+            borderRadius: AppRadius.sm,
+            border: Border.all(
+              color: AppColors.crimson.withValues(alpha: 0.4),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 16,
+                height: 16,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: AppColors.gold.withValues(alpha: 0.6),
+                    width: 1.5,
+                  ),
+                  borderRadius: BorderRadius.circular(3),
                 ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 16,
-                    height: 16,
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: AppColors.gold.withValues(alpha: 0.6),
-                        width: 1.5,
-                      ),
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  const Text(
-                    'Next — add my schools',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
+              const SizedBox(width: 10),
+              const Text(
+                'Next — add my schools',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-            ),
+            ],
           ),
-          const SizedBox(height: 12),
-          // Login link
-          GestureDetector(
-            onTap: onLogin,
-            child: RichText(
-              text: const TextSpan(
-                style: TextStyle(fontSize: 13, color: Color(0xFF9A9280)),
-                children: [
-                  TextSpan(text: 'Already have an account? '),
-                  TextSpan(
-                    text: 'Log in',
-                    style: TextStyle(
-                      color: AppColors.crimson,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

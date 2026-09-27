@@ -29,7 +29,15 @@ public class UserSchoolHistory {
 
     private short classFrom;
     private short classTo;
+    /** Section letter ("A".."H"); null when the user does not remember. */
+    @Column(length = 5)
     private String section;
+
+    /** Only set when the entry reaches Class 11 or 12. */
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    private Stream stream;
+
     private short batchStart;
     private short batchEnd;
     private boolean isPrimary;
@@ -43,7 +51,7 @@ public class UserSchoolHistory {
             createdAt = LocalDateTime.now();
         }
         if (section != null) {
-            section = section.toUpperCase();
+            section = section.isBlank() ? null : section.trim().toUpperCase();
         }
     }
 }

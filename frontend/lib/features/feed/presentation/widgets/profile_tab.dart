@@ -8,10 +8,24 @@ import 'package:apsbrat_frontend/features/profile/data/profile_repository.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-class ProfileTab extends StatelessWidget {
+class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key});
+
+  @override
+  State<ProfileTab> createState() => _ProfileTabState();
+}
+
+class _ProfileTabState extends State<ProfileTab> {
+  int _tab = 0;
+
+  static const _tabs = [
+    (Icons.person_rounded, 'About'),
+    (Icons.account_balance_rounded, 'Schools'),
+    (Icons.link_rounded, 'Socials'),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -19,26 +33,45 @@ class ProfileTab extends StatelessWidget {
       child: Column(
         children: [
           _ProfileHeader(onSettings: () => _openSettings(context)),
-
-          // ── Body ──
           Padding(
-            padding: const EdgeInsets.fromLTRB(18, 16, 18, 0),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: _ProfileTabBar(
+              tabs: _tabs,
+              current: _tab,
+              onTap: (i) => setState(() => _tab = i),
+            ),
+          ),
+
+          // ── Body: one section per tab ──
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 18, 18, 32),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SectionLabel('Personal info'),
-                const SizedBox(height: 10),
-                const _PersonalInfoSection(),
-                const SizedBox(height: 20),
-                const SectionLabel('My APS Schools'),
-                const SizedBox(height: 10),
-                const _SchoolsSection(),
-                const SizedBox(height: 20),
-                const SectionLabel('Socials'),
-                const SizedBox(height: 10),
-                const _SocialsSection(),
-                const SizedBox(height: 32),
-              ],
+              children: switch (_tab) {
+                0 => [
+                  _SectionTitle(
+                    label: 'Personal info',
+                    editTooltip: 'Edit profile',
+                    onEdit: () => context.go('/home/edit-profile'),
+                  ),
+                  const SizedBox(height: 6),
+                  const _PersonalInfoSection(),
+                ],
+                1 => [
+                  _SectionTitle(
+                    label: 'My APS Schools',
+                    editTooltip: 'Edit schools',
+                    onEdit: () => context.go('/home/edit-schools'),
+                  ),
+                  const SizedBox(height: 6),
+                  const _SchoolsSection(),
+                ],
+                _ => [
+                  const SectionLabel('Socials'),
+                  const SizedBox(height: 10),
+                  const _SocialsSection(),
+                ],
+              },
             ),
           ),
         ],
@@ -55,6 +88,133 @@ class ProfileTab extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (_) => const _SettingsSheet(),
+    );
+  }
+}
+
+// ── Section title (label + edit pencil) ──────────────────────────────────────
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle({
+    required this.label,
+    required this.editTooltip,
+    required this.onEdit,
+  });
+
+  final String label;
+  final String editTooltip;
+  final VoidCallback onEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        SectionLabel(label),
+        const Spacer(),
+        IconButton(
+          tooltip: editTooltip,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+          visualDensity: VisualDensity.compact,
+          icon: const Icon(
+            Icons.edit_outlined,
+            size: 18,
+            color: AppColors.crimson,
+          ),
+          onPressed: onEdit,
+        ),
+      ],
+    );
+  }
+}
+
+// ── Tab bar (About · Schools · Socials) ───────────────────────────────────────
+
+class _ProfileTabBar extends StatelessWidget {
+  const _ProfileTabBar({
+    required this.tabs,
+    required this.current,
+    required this.onTap,
+  });
+
+  final List<(IconData, String)> tabs;
+  final int current;
+  final ValueChanged<int> onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: kBorder),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0F000000),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          for (var i = 0; i < tabs.length; i++)
+            Expanded(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => onTap(i),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      height: 40,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: i == current
+                            ? AppColors.crimson
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(13),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            tabs[i].$1,
+                            size: 16,
+                            color: i == current ? Colors.white : kTxt3,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            tabs[i].$2,
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: i == current
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                              color: i == current ? Colors.white : kTxt2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      width: i == current ? 22 : 0,
+                      height: 3,
+                      decoration: BoxDecoration(
+                        color: AppColors.gold,
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
@@ -106,13 +266,13 @@ class _ProfileHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final me = ref.watch(meProvider).valueOrNull;
     final username = me?.username;
-    final profile = username == null
+    final profile = me == null
         ? null
-        : ref.watch(profileProvider(username)).valueOrNull;
+        : ref.watch(profileProvider(me.id)).valueOrNull;
     final schools = ref.watch(mySchoolHistoryProvider).valueOrNull;
 
     final name = (me?.fullName ?? '').isNotEmpty
-        ? me!.fullName
+        ? me!.fullName!
         : 'Your profile';
     final subtitleParts = [
       if (username != null && username.isNotEmpty) '@$username',
@@ -132,7 +292,7 @@ class _ProfileHeader extends ConsumerWidget {
           child: SafeArea(
             bottom: false,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 6, 20, 24),
+              padding: const EdgeInsets.fromLTRB(20, 6, 20, 22),
               child: Column(
                 children: [
                   Align(
@@ -159,7 +319,7 @@ class _ProfileHeader extends ConsumerWidget {
                             color: kGoldDark,
                           )
                         : Text(
-                            _initials(me.fullName),
+                            _initials(me.fullName ?? ''),
                             style: const TextStyle(
                               fontSize: 26,
                               fontWeight: FontWeight.w800,
@@ -219,20 +379,6 @@ class _ProfileHeader extends ConsumerWidget {
         ),
         Positioned.fill(
           child: IgnorePointer(child: CustomPaint(painter: StripesPainter())),
-        ),
-        Positioned(
-          bottom: -1,
-          left: 0,
-          right: 0,
-          child: Container(
-            height: 22,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(
-                top: Radius.elliptical(160, 22),
-              ),
-            ),
-          ),
         ),
       ],
     );
@@ -872,6 +1018,44 @@ class _EditSocialSheetState extends State<_EditSocialSheet> {
 
 // ── Settings sheet ────────────────────────────────────────────────────────────
 
+/// Public: everything visible to other APSians.
+/// Private: everything visible EXCEPT phone number and social links.
+/// Name and schools are always visible — that is the point of the app.
+class _PrivacyRow extends ConsumerWidget {
+  const _PrivacyRow();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isPrivate =
+        ref.watch(mySettingsProvider).valueOrNull?.isPrivate ?? false;
+    return _SettingsRow(
+      iconBg: kGoldLight,
+      icon: isPrivate ? Icons.lock_rounded : Icons.public_rounded,
+      iconColor: kGoldDark,
+      title: isPrivate ? 'Private profile' : 'Public profile',
+      subtitle: isPrivate
+          ? 'Phone & socials hidden from others'
+          : 'Everyone can see your phone & socials',
+      trailing: _Toggle(
+        value: isPrivate,
+        onChanged: (v) async {
+          try {
+            await ref.read(profileRepositoryProvider).setPrivate(v);
+            ref.invalidate(mySettingsProvider);
+          } catch (_) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Could not save. Try again.')),
+              );
+            }
+          }
+        },
+      ),
+      onTap: () {},
+    );
+  }
+}
+
 class _SettingsSheet extends StatefulWidget {
   const _SettingsSheet();
 
@@ -880,8 +1064,6 @@ class _SettingsSheet extends StatefulWidget {
 }
 
 class _SettingsSheetState extends State<_SettingsSheet> {
-  bool _showPhone = true;
-  bool _showProfileViews = false;
   bool _notifyJoins = true;
   bool _notifyMessages = true;
   bool _notifyRequests = true;
@@ -933,7 +1115,10 @@ class _SettingsSheetState extends State<_SettingsSheet> {
                       iconColor: kCrimsonMed,
                       title: 'Edit profile',
                       subtitle: 'Name, photo, bio, username',
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        context.go('/home/edit-profile');
+                      },
                     ),
                     _SettingsRow(
                       iconBg: kGoldLight,
@@ -941,7 +1126,10 @@ class _SettingsSheetState extends State<_SettingsSheet> {
                       iconColor: kGoldDark,
                       title: 'My schools',
                       subtitle: 'Add or edit APS schools',
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        context.go('/home/edit-schools');
+                      },
                     ),
                     _SettingsRow(
                       iconBg: kCrimsonLight,
@@ -953,51 +1141,7 @@ class _SettingsSheetState extends State<_SettingsSheet> {
                     ),
                   ],
                 ),
-                _SettingsSection(
-                  label: 'Privacy',
-                  rows: [
-                    _SettingsRow(
-                      iconBg: kGoldLight,
-                      icon: Icons.visibility_rounded,
-                      iconColor: kGoldDark,
-                      title: 'Profile visibility',
-                      subtitle: 'Who can see your profile',
-                      trailing: const Text(
-                        'Batchmates only',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: kCrimsonMed,
-                        ),
-                      ),
-                      onTap: () {},
-                    ),
-                    _SettingsRow(
-                      iconBg: kCrimsonLight,
-                      icon: Icons.phone_rounded,
-                      iconColor: kCrimsonMed,
-                      title: 'Show phone number',
-                      subtitle: 'Visible to connected batchmates',
-                      trailing: _Toggle(
-                        value: _showPhone,
-                        onChanged: (v) => setState(() => _showPhone = v),
-                      ),
-                      onTap: () {},
-                    ),
-                    _SettingsRow(
-                      iconBg: kGoldLight,
-                      icon: Icons.visibility_off_rounded,
-                      iconColor: kGoldDark,
-                      title: 'Show profile views',
-                      subtitle: 'Let others know you viewed them',
-                      trailing: _Toggle(
-                        value: _showProfileViews,
-                        onChanged: (v) => setState(() => _showProfileViews = v),
-                      ),
-                      onTap: () {},
-                    ),
-                  ],
-                ),
+                const _SettingsSection(label: 'Privacy', rows: [_PrivacyRow()]),
                 _SettingsSection(
                   label: 'Notifications',
                   rows: [

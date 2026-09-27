@@ -16,9 +16,7 @@ class PagedResult<T> {
   ) {
     final rawItems = (json['items'] as List?) ?? const [];
     return PagedResult<T>(
-      items: rawItems
-          .map((e) => fromItem(e as Map<String, dynamic>))
-          .toList(),
+      items: rawItems.map((e) => fromItem(e as Map<String, dynamic>)).toList(),
       nextCursor: json['nextCursor'] as String?,
       hasMore: json['hasMore'] as bool? ?? false,
     );

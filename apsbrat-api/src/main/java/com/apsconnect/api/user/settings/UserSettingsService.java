@@ -30,11 +30,8 @@ public class UserSettingsService {
             s.setUserId(userId);
             return s;
         });
-        if (request.showPhone() != null) {
-            settings.setShowPhone(request.showPhone());
-        }
-        if (request.batchmatesOnly() != null) {
-            settings.setBatchmatesOnly(request.batchmatesOnly());
+        if (request.isPrivate() != null) {
+            settings.setIsPrivate(request.isPrivate());
         }
         if (request.discoverable() != null) {
             settings.setDiscoverable(request.discoverable());

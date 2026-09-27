@@ -1,4 +1,5 @@
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 // ── Local color constants ─────────────────────────────────────────────────────
@@ -59,20 +60,6 @@ class CrimsonHeader extends StatelessWidget {
         Positioned.fill(
           child: IgnorePointer(child: CustomPaint(painter: StripesPainter())),
         ),
-        Positioned(
-          bottom: -1,
-          left: 0,
-          right: 0,
-          child: Container(
-            height: 22,
-            decoration: BoxDecoration(
-              color: waveColor,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.elliptical(160, 22),
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }
@@ -107,37 +94,99 @@ class FeedIconBtn extends StatelessWidget {
 // ── Search bar ────────────────────────────────────────────────────────────────
 
 class FeedSearchBar extends StatelessWidget {
-  const FeedSearchBar({super.key, required this.hint, required this.onChanged});
+  const FeedSearchBar({
+    super.key,
+    required this.hint,
+    required this.onChanged,
+    this.controller,
+    this.focusNode,
+    this.onFilterTap,
+    this.filterActive = false,
+    this.onClear,
+  });
 
   final String hint;
   final ValueChanged<String> onChanged;
+  final TextEditingController? controller;
+  final FocusNode? focusNode;
+
+  /// Shows a sliders icon on the right when set.
+  final VoidCallback? onFilterTap;
+
+  /// Paints the sliders icon crimson (filters are applied).
+  final bool filterActive;
+
+  /// Shows an ✕ that clears the search when set.
+  final VoidCallback? onClear;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: kBorder, width: 1.5),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(100),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(
         children: [
-          const Icon(Icons.search_rounded, size: 18, color: kTxt3),
+          const Icon(Icons.search_rounded, size: 18, color: kTxt),
           const SizedBox(width: 10),
           Expanded(
             child: TextField(
+              controller: controller,
+              focusNode: focusNode,
               onChanged: onChanged,
               style: const TextStyle(fontSize: 13, color: kTxt),
               decoration: InputDecoration(
                 hintText: hint,
                 hintStyle: const TextStyle(color: kTxt3, fontSize: 13),
+                // The app theme fills inputs with a dark colour; the pill
+                // itself is the background here, so keep the field clear.
+                filled: false,
+                // The theme defines outlined enabled/focused borders too;
+                // all three must be cleared or a box appears inside the pill.
                 border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
                 isDense: true,
                 contentPadding: EdgeInsets.zero,
               ),
             ),
           ),
+          if (onClear != null) ...[
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: onClear,
+              child: const Icon(Icons.close_rounded, size: 18, color: kTxt3),
+            ),
+          ],
+          if (onFilterTap != null) ...[
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: onFilterTap,
+              child: Container(
+                width: 28,
+                height: 28,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: filterActive ? AppColors.crimson : Colors.transparent,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.tune_rounded,
+                  size: 18,
+                  color: filterActive ? Colors.white : kTxt,
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -152,6 +201,7 @@ class AvatarCircle extends StatelessWidget {
     required this.initials,
     required this.bg,
     required this.fg,
+    this.imageUrl,
     this.size = 38,
     this.fontSize = 13,
     this.online = false,
@@ -160,28 +210,31 @@ class AvatarCircle extends StatelessWidget {
   final String initials;
   final Color bg;
   final Color fg;
+
+  /// Real profile photo, when the person has one. Falls back to the
+  /// initials circle below when null or empty.
+  final String? imageUrl;
   final double size;
   final double fontSize;
   final bool online;
 
   @override
   Widget build(BuildContext context) {
+    final hasPhoto = imageUrl != null && imageUrl!.isNotEmpty;
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
-          alignment: Alignment.center,
-          child: Text(
-            initials,
-            style: TextStyle(
-              fontSize: fontSize,
-              fontWeight: FontWeight.w800,
-              color: fg,
-            ),
-          ),
+        ClipOval(
+          child: hasPhoto
+              ? CachedNetworkImage(
+                  imageUrl: imageUrl!,
+                  width: size,
+                  height: size,
+                  fit: BoxFit.cover,
+                  placeholder: (_, __) => _initialsCircle(),
+                  errorWidget: (_, __, ___) => _initialsCircle(),
+                )
+              : _initialsCircle(),
         ),
         if (online)
           Positioned(
@@ -198,6 +251,23 @@ class AvatarCircle extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+
+  Widget _initialsCircle() {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
+      alignment: Alignment.center,
+      child: Text(
+        initials,
+        style: TextStyle(
+          fontSize: fontSize,
+          fontWeight: FontWeight.w800,
+          color: fg,
+        ),
+      ),
     );
   }
 }

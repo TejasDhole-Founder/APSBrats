@@ -232,12 +232,10 @@ class _Header extends StatelessWidget {
           left: 0,
           right: 0,
           child: Container(
-            height: 26,
+            height: 28,
             decoration: const BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.vertical(
-                top: Radius.elliptical(160, 26),
-              ),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
             ),
           ),
         ),

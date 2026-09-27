@@ -20,13 +20,14 @@ public class ChatController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<ConversationDto>>> list() {
-        return ResponseEntity.ok(ApiResponse.success(chatService.listConversations(SecurityUtils.currentUserId())));
+        return ResponseEntity.ok(ApiResponse.success(
+                chatService.listConversations(SecurityUtils.currentUserId())));
     }
 
     @PostMapping("/with/{userId}")
     public ResponseEntity<ApiResponse<ConversationDto>> openWith(@PathVariable UUID userId) {
         return ResponseEntity.ok(ApiResponse.success(
-                chatService.getOrCreateWith(SecurityUtils.currentUserId(), userId)));
+                chatService.openWith(SecurityUtils.currentUserId(), userId)));
     }
 
     @GetMapping("/{conversationId}/messages")
@@ -41,9 +42,9 @@ public class ChatController {
     @PostMapping("/{conversationId}/messages")
     public ResponseEntity<ApiResponse<ChatMessageDto>> send(
             @PathVariable UUID conversationId,
-            @Valid @RequestBody SendMessageRequest request) {
+            @Valid @RequestBody SendChatMessageRequest request) {
         return ResponseEntity.ok(ApiResponse.success(
-                chatService.send(SecurityUtils.currentUserId(), conversationId, request.body())));
+                chatService.sendMessage(SecurityUtils.currentUserId(), conversationId, request.body())));
     }
 
     @PostMapping("/{conversationId}/read")

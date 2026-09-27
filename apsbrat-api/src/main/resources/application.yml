@@ -15,6 +15,10 @@ app:
   media:
     dir: ${MEDIA_DIR:./media}
     base-url: ${MEDIA_BASE_URL:/media}
+  firebase:
+    # Path to the Firebase service-account JSON (Project settings → Service accounts
+    # → Generate new private key). Google sign-in returns a clear 503 until this is set.
+    credentials-path: ${FIREBASE_CREDENTIALS_PATH:}
 
 management:
   endpoints:

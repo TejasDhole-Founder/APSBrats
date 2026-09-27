@@ -6,6 +6,5 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface OtpCodeRepository extends JpaRepository<OtpCode, UUID> {
-    Optional<OtpCode> findTopByPhoneAndConsumedFalseOrderByCreatedAtDesc(String phone);
-
+    Optional<OtpCode> findTopByEmailAndConsumedFalseOrderByCreatedAtDesc(String email);
 }

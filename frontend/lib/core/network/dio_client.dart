@@ -10,6 +10,9 @@ import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 const kAccessTokenKey = 'access_token';
 const kRefreshTokenKey = 'refresh_token';
 const kUserIdKey = 'user_id';
+/// Non-empty once the onboarding profile step has completed — lets the
+/// router decide /home vs /onboarding on cold start without a network call.
+const kOnboardingDoneKey = 'onboarding_done';
 
 final secureStorageProvider = Provider<FlutterSecureStorage>(
   (ref) => const FlutterSecureStorage(),

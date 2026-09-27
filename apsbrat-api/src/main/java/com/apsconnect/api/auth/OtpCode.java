@@ -21,7 +21,7 @@ public class OtpCode {
     private UUID id;
 
     @Column(nullable = false)
-    private String phone;
+    private String email;
 
     @Column(nullable = false)
     private String code;

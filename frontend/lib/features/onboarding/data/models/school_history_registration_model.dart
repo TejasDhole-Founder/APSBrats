@@ -6,6 +6,7 @@ class SchoolHistoryRegistrationModel {
     required this.classFrom,
     required this.classTo,
     required this.section,
+    this.stream,
     required this.batchStart,
     required this.batchEnd,
     required this.isPrimary,
@@ -14,7 +15,8 @@ class SchoolHistoryRegistrationModel {
   final String schoolId;
   final int classFrom;
   final int classTo;
-  final String section;
+  final String? section;
+  final String? stream;
   final int batchStart;
   final int batchEnd;
   final bool isPrimary;
@@ -34,9 +36,11 @@ class SchoolHistoryRegistrationModel {
       schoolId: draft.schoolId,
       classFrom: classFrom,
       classTo: classTo,
+      // No silent default: unknown stays unknown.
       section: draft.section.trim().isEmpty
-          ? 'A'
+          ? null
           : draft.section.trim().toUpperCase(),
+      stream: draft.stream.isEmpty ? null : draft.stream,
       batchStart: batchStart,
       batchEnd: batchEnd,
       isPrimary: draft.isMostMissed,
@@ -48,7 +52,8 @@ class SchoolHistoryRegistrationModel {
       'schoolId': schoolId,
       'classFrom': classFrom,
       'classTo': classTo,
-      'section': section,
+      if (section != null) 'section': section,
+      if (stream != null) 'stream': stream,
       'batchStart': batchStart,
       'batchEnd': batchEnd,
       'isPrimary': isPrimary,

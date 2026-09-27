@@ -34,32 +34,42 @@ class Community {
   final bool isYourSchool;
 
   factory Community.fromJson(Map<String, dynamic> json) => Community(
-        id: json['id']?.toString() ?? '',
-        name: json['name'] as String? ?? '',
-        badge: json['badge'] as String?,
-        type: json['type'] as String? ?? 'SECTION',
-        members: (json['members'] as num?)?.toInt() ?? 0,
-        online: (json['online'] as num?)?.toInt() ?? 0,
-        lastSender: json['lastSender'] as String?,
-        lastMessage: json['lastMessage'] as String?,
-        time: DateTime.tryParse(json['time']?.toString() ?? ''),
-        avatars: (json['avatars'] as List?)?.map((e) => Person.fromJson(e as Map<String, dynamic>)).toList() ?? const [],
-        unreadCount: (json['unreadCount'] as num?)?.toInt() ?? 0,
-        autoJoinLabel: json['autoJoinLabel'] as String?,
-        isYourSection: json['isYourSection'] as bool? ?? false,
-        isYourSchool: json['isYourSchool'] as bool? ?? false,
-      );
+    id: json['id']?.toString() ?? '',
+    name: json['name'] as String? ?? '',
+    badge: json['badge'] as String?,
+    type: json['type'] as String? ?? 'SECTION',
+    members: (json['members'] as num?)?.toInt() ?? 0,
+    online: (json['online'] as num?)?.toInt() ?? 0,
+    lastSender: json['lastSender'] as String?,
+    lastMessage: json['lastMessage'] as String?,
+    time: DateTime.tryParse(json['time']?.toString() ?? ''),
+    avatars:
+        (json['avatars'] as List?)
+            ?.map((e) => Person.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        const [],
+    unreadCount: (json['unreadCount'] as num?)?.toInt() ?? 0,
+    autoJoinLabel: json['autoJoinLabel'] as String?,
+    isYourSection: json['isYourSection'] as bool? ?? false,
+    isYourSchool: json['isYourSchool'] as bool? ?? false,
+  );
 }
 
 class DiscoverCommunity {
-  const DiscoverCommunity({required this.id, required this.name, required this.memberCount, required this.subtitle});
+  const DiscoverCommunity({
+    required this.id,
+    required this.name,
+    required this.memberCount,
+    required this.subtitle,
+  });
 
   final String id;
   final String name;
   final String memberCount;
   final String? subtitle;
 
-  factory DiscoverCommunity.fromJson(Map<String, dynamic> json) => DiscoverCommunity(
+  factory DiscoverCommunity.fromJson(Map<String, dynamic> json) =>
+      DiscoverCommunity(
         id: json['id']?.toString() ?? '',
         name: json['name'] as String? ?? '',
         memberCount: json['memberCount'] as String? ?? '',
@@ -84,10 +94,13 @@ class CommunityMessage {
   final bool mine;
   final DateTime? createdAt;
 
-  factory CommunityMessage.fromJson(Map<String, dynamic> json) => CommunityMessage(
+  factory CommunityMessage.fromJson(Map<String, dynamic> json) =>
+      CommunityMessage(
         id: json['id']?.toString() ?? '',
         senderId: json['senderId']?.toString() ?? '',
-        sender: Person.fromJson(json['sender'] as Map<String, dynamic>? ?? const {}),
+        sender: Person.fromJson(
+          json['sender'] as Map<String, dynamic>? ?? const {},
+        ),
         body: json['body'] as String? ?? '',
         mine: json['mine'] as bool? ?? false,
         createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? ''),

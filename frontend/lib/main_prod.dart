@@ -8,10 +8,6 @@ void main() {
   ErrorReporter.runGuarded(() {
     WidgetsFlutterBinding.ensureInitialized();
     ErrorReporter.install();
-    runApp(
-      const ProviderScope(
-        child: ApsBratApp(flavor: AppFlavor.prod),
-      ),
-    );
+    runApp(const ProviderScope(child: ApsBratApp(flavor: AppFlavor.prod)));
   });
 }

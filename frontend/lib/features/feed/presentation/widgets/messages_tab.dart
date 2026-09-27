@@ -1,19 +1,29 @@
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
+import 'package:apsbrat_frontend/features/chat/data/chat_models.dart';
+import 'package:apsbrat_frontend/features/chat/data/chat_repository.dart';
 import 'package:apsbrat_frontend/features/feed/data/dummy_data.dart';
 import 'package:apsbrat_frontend/features/feed/presentation/widgets/feed_shared.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+// Messages-screen-only palette (kept separate from the shared AppColors/kTxt
+// tokens so this redesign doesn't shift color anywhere else in the app).
+const _kMaroon = Color(0xFF8B1118);
+const _kMaroonDeep = Color(0xFF6F0D13);
+const _kMsgCream = Color(0xFFF8F5ED);
+const _kMsgTextPrimary = Color(0xFF241B1C);
+const _kMsgTextSecondary = Color(0xFF8C6F70);
 
 class MessagesTab extends StatefulWidget {
-  const MessagesTab({super.key, required this.onOpenChat});
-
-  final ValueChanged<AppPerson> onOpenChat;
+  const MessagesTab({super.key});
 
   @override
   State<MessagesTab> createState() => _MessagesTabState();
 }
 
 class _MessagesTabState extends State<MessagesTab> {
-  bool _showCommunities = true;
+  bool _showCommunities = false;
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +58,7 @@ class _MessagesTabState extends State<MessagesTab> {
         Expanded(
           child: _showCommunities
               ? _CommunitiesView()
-              : _DirectMessagesView(onOpenChat: widget.onOpenChat),
+              : const _DirectMessagesView(),
         ),
       ],
     );
@@ -75,14 +85,16 @@ class _ToggleBar extends StatelessWidget {
       child: Row(
         children: [
           _ToggleItem(
-            label: 'Communities',
-            active: showCommunities,
-            onTap: () => onToggle(true),
-          ),
-          _ToggleItem(
             label: 'Direct messages',
+            icon: Icons.chat_bubble_rounded,
             active: !showCommunities,
             onTap: () => onToggle(false),
+          ),
+          _ToggleItem(
+            label: 'Communities',
+            icon: Icons.people_alt_rounded,
+            active: showCommunities,
+            onTap: () => onToggle(true),
           ),
         ],
       ),
@@ -93,11 +105,13 @@ class _ToggleBar extends StatelessWidget {
 class _ToggleItem extends StatelessWidget {
   const _ToggleItem({
     required this.label,
+    required this.icon,
     required this.active,
     required this.onTap,
   });
 
   final String label;
+  final IconData icon;
   final bool active;
   final VoidCallback onTap;
 
@@ -112,16 +126,34 @@ class _ToggleItem extends StatelessWidget {
           decoration: BoxDecoration(
             color: active ? Colors.white : Colors.transparent,
             borderRadius: BorderRadius.circular(100),
+            boxShadow: active
+                ? const [
+                    BoxShadow(
+                      color: Color(0x26000000),
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ]
+                : null,
           ),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: active
-                  ? AppColors.crimson
-                  : Colors.white.withValues(alpha: 0.7),
-            ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 14,
+                color: active ? _kMaroon : Colors.white.withValues(alpha: 0.7),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: active ? _kMaroon : Colors.white.withValues(alpha: 0.7),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -527,41 +559,131 @@ class _DiscoverCardState extends State<_DiscoverCard> {
 
 // ── Direct messages view ──────────────────────────────────────────────────────
 
-class _DirectMessagesView extends StatelessWidget {
-  const _DirectMessagesView({required this.onOpenChat});
+class _DirectMessagesView extends ConsumerStatefulWidget {
+  const _DirectMessagesView();
 
-  final ValueChanged<AppPerson> onOpenChat;
+  @override
+  ConsumerState<_DirectMessagesView> createState() => _DirectMessagesViewState();
+}
+
+class _DirectMessagesViewState extends ConsumerState<_DirectMessagesView> {
+  final _searchCtrl = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  List<Conversation> _filter(List<Conversation> all) {
+    final q = _query.trim().toLowerCase();
+    if (q.isEmpty) return all;
+    return all
+        .where(
+          (c) =>
+              c.person.name.toLowerCase().contains(q) ||
+              (c.preview ?? '').toLowerCase().contains(q),
+        )
+        .toList();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final conversationsAsync = ref.watch(conversationsProvider);
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(18, 14, 18, 10),
-          child: FeedSearchBar(hint: 'Search messages...', onChanged: (_) {}),
+          child: Row(
+            children: [
+              Expanded(
+                child: FeedSearchBar(
+                  hint: 'Search messages...',
+                  controller: _searchCtrl,
+                  onChanged: (v) => setState(() => _query = v),
+                  onClear: _query.isEmpty
+                      ? null
+                      : () {
+                          _searchCtrl.clear();
+                          setState(() => _query = '');
+                        },
+                ),
+              ),
+              const SizedBox(width: 10),
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x14000000),
+                      blurRadius: 12,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.tune_rounded,
+                  size: 18,
+                  color: _kMaroon,
+                ),
+              ),
+            ],
+          ),
         ),
         Expanded(
-          child: dummyMessages.isEmpty
-              ? const Center(
+          child: conversationsAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (_, __) => const Center(
+              child: EmptyState(
+                icon: Icons.wifi_off_rounded,
+                title: 'Could not load messages',
+                message: 'Check your connection and try again.',
+              ),
+            ),
+            data: (conversations) {
+              if (conversations.isEmpty) {
+                return const Center(
                   child: EmptyState(
                     icon: Icons.chat_bubble_outline_rounded,
                     title: 'No messages yet',
                     message:
                         'Connect with a batchmate and say hi — your chats will show up here.',
                   ),
-                )
-              : ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
-                  itemCount: dummyMessages.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (context, i) {
-                    final m = dummyMessages[i];
-                    return _MessageCard(
-                      msg: m,
-                      onTap: () => onOpenChat(m.person),
-                    );
-                  },
+                );
+              }
+              final filtered = _filter(conversations);
+              if (filtered.isEmpty) {
+                return Center(
+                  child: EmptyState(
+                    icon: Icons.search_off_rounded,
+                    title: 'No matches',
+                    message: 'Nobody in your messages matches "$_query".',
+                  ),
+                );
+              }
+              return ListView.separated(
+                padding: const EdgeInsets.fromLTRB(0, 4, 0, 18),
+                itemCount: filtered.length,
+                separatorBuilder: (_, __) => const Divider(
+                  height: 1,
+                  thickness: 1,
+                  indent: 84,
+                  color: Color(0x14000000),
                 ),
+                itemBuilder: (context, i) {
+                  final c = filtered[i];
+                  return _MessageCard(
+                    conversation: c,
+                    onTap: () => context.go('/home/chat/${c.id}'),
+                  );
+                },
+              );
+            },
+          ),
         ),
       ],
     );
@@ -569,91 +691,172 @@ class _DirectMessagesView extends StatelessWidget {
 }
 
 class _MessageCard extends StatelessWidget {
-  const _MessageCard({required this.msg, required this.onTap});
+  const _MessageCard({required this.conversation, required this.onTap});
 
-  final AppChatMsg msg;
+  final Conversation conversation;
   final VoidCallback onTap;
+
+  static String _formatTime(DateTime? time) {
+    if (time == null) return '';
+    final now = DateTime.now();
+    final sameDay =
+        now.year == time.year && now.month == time.month && now.day == time.day;
+    if (sameDay) {
+      final hour = time.hour % 12 == 0 ? 12 : time.hour % 12;
+      final minute = time.minute.toString().padLeft(2, '0');
+      return '$hour:$minute ${time.hour >= 12 ? 'PM' : 'AM'}';
+    }
+    final yesterday = now.subtract(const Duration(days: 1));
+    if (yesterday.year == time.year &&
+        yesterday.month == time.month &&
+        yesterday.day == time.day) {
+      return 'Yesterday';
+    }
+    final daysAgo = now.difference(time).inDays;
+    if (daysAgo < 7) {
+      const weekdays = [
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+        'Sunday',
+      ];
+      return weekdays[time.weekday - 1];
+    }
+    return '${time.day}/${time.month}';
+  }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(13),
-        decoration: BoxDecoration(
-          color: msg.unread ? kCrimsonLight : Colors.white,
-          border: Border.all(
-            color: msg.unread ? const Color(0x3F7B1414) : kBorder,
-            width: 1.5,
-          ),
-          borderRadius: BorderRadius.circular(14),
-        ),
+    final person = conversation.person;
+    final unread = conversation.unread;
+
+    return Material(
+      // A continuous flat list, not a stack of separate cards -- unread rows
+      // get a very subtle warm tint instead of a heavy box treatment.
+      color: unread ? _kMsgCream.withValues(alpha: 0.6) : Colors.white,
+      child: InkWell(
+        onTap: onTap,
+        splashColor: _kMsgCream,
+        highlightColor: _kMsgCream,
         child: Row(
           children: [
-            AvatarCircle(
-              initials: msg.person.initials,
-              bg: msg.person.bg,
-              fg: msg.person.fg,
-              size: 46,
-              fontSize: 15,
-              online: msg.person.online,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    msg.person.name,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: kTxt,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    msg.preview,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: msg.unread ? kTxt2 : kTxt3,
-                      fontWeight: msg.unread
-                          ? FontWeight.w500
-                          : FontWeight.w400,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+            // Thin left indicator = "this conversation has unread messages".
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              width: unread ? 3 : 0,
+              margin: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                color: _kMaroon,
+                borderRadius: BorderRadius.circular(100),
               ),
             ),
-            const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  msg.time,
-                  style: const TextStyle(fontSize: 10, color: kTxt3),
-                ),
-                const SizedBox(height: 5),
-                if (msg.unreadCount > 0)
-                  Container(
-                    width: 18,
-                    height: 18,
-                    decoration: const BoxDecoration(
-                      color: AppColors.crimson,
-                      shape: BoxShape.circle,
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(unread ? 15 : 18, 14, 16, 14),
+                child: Row(
+                  children: [
+                    AvatarCircle(
+                      initials: person.initials,
+                      bg: person.bg,
+                      fg: person.fg,
+                      imageUrl: person.profilePicUrl,
+                      size: 50,
+                      fontSize: 16,
+                      online: person.online,
                     ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      '${msg.unreadCount}',
-                      style: const TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
+                    const SizedBox(width: 13),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  person.name,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 14.5,
+                                    fontWeight: unread
+                                        ? FontWeight.w700
+                                        : FontWeight.w600,
+                                    color: _kMsgTextPrimary,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                _formatTime(conversation.time),
+                                style: TextStyle(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: unread ? _kMaroonDeep : _kMsgTextSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  conversation.preview ?? 'Say hi 👋',
+                                  style: TextStyle(
+                                    fontSize: 12.5,
+                                    color: unread
+                                        ? _kMsgTextPrimary.withValues(alpha: 0.75)
+                                        : _kMsgTextSecondary,
+                                    fontWeight: unread
+                                        ? FontWeight.w500
+                                        : FontWeight.w400,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (conversation.unreadCount > 0) ...[
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6.5,
+                                    vertical: 2,
+                                  ),
+                                  constraints: const BoxConstraints(minWidth: 20),
+                                  decoration: const BoxDecoration(
+                                    color: _kMaroon,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    conversation.unreadCount > 9
+                                        ? '9+'
+                                        : '${conversation.unreadCount}',
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ] else
+                                const SizedBox(width: 8),
+                              if (conversation.unreadCount == 0)
+                                Icon(
+                                  Icons.chevron_right_rounded,
+                                  size: 18,
+                                  color: _kMsgTextSecondary.withValues(alpha: 0.5),
+                                ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-              ],
+                  ],
+                ),
+              ),
             ),
           ],
         ),

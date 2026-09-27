@@ -18,14 +18,28 @@ public class ConnectionController {
 
     private final ConnectionService connectionService;
 
+    /** My friends (accepted), A→Z. */
     @GetMapping
     public ResponseEntity<ApiResponse<List<PersonDto>>> myBatchmates() {
         return ResponseEntity.ok(ApiResponse.success(connectionService.listBatchmates(SecurityUtils.currentUserId())));
     }
 
+    /** Requests waiting for me. */
     @GetMapping("/pending")
     public ResponseEntity<ApiResponse<List<PersonDto>>> pending() {
         return ResponseEntity.ok(ApiResponse.success(connectionService.listPending(SecurityUtils.currentUserId())));
+    }
+
+    /** Requests I sent that are still unanswered. */
+    @GetMapping("/sent")
+    public ResponseEntity<ApiResponse<List<PersonDto>>> sent() {
+        return ResponseEntity.ok(ApiResponse.success(connectionService.listSent(SecurityUtils.currentUserId())));
+    }
+
+    @GetMapping("/{userId}/mutual")
+    public ResponseEntity<ApiResponse<List<PersonDto>>> mutual(@PathVariable UUID userId) {
+        return ResponseEntity.ok(ApiResponse.success(
+                connectionService.listMutual(SecurityUtils.currentUserId(), userId)));
     }
 
     @GetMapping("/{userId}/status")
@@ -44,5 +58,12 @@ public class ConnectionController {
     public ResponseEntity<ApiResponse<Void>> accept(@PathVariable UUID userId) {
         connectionService.acceptConnection(SecurityUtils.currentUserId(), userId);
         return ResponseEntity.ok(ApiResponse.success(null, "Connection accepted"));
+    }
+
+    /** Decline a request I received, withdraw one I sent, or remove a friend. */
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<ApiResponse<Map<String, String>>> end(@PathVariable UUID userId) {
+        ConnectionStatus result = connectionService.endConnection(SecurityUtils.currentUserId(), userId);
+        return ResponseEntity.ok(ApiResponse.success(Map.of("status", result.name())));
     }
 }

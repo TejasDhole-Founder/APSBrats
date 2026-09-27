@@ -1,5 +1,6 @@
 package com.apsconnect.api.profile;
 
+import com.apsconnect.api.user.history.Stream;
 import com.apsconnect.api.user.history.UserSchoolHistory;
 
 import java.util.UUID;
@@ -13,6 +14,7 @@ public record SchoolHistoryDto(
         String section,
         short batchStart,
         short batchEnd,
+        Stream stream,
         boolean isPrimary
 ) {
     public static SchoolHistoryDto from(UserSchoolHistory h) {
@@ -25,6 +27,7 @@ public record SchoolHistoryDto(
                 h.getSection(),
                 h.getBatchStart(),
                 h.getBatchEnd(),
+                h.getStream(),
                 h.isPrimary()
         );
     }

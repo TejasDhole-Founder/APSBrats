@@ -5,11 +5,11 @@ class ApiEndpoints {
   static const schools = '/schools';
   static const users = '/users';
   static const usersUsernameAvailable = '/users/username-available';
-  static const usersPhoneAvailable = '/users/phone-available';
 
   // Auth
   static const authRequestOtp = '/auth/request-otp';
   static const authVerifyOtp = '/auth/verify-otp';
+  static const authGoogle = '/auth/google';
   static const authRefresh = '/auth/refresh';
   static const authLogout = '/auth/logout';
 
@@ -17,6 +17,7 @@ class ApiEndpoints {
   static const usersMeAvatar = '/users/me/avatar';
   static const usersMeExport = '/users/me/export';
   static const usersMe = '/users/me';
+  static const usersMeSettings = '/users/me/settings';
 
   // Server-driven client config (force-update / maintenance)
   static const appConfig = '/app/config';
@@ -29,9 +30,17 @@ class ApiEndpoints {
   // Connections
   static const connections = '/connections';
   static const connectionsPending = '/connections/pending';
+  static const connectionsSent = '/connections/sent';
+
+  // Circle (my people)
+  static const circleSummary = '/users/me/circle/summary';
+  static const circleClassmates = '/users/me/circle/classmates';
+  static const circleSchoolmates = '/users/me/circle/schoolmates';
   static String connectionStatus(String userId) =>
       '/connections/$userId/status';
   static String connectionRequest(String userId) => '/connections/$userId';
+  static String connectionMutual(String userId) =>
+      '/connections/$userId/mutual';
   static String connectionAccept(String userId) =>
       '/connections/$userId/accept';
 
@@ -59,11 +68,14 @@ class ApiEndpoints {
 
   // Search
   static const search = '/search';
+  static const peopleSearch = '/people/search';
 
   // Profiles
-  static String profile(String username) => '/profiles/$username';
+  static String profile(String userId) => '/profiles/$userId';
   static String userSchoolHistory(String userId) =>
       '/users/$userId/school-history';
+  static String userSchoolHistoryBulk(String userId) =>
+      '/users/$userId/school-history/bulk';
   static String userSocialLinks(String userId) => '/users/$userId/social-links';
   static String userSocialLink(String userId, String platform) =>
       '/users/$userId/social-links/$platform';

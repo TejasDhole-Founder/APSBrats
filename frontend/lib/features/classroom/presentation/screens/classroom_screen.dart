@@ -9,9 +9,7 @@ class ClassroomScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Classroom $classroomId')),
-      body: Center(
-        child: Text('Classroom detail for id: $classroomId'),
-      ),
+      body: Center(child: Text('Classroom detail for id: $classroomId')),
     );
   }
 }

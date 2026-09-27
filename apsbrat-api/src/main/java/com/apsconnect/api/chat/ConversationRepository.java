@@ -12,10 +12,13 @@ public interface ConversationRepository extends JpaRepository<Conversation, UUID
 
     Optional<Conversation> findByUserA_IdAndUserB_Id(UUID userAId, UUID userBId);
 
-    @Query("""
-            SELECT c FROM Conversation c
-            WHERE c.userA.id = :userId OR c.userB.id = :userId
-            ORDER BY COALESCE(c.lastMessageAt, c.createdAt) DESC
-            """)
-    List<Conversation> findAllForUser(@Param("userId") UUID userId);
+    @Query("select c from Conversation c "
+            + "where (c.userA.id = :userId or c.userB.id = :userId) "
+            + "and c.lastMessageAt is not null "
+            + "order by c.lastMessageAt desc")
+    List<Conversation> findActiveFor(@Param("userId") UUID userId);
+
+    List<Conversation> findByUserA_IdAndLastMessageAtIsNotNull(UUID myId);
+
+    List<Conversation> findByUserB_IdAndLastMessageAtIsNotNull(UUID myId);
 }

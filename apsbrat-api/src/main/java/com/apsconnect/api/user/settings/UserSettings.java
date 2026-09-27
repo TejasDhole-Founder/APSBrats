@@ -22,11 +22,9 @@ public class UserSettings {
     @Column(name = "user_id")
     private UUID userId;
 
-    @Column(nullable = false)
-    private Boolean showPhone;
-
-    @Column(nullable = false)
-    private Boolean batchmatesOnly;
+    /** Private = other users cannot see this person's phone number or social links. */
+    @Column(name = "is_private", nullable = false)
+    private Boolean isPrivate;
 
     @Column(nullable = false)
     private Boolean discoverable;
@@ -46,11 +44,8 @@ public class UserSettings {
         if (updatedAt == null) {
             updatedAt = now;
         }
-        if (showPhone == null) {
-            showPhone = Boolean.FALSE;
-        }
-        if (batchmatesOnly == null) {
-            batchmatesOnly = Boolean.FALSE;
+        if (isPrivate == null) {
+            isPrivate = Boolean.FALSE;
         }
         if (discoverable == null) {
             discoverable = Boolean.TRUE;

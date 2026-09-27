@@ -35,6 +35,13 @@ public class Connection {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    /** Set when the addressee accepts; cleared if the pair is re-requested later. */
+    @Column(name = "accepted_at")
+    private LocalDateTime acceptedAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
     @Version
     @Column(nullable = false)
     private Long version;
@@ -47,5 +54,13 @@ public class Connection {
         if (status == null) {
             status = ConnectionStatus.PENDING;
         }
+        if (updatedAt == null) {
+            updatedAt = LocalDateTime.now();
+        }
+    }
+
+    @PreUpdate
+    void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }

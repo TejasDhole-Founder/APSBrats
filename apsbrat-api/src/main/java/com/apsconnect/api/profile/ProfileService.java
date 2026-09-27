@@ -2,8 +2,8 @@ package com.apsconnect.api.profile;
 
 import com.apsconnect.api.common.exception.AppException;
 import com.apsconnect.api.connection.ConnectionRepository;
-import com.apsconnect.api.connection.ConnectionStatus;
 import com.apsconnect.api.safety.UserBlockRepository;
+import com.apsconnect.api.user.PersonService;
 import com.apsconnect.api.user.User;
 import com.apsconnect.api.user.UserRepository;
 import com.apsconnect.api.user.history.UserSchoolHistoryService;
@@ -29,10 +29,11 @@ public class ProfileService {
     private final ConnectionRepository connectionRepository;
     private final UserBlockRepository blockRepository;
     private final UserSettingsService settingsService;
+    private final PersonService personService;
 
     @Transactional(readOnly = true)
-    public ProfileDto getByUsername(UUID viewerId, String username) {
-        User user = userRepository.findByUsername(username)
+    public ProfileDto getById(UUID viewerId, UUID userId) {
+        User user = userRepository.findById(userId)
                 .filter(u -> u.getDeletedAt() == null)
                 .orElseThrow(() -> new AppException("Profile not found", HttpStatus.NOT_FOUND));
 
@@ -41,39 +42,23 @@ public class ProfileService {
             throw new AppException("Profile not found", HttpStatus.NOT_FOUND);
         }
 
+        // Name, schools, city, profession, bio are always visible — that is the
+        // point of the app. A Private profile only hides phone and socials
+        // from everyone except the owner.
         UserSettingsDto settings = settingsService.get(user.getId());
-        boolean connected = self || isConnected(viewerId, user.getId());
-        boolean restricted = !self && settings.batchmatesOnly() && !connected;
+        boolean hideContact = !self && settings.isPrivate();
 
         long connectedCount = connectionRepository.countAcceptedForUser(user.getId());
-
-        if (restricted) {
-            return new ProfileDto(
-                    user.getId(),
-                    user.getUsername(),
-                    user.getFullName(),
-                    null, null, null, null,
-                    user.getProfilePicUrl(),
-                    Boolean.TRUE.equals(user.getIsVerified()),
-                    user.getCurrentStatus(),
-                    List.of(),
-                    List.of(),
-                    connectedCount,
-                    0,
-                    connectedCount,
-                    true
-            );
-        }
-
+        int mutualCount = self ? 0 : personService.mutualCounts(viewerId, List.of(user.getId()))
+                .getOrDefault(user.getId(), 0);
         List<SchoolHistoryDto> schools = historyService.getSchoolHistory(user.getId());
 
-        List<UserSocialLinkDto> socials = socialLinkRepository
-                .findAllByUser_IdOrderByCreatedAtDesc(user.getId()).stream()
-                .filter(s -> Boolean.TRUE.equals(s.getIsVisible()))
-                .map(UserSocialLinkDto::from)
-                .toList();
-
-        String phone = self || (settings.showPhone() && connected) ? user.getPhone() : null;
+        List<UserSocialLinkDto> socials = hideContact
+                ? List.of()
+                : socialLinkRepository.findAllByUser_IdOrderByCreatedAtDesc(user.getId()).stream()
+                        .filter(s -> Boolean.TRUE.equals(s.getIsVisible()))
+                        .map(UserSocialLinkDto::from)
+                        .toList();
 
         return new ProfileDto(
                 user.getId(),
@@ -82,7 +67,7 @@ public class ProfileService {
                 user.getBio(),
                 user.getCity(),
                 user.getProfession(),
-                phone,
+                hideContact ? null : user.getPhone(),
                 user.getProfilePicUrl(),
                 Boolean.TRUE.equals(user.getIsVerified()),
                 user.getCurrentStatus(),
@@ -91,12 +76,8 @@ public class ProfileService {
                 connectedCount,
                 schools.size(),
                 connectedCount,
-                false
+                mutualCount,
+                settings.isPrivate()
         );
-    }
-
-    private boolean isConnected(UUID a, UUID b) {
-        return connectionRepository.findBetween(a, b).stream()
-                .anyMatch(c -> c.getStatus() == ConnectionStatus.ACCEPTED);
     }
 }

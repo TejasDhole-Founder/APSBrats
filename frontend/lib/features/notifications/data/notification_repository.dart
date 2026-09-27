@@ -9,8 +9,11 @@ class NotificationRepository {
   NotificationRepository(this._dio);
   final Dio _dio;
 
-  Future<List<AppNotification>> list() async {
-    final res = await _dio.get<dynamic>(ApiEndpoints.notifications);
+  Future<List<AppNotification>> list({int page = 0}) async {
+    final res = await _dio.get<dynamic>(
+      ApiEndpoints.notifications,
+      queryParameters: {'page': page},
+    );
     return dataList(res, AppNotification.fromJson);
   }
 
@@ -19,14 +22,19 @@ class NotificationRepository {
     return (dataMap(res)['count'] as num?)?.toInt() ?? 0;
   }
 
-  Future<void> markRead(String id) async => _dio.post<dynamic>(ApiEndpoints.notificationRead(id));
-  Future<void> markAllRead() async => _dio.post<dynamic>(ApiEndpoints.notificationsReadAll);
+  Future<void> markRead(String id) async =>
+      _dio.post<dynamic>(ApiEndpoints.notificationRead(id));
+  Future<void> markAllRead() async =>
+      _dio.post<dynamic>(ApiEndpoints.notificationsReadAll);
 }
 
-final notificationRepositoryProvider =
-    Provider<NotificationRepository>((ref) => NotificationRepository(ref.watch(dioProvider)));
+final notificationRepositoryProvider = Provider<NotificationRepository>(
+  (ref) => NotificationRepository(ref.watch(dioProvider)),
+);
 
-final notificationsProvider =
-    FutureProvider<List<AppNotification>>((ref) => ref.watch(notificationRepositoryProvider).list());
-final unreadNotificationCountProvider =
-    FutureProvider<int>((ref) => ref.watch(notificationRepositoryProvider).unreadCount());
+final notificationsProvider = FutureProvider<List<AppNotification>>(
+  (ref) => ref.watch(notificationRepositoryProvider).list(),
+);
+final unreadNotificationCountProvider = FutureProvider<int>(
+  (ref) => ref.watch(notificationRepositoryProvider).unreadCount(),
+);

@@ -42,11 +42,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/app/config").permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/schools/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/users/username-available").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/users/phone-available").permitAll()
-                        .requestMatchers("/api/v1/users/*/school-history/**").permitAll()
-                        .requestMatchers("/api/v1/users/*/social-links/**").permitAll()
+                        // School history and social links used to be public; both now require
+                        // login, and the write endpoints additionally check the path id is the
+                        // caller's own (see UserSchoolHistoryController / UserSocialLinkController).
                         .requestMatchers("/api/v1/admin/**").hasAnyRole("ADMIN", "MODERATOR")
                         .anyRequest().authenticated())
                 .exceptionHandling(e -> e

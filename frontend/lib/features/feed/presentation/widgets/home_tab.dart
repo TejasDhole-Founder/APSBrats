@@ -2,6 +2,7 @@ import 'package:apsbrat_frontend/core/theme/app_theme.dart';
 import 'package:apsbrat_frontend/features/feed/data/dummy_data.dart';
 import 'package:apsbrat_frontend/features/feed/presentation/widgets/feed_shared.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class HomeTab extends StatelessWidget {
   const HomeTab({
@@ -64,6 +65,11 @@ class HomeTab extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
+                    FeedIconBtn(
+                      icon: Icons.notifications_none_rounded,
+                      onTap: () => context.go('/home/notifications'),
+                    ),
+                    const SizedBox(width: 8),
                     Container(
                       width: 40,
                       height: 40,

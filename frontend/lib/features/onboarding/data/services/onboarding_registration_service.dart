@@ -1,72 +1,19 @@
 import 'package:apsbrat_frontend/core/constants/api_endpoints.dart';
 import 'package:apsbrat_frontend/core/network/api_response.dart';
 import 'package:apsbrat_frontend/features/onboarding/data/models/availability_model.dart';
-import 'package:apsbrat_frontend/features/onboarding/data/models/identity_registration_model.dart';
-import 'package:apsbrat_frontend/features/onboarding/data/models/school_history_registration_model.dart';
-import 'package:apsbrat_frontend/features/onboarding/data/models/social_link_registration_model.dart';
-import 'package:apsbrat_frontend/features/onboarding/presentation/providers/onboarding_flow_provider.dart';
 import 'package:dio/dio.dart';
 
+/// The account already exists by the time onboarding runs (email or Google
+/// sign-in created it) — this is just the live username check the identity
+/// step uses, shared with the "edit profile" page.
 class OnboardingRegistrationService {
   const OnboardingRegistrationService();
 
-  Future<Availability> usernameAvailability(Dio dio, String username) =>
-      _availability(dio, ApiEndpoints.usersUsernameAvailable, {
-        'username': username,
-      });
-
-  Future<Availability> phoneAvailability(Dio dio, String phone) =>
-      _availability(dio, ApiEndpoints.usersPhoneAvailable, {'phone': phone});
-
-  Future<Availability> _availability(
-    Dio dio,
-    String path,
-    Map<String, dynamic> query,
-  ) async {
-    final res = await dio.get<dynamic>(path, queryParameters: query);
-    return Availability.fromJson(dataMap(res));
-  }
-
-  Future<String> registerSequential({
-    required Dio dio,
-    required OnboardingFlowState flow,
-  }) async {
-    // Step 1: identity registration
-    final identity = IdentityRegistrationModel.fromFlow(flow);
-    final userResponse = await dio.post<dynamic>(
-      ApiEndpoints.users,
-      data: identity.toJson(),
+  Future<Availability> usernameAvailability(Dio dio, String username) async {
+    final res = await dio.get<dynamic>(
+      ApiEndpoints.usersUsernameAvailable,
+      queryParameters: {'username': username},
     );
-
-    final userBody = userResponse.data as Map<String, dynamic>;
-    final userData = userBody['data'] as Map<String, dynamic>? ?? {};
-    final userId = userData['id']?.toString();
-    if (userId == null || userId.isEmpty) {
-      throw Exception('Invalid user id returned from registration');
-    }
-
-    // Step 2: school history save
-    final schoolItems = flow.schoolHistory
-        .where((item) => item.schoolId.isNotEmpty)
-        .map(SchoolHistoryRegistrationModel.fromDraft)
-        .map((item) => item.toJson())
-        .toList();
-    if (schoolItems.isNotEmpty) {
-      await dio.post<dynamic>(
-        '${ApiEndpoints.users}/$userId/school-history/bulk',
-        data: {'items': schoolItems},
-      );
-    }
-
-    // Step 3: social links save
-    final socials = SocialLinkRegistrationModel.fromFlow(flow);
-    for (final social in socials) {
-      await dio.put<dynamic>(
-        '${ApiEndpoints.users}/$userId/social-links/${social.platform}',
-        data: social.toJson(),
-      );
-    }
-
-    return userId;
+    return Availability.fromJson(dataMap(res));
   }
 }
