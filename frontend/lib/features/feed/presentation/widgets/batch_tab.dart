@@ -20,9 +20,7 @@ import 'package:go_router/go_router.dart';
 /// from my schools ranked by mutual friends) — no search query runs. Typing a
 /// name switches the same screen into search, scoped to my schools first.
 class BatchTab extends ConsumerStatefulWidget {
-  const BatchTab({super.key, required this.onGoCommunities});
-
-  final VoidCallback onGoCommunities;
+  const BatchTab({super.key});
 
   @override
   ConsumerState<BatchTab> createState() => _BatchTabState();
@@ -136,14 +134,16 @@ class _BatchTabState extends ConsumerState<BatchTab> {
 
   Future<void> _message(Person p) async {
     try {
-      final conversation = await ref.read(chatRepositoryProvider).openWith(p.id);
+      final conversation = await ref
+          .read(chatRepositoryProvider)
+          .openWith(p.id);
       if (!mounted) return;
       context.go('/home/chat/${conversation.id}');
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Could not open chat. Try again.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open chat. Try again.')),
+      );
     }
   }
 
@@ -340,10 +340,14 @@ class _BatchTabState extends ConsumerState<BatchTab> {
     return [
       first.when(
         loading: () => const _Loading(),
-        error: (_, __) => const EmptyState(
+        error: (_, __) => EmptyState(
           icon: Icons.wifi_off_rounded,
           title: 'Could not search',
           message: 'Check your connection and try again.',
+          action: TextButton(
+            onPressed: () => ref.invalidate(peopleSearchProvider(_searchQuery)),
+            child: const Text('Retry'),
+          ),
         ),
         data: (firstPage) {
           final people = [...firstPage, ...more];
@@ -418,10 +422,14 @@ class _BatchTabState extends ConsumerState<BatchTab> {
     return [
       friends.when(
         loading: () => const _Loading(),
-        error: (_, __) => const EmptyState(
+        error: (_, __) => EmptyState(
           icon: Icons.wifi_off_rounded,
           title: 'Could not load your friends',
           message: 'Check your connection and try again.',
+          action: TextButton(
+            onPressed: () => ref.invalidate(batchmatesProvider),
+            child: const Text('Retry'),
+          ),
         ),
         data: (people) {
           if (people.isEmpty) {
@@ -584,10 +592,14 @@ class _BatchTabState extends ConsumerState<BatchTab> {
     return [
       first.when(
         loading: () => const _Loading(),
-        error: (_, __) => const EmptyState(
+        error: (_, __) => EmptyState(
           icon: Icons.wifi_off_rounded,
           title: 'Could not load',
           message: 'Check your connection and try again.',
+          action: TextButton(
+            onPressed: () => ref.invalidate(provider(_circlePage(0))),
+            child: const Text('Retry'),
+          ),
         ),
         data: (firstPage) {
           final people = [...firstPage, ...more];

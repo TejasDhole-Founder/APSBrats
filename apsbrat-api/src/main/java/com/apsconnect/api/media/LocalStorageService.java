@@ -3,6 +3,7 @@ package com.apsconnect.api.media;
 import com.apsconnect.api.common.exception.AppException;
 import com.apsconnect.api.common.exception.ErrorCode;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -12,11 +13,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
- * Dev/default storage backing. In prod this is swapped for an S3/GCS-backed
- * implementation (behind a CDN with signed URLs) via the {@link StorageService}
- * interface — no caller changes required.
+ * Dev/default storage: the container's own disk, served back by {@link MediaWebConfig}.
+ * Fine locally; wrong for any environment where the filesystem doesn't survive a restart
+ * (Cloud Run, most containers) — set {@code app.storage.type=r2} there (see {@link R2StorageService}).
  */
 @Service
+@ConditionalOnProperty(name = "app.storage.type", havingValue = "local", matchIfMissing = true)
 public class LocalStorageService implements StorageService {
 
     private final Path root;

@@ -16,11 +16,26 @@ import java.util.UUID;
 public class UserSocialLinkService {
     private final UserRepository userRepository;
     private final UserSocialLinkRepository userSocialLinkRepository;
+    private final com.apsconnect.api.safety.UserBlockRepository blockRepository;
+    private final com.apsconnect.api.user.settings.UserSettingsService settingsService;
 
-    public List<UserSocialLinkDto> getLinks(UUID userId) {
+    /**
+     * My own links, all of them. Someone else's: only the ones they show, nothing
+     * if their profile is Private, and a 404 if either of us blocked the other
+     * (the same rules as the profile page).
+     */
+    public List<UserSocialLinkDto> getLinks(UUID viewerId, UUID userId) {
         ensureUserExists(userId);
+        boolean self = viewerId.equals(userId);
+        if (!self && blockRepository.existsBetween(viewerId, userId)) {
+            throw new AppException("User not found", HttpStatus.NOT_FOUND);
+        }
+        if (!self && settingsService.get(userId).isPrivate()) {
+            return List.of();
+        }
         return userSocialLinkRepository.findAllByUser_IdOrderByCreatedAtDesc(userId)
                 .stream()
+                .filter(l -> self || Boolean.TRUE.equals(l.getIsVisible()))
                 .map(UserSocialLinkDto::from)
                 .toList();
     }

@@ -1,15 +1,28 @@
+import 'dart:convert';
+
+import 'package:apsbrat_frontend/core/app_root.dart';
 import 'package:apsbrat_frontend/core/constants/social_platforms.dart';
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
 import 'package:apsbrat_frontend/features/auth/data/auth_repository.dart';
+import 'package:apsbrat_frontend/features/auth/presentation/providers/auth_provider.dart';
+import 'package:apsbrat_frontend/features/career/data/career_models.dart';
+import 'package:apsbrat_frontend/features/career/data/career_repository.dart';
+import 'package:apsbrat_frontend/features/career/presentation/journey_timeline.dart';
+import 'package:apsbrat_frontend/features/community/data/community_repository.dart'
+    show friendlyError;
+import 'package:apsbrat_frontend/features/community/presentation/post_card.dart'
+    show confirmDialog;
 import 'package:apsbrat_frontend/features/feed/presentation/widgets/feed_shared.dart';
-import 'package:apsbrat_frontend/features/feed/presentation/widgets/school_timeline.dart';
 import 'package:apsbrat_frontend/features/profile/data/profile_models.dart';
 import 'package:apsbrat_frontend/features/profile/data/profile_repository.dart';
+import 'package:apsbrat_frontend/features/profile/presentation/widgets/profile_photo.dart';
+import 'package:apsbrat_frontend/features/settings/data/account_repository.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key});
@@ -23,7 +36,7 @@ class _ProfileTabState extends State<ProfileTab> {
 
   static const _tabs = [
     (Icons.person_rounded, 'About'),
-    (Icons.account_balance_rounded, 'Schools'),
+    (Icons.timeline_rounded, 'Journey'),
     (Icons.link_rounded, 'Socials'),
   ];
 
@@ -57,15 +70,7 @@ class _ProfileTabState extends State<ProfileTab> {
                   const SizedBox(height: 6),
                   const _PersonalInfoSection(),
                 ],
-                1 => [
-                  _SectionTitle(
-                    label: 'My APS Schools',
-                    editTooltip: 'Edit schools',
-                    onEdit: () => context.go('/home/edit-schools'),
-                  ),
-                  const SizedBox(height: 6),
-                  const _SchoolsSection(),
-                ],
+                1 => [const _JourneySection()],
                 _ => [
                   const SectionLabel('Socials'),
                   const SizedBox(height: 10),
@@ -270,6 +275,9 @@ class _ProfileHeader extends ConsumerWidget {
         ? null
         : ref.watch(profileProvider(me.id)).valueOrNull;
     final schools = ref.watch(mySchoolHistoryProvider).valueOrNull;
+    final headline =
+        careerHeadline(ref.watch(myCareerProvider).valueOrNull ?? const []) ??
+        me?.profession;
 
     final name = (me?.fullName ?? '').isNotEmpty
         ? me!.fullName!
@@ -303,29 +311,8 @@ class _ProfileHeader extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  Container(
-                    width: 76,
-                    height: 76,
-                    decoration: BoxDecoration(
-                      color: kGoldLight,
-                      border: Border.all(color: AppColors.gold, width: 3),
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: me == null
-                        ? const Icon(
-                            Icons.person_outline_rounded,
-                            size: 34,
-                            color: kGoldDark,
-                          )
-                        : Text(
-                            _initials(me.fullName ?? ''),
-                            style: const TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.w800,
-                              color: kGoldDark,
-                            ),
-                          ),
+                  ProfilePhotoButton(
+                    initials: me == null ? null : _initials(me.fullName ?? ''),
                   ),
                   const SizedBox(height: 8),
                   if (me != null) _VerifiedPill(verified: me.isVerified),
@@ -338,6 +325,19 @@ class _ProfileHeader extends ConsumerWidget {
                       color: Colors.white,
                     ),
                   ),
+                  if ((headline ?? '').isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2, bottom: 2),
+                      child: Text(
+                        headline!,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.gold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                   Text(
                     subtitle,
                     style: const TextStyle(fontSize: 12, color: Colors.white54),
@@ -495,7 +495,11 @@ class _PersonalInfoSection extends ConsumerWidget {
         _InfoRow(
           icon: Icons.work_outline_rounded,
           label: 'What I do now',
-          value: me?.profession,
+          value:
+              careerHeadline(
+                ref.watch(myCareerProvider).valueOrNull ?? const [],
+              ) ??
+              me?.profession,
           hint: 'Not added',
         ),
         const Divider(height: 1, color: kBorder),
@@ -611,25 +615,30 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
-// ── Schools section ───────────────────────────────────────────────────────────
+// ── Journey section ───────────────────────────────────────────────────────────
 
-class _SchoolsSection extends ConsumerWidget {
-  const _SchoolsSection();
+class _JourneySection extends ConsumerWidget {
+  const _JourneySection();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref
-        .watch(mySchoolHistoryProvider)
-        .when(
-          data: (schools) => SchoolTimeline(schools: schools),
-          loading: () => const Padding(
-            padding: EdgeInsets.symmetric(vertical: 32),
-            child: Center(
-              child: CircularProgressIndicator(color: AppColors.crimson),
-            ),
-          ),
-          error: (_, __) => const SchoolTimeline(schools: []),
-        );
+    final career = ref.watch(myCareerProvider);
+    final schools = ref.watch(mySchoolHistoryProvider);
+    if (career.isLoading && !career.hasValue ||
+        schools.isLoading && !schools.hasValue) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 32),
+        child: Center(
+          child: CircularProgressIndicator(color: AppColors.crimson),
+        ),
+      );
+    }
+    return JourneyTimeline(
+      career: career.valueOrNull ?? const [],
+      schools: schools.valueOrNull ?? const [],
+      editable: true,
+      onEditSchools: () => context.go('/home/edit-schools'),
+    );
   }
 }
 
@@ -1032,10 +1041,11 @@ class _PrivacyRow extends ConsumerWidget {
       iconBg: kGoldLight,
       icon: isPrivate ? Icons.lock_rounded : Icons.public_rounded,
       iconColor: kGoldDark,
-      title: isPrivate ? 'Private profile' : 'Public profile',
+      // The label never changes, so the switch always means "Private is on/off".
+      title: 'Private profile',
       subtitle: isPrivate
-          ? 'Phone & socials hidden from others'
-          : 'Everyone can see your phone & socials',
+          ? 'On: phone & socials hidden from others'
+          : 'Off: everyone can see your phone & socials',
       trailing: _Toggle(
         value: isPrivate,
         onChanged: (v) async {
@@ -1056,17 +1066,177 @@ class _PrivacyRow extends ConsumerWidget {
   }
 }
 
-class _SettingsSheet extends StatefulWidget {
+/// "Active now / 2h ago" for others. Like WhatsApp, turning it off also
+/// hides everyone else's from me.
+class _ActivityRow extends ConsumerWidget {
+  const _ActivityRow();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final show =
+        ref.watch(mySettingsProvider).valueOrNull?.showActivity ?? true;
+    return _SettingsRow(
+      iconBg: kGoldLight,
+      icon: show ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+      iconColor: kGoldDark,
+      title: 'Show my activity',
+      subtitle: show
+          ? 'Others see when you were last active'
+          : "Hidden. You won't see others' activity either",
+      trailing: _Toggle(
+        value: show,
+        onChanged: (v) async {
+          try {
+            await ref.read(profileRepositoryProvider).setShowActivity(v);
+            ref.invalidate(mySettingsProvider);
+          } catch (_) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Could not save. Try again.')),
+              );
+            }
+          }
+        },
+      ),
+      onTap: () {},
+    );
+  }
+}
+
+class _SettingsSheet extends ConsumerStatefulWidget {
   const _SettingsSheet();
 
   @override
-  State<_SettingsSheet> createState() => _SettingsSheetState();
+  ConsumerState<_SettingsSheet> createState() => _SettingsSheetState();
 }
 
-class _SettingsSheetState extends State<_SettingsSheet> {
-  bool _notifyJoins = true;
-  bool _notifyMessages = true;
-  bool _notifyRequests = true;
+class _SettingsSheetState extends ConsumerState<_SettingsSheet> {
+  bool _loggingOut = false;
+  bool _exporting = false;
+  bool _deleting = false;
+
+  void _snack(String text) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+    }
+  }
+
+  void _openBlocked() {
+    final router = GoRouter.of(context);
+    Navigator.of(context).pop();
+    router.push('/home/blocked');
+  }
+
+  /// DPDP right of access: the server's export, as text, to the share sheet.
+  Future<void> _export() async {
+    if (_exporting) return;
+    setState(() => _exporting = true);
+    try {
+      final data = await ref.read(accountRepositoryProvider).exportMyData();
+      await Share.share(
+        const JsonEncoder.withIndent('  ').convert(data),
+        subject: 'My APS Brats data',
+      );
+    } catch (_) {
+      _snack("Couldn't prepare your data. Try again.");
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
+
+  Future<void> _deleteAccount() async {
+    if (_deleting) return;
+    final confirmed = await confirmDialog(
+      context,
+      title: 'Delete your account?',
+      message:
+          "Your profile will be removed. Your posts and messages stay, shown as an unknown user. This can't be undone.",
+      action: 'Delete account',
+    );
+    if (!confirmed || !mounted) return;
+
+    setState(() => _deleting = true);
+    try {
+      await ref.read(accountRepositoryProvider).deleteMyAccount();
+    } catch (e) {
+      if (mounted) setState(() => _deleting = false);
+      _snack(friendlyError(e, "Couldn't delete your account. Try again."));
+      return;
+    }
+    // Gone on the server: sign out and clear this device, as Log out does.
+    await ref.read(authControllerProvider.notifier).logout();
+    if (mounted) await AppRoot.restart(context);
+  }
+
+  Future<void> _logout() async {
+    if (_loggingOut) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Log out?'),
+        content: const Text(
+          'This signs you out and removes your saved login and profile data from this device.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text(
+              'Log out',
+              style: TextStyle(color: Color(0xFFC53030)),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _loggingOut = true);
+    await ref.read(authControllerProvider.notifier).logout();
+    if (mounted) await AppRoot.restart(context);
+  }
+
+  Future<void> _logoutEverywhere() async {
+    if (_loggingOut) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Log out of all devices?'),
+        content: const Text(
+          'Every phone, tablet and browser signed in to your account will be signed out, including this one.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text(
+              'Log out everywhere',
+              style: TextStyle(color: Color(0xFFC53030)),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _loggingOut = true);
+    try {
+      await ref.read(authControllerProvider.notifier).logoutEverywhere();
+    } catch (e) {
+      if (mounted) setState(() => _loggingOut = false);
+      _snack(
+        friendlyError(e, "Couldn't sign out your other devices. Try again."),
+      );
+      return;
+    }
+    if (mounted) await AppRoot.restart(context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1106,111 +1276,63 @@ class _SettingsSheetState extends State<_SettingsSheet> {
               controller: ctrl,
               padding: EdgeInsets.zero,
               children: [
+                const _SettingsSection(
+                  label: 'Privacy',
+                  rows: [_PrivacyRow(), _ActivityRow()],
+                ),
                 _SettingsSection(
                   label: 'Account',
                   rows: [
                     _SettingsRow(
-                      iconBg: kCrimsonLight,
-                      icon: Icons.person_rounded,
-                      iconColor: kCrimsonMed,
-                      title: 'Edit profile',
-                      subtitle: 'Name, photo, bio, username',
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        context.go('/home/edit-profile');
-                      },
-                    ),
-                    _SettingsRow(
-                      iconBg: kGoldLight,
-                      icon: Icons.school_rounded,
-                      iconColor: kGoldDark,
-                      title: 'My schools',
-                      subtitle: 'Add or edit APS schools',
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        context.go('/home/edit-schools');
-                      },
-                    ),
-                    _SettingsRow(
-                      iconBg: kCrimsonLight,
-                      icon: Icons.link_rounded,
-                      iconColor: kCrimsonMed,
-                      title: 'Social links',
-                      subtitle: 'Instagram, WhatsApp, LinkedIn',
-                      onTap: () {},
-                    ),
-                  ],
-                ),
-                const _SettingsSection(label: 'Privacy', rows: [_PrivacyRow()]),
-                _SettingsSection(
-                  label: 'Notifications',
-                  rows: [
-                    _SettingsRow(
-                      iconBg: kCrimsonLight,
-                      icon: Icons.notifications_rounded,
-                      iconColor: kCrimsonMed,
-                      title: 'New batchmate joins',
-                      subtitle: 'Alert when someone from your batch joins',
-                      trailing: _Toggle(
-                        value: _notifyJoins,
-                        onChanged: (v) => setState(() => _notifyJoins = v),
-                      ),
-                      onTap: () {},
-                    ),
-                    _SettingsRow(
-                      iconBg: kGoldLight,
-                      icon: Icons.chat_bubble_rounded,
-                      iconColor: kGoldDark,
-                      title: 'New messages',
-                      subtitle: 'Push notification for messages',
-                      trailing: _Toggle(
-                        value: _notifyMessages,
-                        onChanged: (v) => setState(() => _notifyMessages = v),
-                      ),
-                      onTap: () {},
-                    ),
-                    _SettingsRow(
-                      iconBg: kCrimsonLight,
-                      icon: Icons.person_add_rounded,
-                      iconColor: kCrimsonMed,
-                      title: 'Connection requests',
-                      subtitle: 'When someone wants to connect',
-                      trailing: _Toggle(
-                        value: _notifyRequests,
-                        onChanged: (v) => setState(() => _notifyRequests = v),
-                      ),
-                      onTap: () {},
-                    ),
-                  ],
-                ),
-                _SettingsSection(
-                  label: 'Support',
-                  rows: [
-                    _SettingsRow(
                       iconBg: const Color(0xFFF0EDE5),
-                      icon: Icons.help_outline_rounded,
+                      icon: Icons.block_outlined,
                       iconColor: const Color(0xFF6A6050),
-                      title: 'Help & FAQ',
-                      subtitle: 'Common questions answered',
-                      onTap: () {},
+                      title: 'Blocked users',
+                      subtitle: 'People you have blocked',
+                      onTap: _openBlocked,
                     ),
                     _SettingsRow(
                       iconBg: const Color(0xFFF0EDE5),
-                      icon: Icons.flag_outlined,
+                      icon: Icons.download_outlined,
                       iconColor: const Color(0xFF6A6050),
-                      title: 'Report a problem',
-                      subtitle: 'Something not working right?',
-                      onTap: () {},
+                      title: 'Download my data',
+                      subtitle: _exporting
+                          ? 'Preparing…'
+                          : 'A copy of what we store about you',
+                      onTap: _export,
+                    ),
+                    _SettingsRow(
+                      iconBg: const Color(0xFFFEF3F3),
+                      icon: Icons.delete_outline_rounded,
+                      iconColor: const Color(0xFFC53030),
+                      title: 'Delete account',
+                      subtitle: _deleting
+                          ? 'Deleting…'
+                          : 'Remove your profile for good',
+                      titleColor: const Color(0xFFC53030),
+                      onTap: _deleteAccount,
                     ),
                     _SettingsRow(
                       iconBg: const Color(0xFFFEF3F3),
                       icon: Icons.logout_rounded,
                       iconColor: const Color(0xFFC53030),
                       title: 'Log out',
-                      subtitle: 'You can log back in anytime',
+                      subtitle: _loggingOut
+                          ? 'Logging out…'
+                          : 'You can log back in anytime',
                       titleColor: const Color(0xFFC53030),
                       trailing: const SizedBox.shrink(),
-                      onTap: () {},
+                      onTap: _logout,
+                    ),
+                    _SettingsRow(
+                      iconBg: const Color(0xFFFEF3F3),
+                      icon: Icons.devices_other_rounded,
+                      iconColor: const Color(0xFFC53030),
+                      title: 'Log out of all devices',
+                      subtitle: 'If you lost a phone or used a shared device',
+                      titleColor: const Color(0xFFC53030),
+                      trailing: const SizedBox.shrink(),
+                      onTap: _logoutEverywhere,
                     ),
                   ],
                 ),

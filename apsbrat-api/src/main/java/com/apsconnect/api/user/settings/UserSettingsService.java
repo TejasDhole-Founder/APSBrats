@@ -36,6 +36,9 @@ public class UserSettingsService {
         if (request.discoverable() != null) {
             settings.setDiscoverable(request.discoverable());
         }
+        if (request.showActivity() != null) {
+            settings.setShowActivity(request.showActivity());
+        }
         return UserSettingsDto.from(repository.save(settings));
     }
 

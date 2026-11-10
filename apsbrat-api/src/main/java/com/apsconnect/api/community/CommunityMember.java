@@ -1,44 +1,43 @@
 package com.apsconnect.api.community;
 
-import com.apsconnect.api.user.User;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/** One row = this person is in this community. The key is the pair of ids. */
 @Getter
 @Setter
 @Entity
 @Table(name = "community_members")
+@IdClass(CommunityMember.Key.class)
 public class CommunityMember {
     @Id
-    @GeneratedValue
-    private UUID id;
+    private UUID communityId;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "community_id", nullable = false)
-    private Community community;
+    @Id
+    private UUID userId;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Enumerated(EnumType.STRING)
+    private MemberRole role = MemberRole.MEMBER;
 
-    @Column(name = "last_read_at")
-    private LocalDateTime lastReadAt;
+    private LocalDateTime joinedAt = LocalDateTime.now();
 
-    @Column(name = "joined_at", nullable = false)
-    private LocalDateTime joinedAt;
+    /** Read the group chat up to here; null = nothing read since joining. */
+    private LocalDateTime chatReadAt;
 
-    @Version
-    @Column(nullable = false)
-    private Long version;
-
-    @PrePersist
-    void onCreate() {
-        if (joinedAt == null) {
-            joinedAt = LocalDateTime.now();
-        }
+    /** The two-column primary key, as one object (JPA needs this for findById). */
+    @EqualsAndHashCode
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Key implements Serializable {
+        private UUID communityId;
+        private UUID userId;
     }
 }

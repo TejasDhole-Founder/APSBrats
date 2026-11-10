@@ -1,3 +1,7 @@
+import 'dart:async';
+import 'package:apsbrat_frontend/features/profile/presentation/widgets/profile_photo.dart';
+import 'package:apsbrat_frontend/features/profile/data/profile_repository.dart';
+
 import 'package:apsbrat_frontend/core/network/dio_client.dart';
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
 import 'package:apsbrat_frontend/features/auth/presentation/providers/auth_provider.dart';
@@ -5,6 +9,7 @@ import 'package:apsbrat_frontend/features/onboarding/data/services/onboarding_re
 import 'package:apsbrat_frontend/features/onboarding/presentation/providers/availability_checker.dart';
 import 'package:apsbrat_frontend/features/onboarding/presentation/providers/onboarding_flow_provider.dart';
 import 'package:apsbrat_frontend/features/onboarding/presentation/widgets/onboarding_frame.dart';
+import 'package:apsbrat_frontend/core/theme/app_inputs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -33,6 +38,13 @@ class _OnboardingIdentityScreenState
   String? _gender;
   bool _isStudent = false; // default: Alumni
 
+  late final OnboardingFlowNotifier _flow;
+  Timer? _saveTimer;
+
+  /// The login email: from the live session, or from the saved draft right
+  /// after the app was reopened (the session is not loaded yet then).
+  String _email = '';
+
   @override
   void initState() {
     super.initState();
@@ -45,6 +57,18 @@ class _OnboardingIdentityScreenState
     _professionController.text = s.profession;
     _gender = s.gender.isEmpty ? null : s.gender;
     _isStudent = s.isStudent;
+    _flow = ref.read(onboardingFlowProvider.notifier);
+    _email = ref.read(authControllerProvider).user?.email ?? s.email;
+    for (final c in [
+      _firstNameController,
+      _lastNameController,
+      _usernameController,
+      _dobController,
+      _cityController,
+      _professionController,
+    ]) {
+      c.addListener(_scheduleSave);
+    }
     const service = OnboardingRegistrationService();
     _usernameCheck = AvailabilityChecker(
       controller: _usernameController,
@@ -56,8 +80,49 @@ class _OnboardingIdentityScreenState
     if (mounted) setState(() {});
   }
 
+  /// Saves what has been typed so far, shortly after the user pauses.
+  void _scheduleSave() {
+    _saveTimer?.cancel();
+    _saveTimer = Timer(const Duration(milliseconds: 400), _syncDraft);
+  }
+
+  /// [deferred] is for dispose: Riverpod does not allow changing state while a
+  /// screen is being torn down, so the values are read now and saved a moment
+  /// later, after the frame.
+  void _syncDraft({bool deferred = false}) {
+    final first = _firstNameController.text.trim();
+    final last = _lastNameController.text.trim();
+    final username = _usernameController.text.trim();
+    final dob = _dobController.text.trim();
+    final city = _cityController.text.trim();
+    final profession = _professionController.text.trim();
+    final gender = _gender ?? '';
+    final isStudent = _isStudent;
+    final email = _email;
+    final flow = _flow;
+
+    void save() {
+      if (!flow.mounted) return;
+      flow.syncIdentity(
+        firstName: first,
+        lastName: last,
+        username: username,
+        dob: dob,
+        city: city,
+        profession: profession,
+        gender: gender,
+        isStudent: isStudent,
+        email: email,
+      );
+    }
+
+    deferred ? Future(save) : save();
+  }
+
   @override
   void dispose() {
+    _saveTimer?.cancel();
+    _syncDraft(deferred: true);
     _firstNameController.dispose();
     _lastNameController.dispose();
     _usernameCheck.dispose();
@@ -74,7 +139,7 @@ class _OnboardingIdentityScreenState
       _usernameCheck.focus.requestFocus();
       return;
     }
-    final email = ref.read(authControllerProvider).user?.email ?? '';
+    final email = ref.read(authControllerProvider).user?.email ?? _email;
     ref
         .read(onboardingFlowProvider.notifier)
         .saveIdentity(
@@ -88,6 +153,7 @@ class _OnboardingIdentityScreenState
           gender: _gender ?? '',
           isStudent: _isStudent,
         );
+    _flow.markStep(2);
     if (mounted) context.go('/onboarding/schools');
   }
 
@@ -106,11 +172,14 @@ class _OnboardingIdentityScreenState
 
   @override
   Widget build(BuildContext context) {
-    final email = ref.watch(authControllerProvider).user?.email ?? '';
+    final email = ref.watch(authControllerProvider).user?.email ?? _email;
     return Form(
       key: _formKey,
+      // Errors show as soon as a field is edited, not only after Continue.
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       child: OnboardingFrame(
         step: 1,
+        showAfterSchool: !_isStudent,
         title: 'First, tell us about yourself.',
         subtitle: 'Your batchmates will use this to find and recognise you.',
         footer: _Footer(onNext: _next),
@@ -125,8 +194,14 @@ class _OnboardingIdentityScreenState
           professionController: _professionController,
           gender: _gender,
           isStudent: _isStudent,
-          onGenderChanged: (v) => setState(() => _gender = v),
-          onStatusChanged: (v) => setState(() => _isStudent = v),
+          onGenderChanged: (v) {
+            setState(() => _gender = v);
+            _scheduleSave();
+          },
+          onStatusChanged: (v) {
+            setState(() => _isStudent = v);
+            _scheduleSave();
+          },
           onPickDob: _pickDob,
         ),
       ),
@@ -258,8 +333,9 @@ class _FormBody extends StatelessWidget {
             TextFormField(
               controller: usernameController,
               focusNode: usernameCheck.focus,
+              inputFormatters: usernameInputFormatters,
               decoration: _dec(
-                '@arjun.singh',
+                'arjun.singh',
                 suffix: _availabilitySuffix(usernameCheck),
               ).copyWith(errorText: usernameCheck.error),
               validator: _required,
@@ -277,10 +353,7 @@ class _FormBody extends StatelessWidget {
           _labeledField(
             'EMAIL',
             Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 11,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
               decoration: BoxDecoration(
                 color: const Color(0xFFFAF8F5),
                 borderRadius: AppRadius.sm,
@@ -378,17 +451,7 @@ class _FormBody extends StatelessWidget {
               decoration: _dec('Where are you based right now?'),
             ),
           ),
-          const SizedBox(height: 12),
-
-          // Profession
-          _labeledField(
-            'WHAT ARE YOU UP TO NOW?',
-            TextFormField(
-              controller: professionController,
-              decoration: _dec('NDA, IIT, working at Infosys...'),
-            ),
-            hint: 'Your batchmates are curious about life after APS',
-          ),
+          // "What do you do now" moved to its own step (alumni only).
           const SizedBox(height: 14),
 
           // I AM A toggle
@@ -473,75 +536,55 @@ String? _availabilityHint(
 
 // ── Profile photo card ────────────────────────────────────────────────────────
 
-class _PhotoCard extends StatelessWidget {
+/// Optional: add a profile photo during registration. It's saved straight
+/// away (the account already exists), so it's there even if they stop here.
+class _PhotoCard extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFAF8F5),
-        borderRadius: AppRadius.md,
-        border: Border.all(color: const Color(0xFFE8E2DA), width: 1.5),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: const Color(0xFFEFEBE4),
-              borderRadius: BorderRadius.circular(26),
-              border: Border.all(
-                color: AppColors.crimson.withValues(alpha: 0.2),
-                width: 1.5,
-                strokeAlign: BorderSide.strokeAlignOutside,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final hasPhoto =
+        (ref.watch(meProvider).valueOrNull?.profilePicUrl ?? '').isNotEmpty;
+    return InkWell(
+      borderRadius: AppRadius.md,
+      onTap: () => changeProfilePhoto(context, ref),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFAF8F5),
+          borderRadius: AppRadius.md,
+          border: Border.all(color: const Color(0xFFE8E2DA), width: 1.5),
+        ),
+        child: Row(
+          children: [
+            const ProfilePhotoButton(size: 52, onDarkBackground: false),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    hasPhoto ? 'Looking good!' : 'Add a profile photo',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1A0A0A),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    hasPhoto
+                        ? 'Tap to change it anytime'
+                        : 'Optional. Helps your batchmates recognise you after all these years',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Color(0xFF9A9280),
+                      height: 1.4,
+                    ),
+                  ),
+                ],
               ),
             ),
-            child: const Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.camera_alt_outlined,
-                  size: 18,
-                  color: Color(0xFF9A9280),
-                ),
-                Text(
-                  'PHOTO',
-                  style: TextStyle(
-                    fontSize: 7,
-                    color: Color(0xFF9A9280),
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Add a profile photo',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF1A0A0A),
-                  ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  'Help your batchmates recognise you after all these years',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Color(0xFF9A9280),
-                    height: 1.4,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

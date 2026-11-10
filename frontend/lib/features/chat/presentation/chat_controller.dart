@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:apsbrat_frontend/features/chat/data/chat_models.dart';
 import 'package:apsbrat_frontend/features/chat/data/chat_repository.dart';
 import 'package:apsbrat_frontend/features/chat/data/chat_socket.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ChatState {
@@ -51,7 +52,7 @@ class ChatState {
 
 class ChatController extends StateNotifier<ChatState> {
   ChatController(this._repo, this.conversationId, this._ref)
-      : super(const ChatState());
+    : super(const ChatState());
 
   final ChatRepository _repo;
   final String conversationId;
@@ -76,7 +77,10 @@ class ChatController extends StateNotifier<ChatState> {
     if (!state.hasMore || state.loadingOlder) return;
     state = state.copyWith(loadingOlder: true);
     try {
-      final page = await _repo.messages(conversationId, cursor: state.nextCursor);
+      final page = await _repo.messages(
+        conversationId,
+        cursor: state.nextCursor,
+      );
       state = state.copyWith(
         messages: [...page.items, ...state.messages],
         hasMore: page.hasMore,
@@ -91,13 +95,15 @@ class ChatController extends StateNotifier<ChatState> {
   /// Adds the message to the list immediately (before the server has even
   /// seen it), then swaps in the server's real copy once it responds -- so
   /// sending feels instant instead of waiting on a round trip.
-  Future<void> send(String body) async {
+  /// Returns false if it failed, so the screen can put the text back.
+  Future<bool> send(String body, {String? imageUrl}) async {
     final tempId = 'temp-${DateTime.now().microsecondsSinceEpoch}';
     final optimistic = ChatMessage(
       id: tempId,
       conversationId: conversationId,
       senderId: '',
       body: body,
+      imageUrl: imageUrl,
       mine: true,
       createdAt: DateTime.now(),
     );
@@ -107,23 +113,36 @@ class ChatController extends StateNotifier<ChatState> {
     );
 
     try {
-      final saved = await _repo.send(conversationId, body);
+      final saved = await _repo.send(conversationId, body, imageUrl: imageUrl);
       state = state.copyWith(
         messages: [
-          for (final m in state.messages) if (m.id == tempId) saved else m,
+          for (final m in state.messages)
+            if (m.id == tempId) saved else m,
         ],
         pendingIds: {...state.pendingIds}..remove(tempId),
       );
       _ref.invalidate(conversationsProvider);
-    } catch (_) {
+      return true;
+    } catch (e) {
       state = state.copyWith(
         messages: [
-          for (final m in state.messages) if (m.id != tempId) m,
+          for (final m in state.messages)
+            if (m.id != tempId) m,
         ],
         pendingIds: {...state.pendingIds}..remove(tempId),
-        error: 'Message failed to send',
+        // The server's reason when it gave one ("You can send photos once
+        // you're connected").
+        error: _serverMessage(e) ?? 'Message failed to send',
       );
+      return false;
     }
+  }
+
+  static String? _serverMessage(Object e) {
+    if (e is! DioException) return null;
+    final payload = e.response?.data;
+    final message = payload is Map<String, dynamic> ? payload['error'] : null;
+    return message is String && message.isNotEmpty ? message : null;
   }
 
   /// Called by the WebSocket listener (Chapter 12) when a live push arrives
@@ -147,18 +166,21 @@ class ChatController extends StateNotifier<ChatState> {
 
 final chatControllerProvider = StateNotifierProvider.autoDispose
     .family<ChatController, ChatState, String>((ref, conversationId) {
-  final controller = ChatController(
-    ref.watch(chatRepositoryProvider),
-    conversationId,
-    ref,
-  );
-  controller.load();
+      final controller = ChatController(
+        ref.watch(chatRepositoryProvider),
+        conversationId,
+        ref,
+      );
+      controller.load();
 
-  // Live pushes for THIS conversation while its screen is open -- other
-  // conversations' pushes are handled separately (see HomeScreen), since
-  // this controller only exists while its own chat screen is on-screen.
-  final subscription = ref.read(chatSocketProvider).messages.listen(controller.receive);
-  ref.onDispose(subscription.cancel);
+      // Live pushes for THIS conversation while its screen is open -- other
+      // conversations' pushes are handled separately (see HomeScreen), since
+      // this controller only exists while its own chat screen is on-screen.
+      final subscription = ref
+          .read(chatSocketProvider)
+          .messages
+          .listen(controller.receive);
+      ref.onDispose(subscription.cancel);
 
-  return controller;
-});
+      return controller;
+    });

@@ -2,6 +2,7 @@ package com.apsconnect.api.user;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -12,9 +13,13 @@ import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
 
+    @Modifying
+    @Query(value = "UPDATE users SET last_active_at = :now WHERE id = :id", nativeQuery = true)
+    void touchLastActive(@Param("id") UUID id, @Param("now") LocalDateTime now);
+
     org.springframework.data.domain.Page<User> findAllByDeletedAtNull(org.springframework.data.domain.Pageable pageable);
 
-    boolean existsByUsername(String username);
+    boolean existsByUsernameIgnoreCase(String username);
 
     boolean existsByEmail(String email);
 
@@ -22,9 +27,17 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     Optional<User> findByUsername(String username);
 
-    List<User> findTop12ByOrderByCreatedAtDesc();
+    // "Live" accounts only: deleted and banned users never show up in joins or the banner.
+    List<User> findTop12ByDeletedAtIsNullAndBannedAtIsNullOrderByCreatedAtDesc();
 
-    List<User> findByCreatedAtAfterOrderByCreatedAtDesc(LocalDateTime since);
+    long countByCreatedAtAfterAndDeletedAtIsNullAndBannedAtIsNullAndIdNot(LocalDateTime since, UUID excludeId);
+
+    List<User> findTop3ByCreatedAtAfterAndDeletedAtIsNullAndBannedAtIsNullAndIdNotOrderByCreatedAtDesc(
+            LocalDateTime since, UUID excludeId);
+
+    /** [id, fullName] of the non-deleted users among ids: names for ranking without whole rows. */
+    @Query("select u.id, u.fullName from User u where u.id in :ids and u.deletedAt is null")
+    List<Object[]> findLiveNames(@Param("ids") java.util.Collection<UUID> ids);
 
     @Query("""
             SELECT u FROM User u
@@ -48,7 +61,10 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query(value = """
             SELECT u.* FROM users u
             WHERE u.deleted_at IS NULL
+              AND u.banned_at IS NULL
               AND u.id <> :viewerId
+              AND u.id NOT IN (:blockedIds)
+              AND NOT EXISTS (SELECT 1 FROM user_settings s WHERE s.user_id = u.id AND s.discoverable = FALSE)
               AND (CAST(:firstLike AS text) IS NULL
                    OR LOWER(u.full_name) LIKE CAST(:firstLike AS text)
                    OR LOWER(u.username) LIKE CAST(:firstLike AS text))
@@ -56,6 +72,9 @@ public interface UserRepository extends JpaRepository<User, UUID> {
                    OR (LOWER(u.full_name) || ' ' || LOWER(u.username)) ~ CAST(:wordPattern AS text))
               AND (CAST(:status AS text) IS NULL OR CAST(u.current_status AS text) = CAST(:status AS text))
               AND (CAST(:city AS text) IS NULL OR LOWER(u.city) = CAST(:city AS text))
+              AND (CAST(:communityId AS uuid) IS NULL OR EXISTS (
+                    SELECT 1 FROM community_members cm
+                    WHERE cm.community_id = CAST(:communityId AS uuid) AND cm.user_id = u.id))
               AND (:scopeMine = FALSE OR EXISTS (
                     SELECT 1 FROM user_school_history theirs
                     JOIN user_school_history mine ON mine.school_id = theirs.school_id
@@ -81,10 +100,12 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             LIMIT :limit OFFSET :offset
             """, nativeQuery = true)
     List<User> searchPeople(@Param("viewerId") UUID viewerId,
+                            @Param("blockedIds") java.util.Collection<UUID> blockedIds,
                             @Param("q") String q,
                             @Param("firstLike") String firstLike,
                             @Param("wordPattern") String wordPattern,
                             @Param("scopeMine") boolean scopeMine,
+                            @Param("communityId") UUID communityId,
                             @Param("usesHistory") boolean usesHistory,
                             @Param("schoolId") UUID schoolId,
                             @Param("batch") Short batch,

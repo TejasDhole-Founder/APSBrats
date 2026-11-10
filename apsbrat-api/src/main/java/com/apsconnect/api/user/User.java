@@ -70,9 +70,23 @@ public class User {
 
     private LocalDateTime deletedAt;
 
+    /** Written only by PresenceService (a direct UPDATE), so saving a User never overwrites it. */
+    @Column(name = "last_active_at", insertable = false, updatable = false)
+    private LocalDateTime lastActiveAt;
+
     @Version
     @Column(nullable = false)
     private Long version;
+
+    /**
+     * Basic onboarding is done: the profile step saved a name and a username. (That
+     * save also requires a valid date of birth, so the age check is covered; older
+     * accounts without one aren't locked out.) Schools, career and socials are optional.
+     */
+    public boolean isOnboarded() {
+        return fullName != null && fullName.trim().length() >= 2
+                && username != null && !username.isBlank();
+    }
 
     @PrePersist
     void onCreate() {

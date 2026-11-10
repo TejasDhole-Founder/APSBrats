@@ -64,7 +64,7 @@ class SplashScreen extends StatelessWidget {
                           // "new" vs "returning" is decided after verifying,
                           // not before.
                           _GetStartedButton(
-                            onTap: () => context.go('/login'),
+                            onTap: () => context.go('/login?mode=signup'),
                           ),
                           const SizedBox(height: 12),
                           _LoginButton(onTap: () => context.go('/login')),

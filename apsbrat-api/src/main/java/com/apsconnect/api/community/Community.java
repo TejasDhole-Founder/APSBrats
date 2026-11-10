@@ -1,11 +1,8 @@
 package com.apsconnect.api.community;
 
-import com.apsconnect.api.school.School;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.JdbcType;
-import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -19,41 +16,26 @@ public class Community {
     @GeneratedValue
     private UUID id;
 
-    @Column(nullable = false)
-    private String name;
-
-    private String badge;
-
     @Enumerated(EnumType.STRING)
-    @JdbcType(PostgreSQLEnumJdbcType.class)
-    @Column(nullable = false, columnDefinition = "community_type")
     private CommunityType type;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "school_id")
-    private School school;
+    /** Set for SCHOOL communities only. */
+    private UUID schoolId;
 
-    private String section;
-    private Short batchStart;
-    private Short batchEnd;
-    private String subtitle;
+    private String name;
 
-    @Column(name = "auto_join_label")
-    private String autoJoinLabel;
+    /** Cleaned name used to keep INTEREST names unique (see career.NameKeys). */
+    private String nameKey;
 
-    @Column(name = "online_count", nullable = false)
-    private int onlineCount;
+    private String description;
 
-    @Column(name = "member_count_override")
-    private Integer memberCountOverride;
+    @Enumerated(EnumType.STRING)
+    private CommunityVisibility visibility = CommunityVisibility.OPEN;
 
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+    private UUID createdBy;
+    private int memberCount;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
-    @PrePersist
-    void onCreate() {
-        if (createdAt == null) {
-            createdAt = LocalDateTime.now();
-        }
-    }
+    @Version
+    private Long version;
 }

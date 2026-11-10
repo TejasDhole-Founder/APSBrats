@@ -44,7 +44,7 @@ public class ChatController {
             @PathVariable UUID conversationId,
             @Valid @RequestBody SendChatMessageRequest request) {
         return ResponseEntity.ok(ApiResponse.success(
-                chatService.sendMessage(SecurityUtils.currentUserId(), conversationId, request.body())));
+                chatService.sendMessage(SecurityUtils.currentUserId(), conversationId, request.body(), request.imageUrl())));
     }
 
     @PostMapping("/{conversationId}/read")

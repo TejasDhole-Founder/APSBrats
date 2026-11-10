@@ -3,7 +3,6 @@ package com.apsconnect.api.user.history;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -12,6 +11,13 @@ public interface UserSchoolHistoryRepository extends JpaRepository<UserSchoolHis
     void deleteAllByUser_Id(UUID userId);
 
     List<UserSchoolHistory> findAllByUser_Id(UUID userId);
+
+    /** The schools in someone's history (each once). */
+    @Query("SELECT DISTINCT h.school.id FROM UserSchoolHistory h WHERE h.user.id = :userId")
+    List<UUID> findSchoolIdsByUserId(@Param("userId") UUID userId);
+
+    /** Is this school in their history? (Who may see and join a school community.) */
+    boolean existsByUser_IdAndSchool_Id(UUID userId, UUID schoolId);
 
     // Batch loader (one query, school eager-joined) to avoid N+1 when building many PersonDtos.
     @Query("SELECT h FROM UserSchoolHistory h JOIN FETCH h.school WHERE h.user.id IN :ids")

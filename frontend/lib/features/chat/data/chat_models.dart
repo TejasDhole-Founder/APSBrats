@@ -35,6 +35,7 @@ class ChatMessage {
     required this.conversationId,
     required this.senderId,
     required this.body,
+    this.imageUrl,
     required this.mine,
     required this.createdAt,
   });
@@ -42,7 +43,12 @@ class ChatMessage {
   final String id;
   final String conversationId;
   final String senderId;
+
+  /// Can be empty when the message is just a photo.
   final String body;
+
+  /// One optional photo ("/media/…").
+  final String? imageUrl;
   final bool mine;
   final DateTime? createdAt;
 
@@ -51,6 +57,7 @@ class ChatMessage {
     conversationId: json['conversationId']?.toString() ?? '',
     senderId: json['senderId']?.toString() ?? '',
     body: json['body'] as String? ?? '',
+    imageUrl: json['imageUrl'] as String?,
     mine: json['mine'] as bool? ?? false,
     createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? ''),
   );

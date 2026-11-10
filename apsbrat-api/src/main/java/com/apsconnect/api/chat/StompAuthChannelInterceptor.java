@@ -1,5 +1,6 @@
 package com.apsconnect.api.chat;
 
+import com.apsconnect.api.auth.AuthService;
 import com.apsconnect.api.auth.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
@@ -17,6 +18,7 @@ import java.util.UUID;
 public class StompAuthChannelInterceptor implements ChannelInterceptor {
 
     private final JwtService jwtService;
+    private final AuthService authService;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -27,9 +29,17 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
             if (header == null || !header.startsWith("Bearer ")) {
                 throw new IllegalArgumentException("Missing Authorization header");
             }
-            UUID userId = jwtService.parseUserId(header.substring(7));
-            String userIdString = userId.toString();
+            var claims = jwtService.parseAccess(header.substring(7));
+            if (authService.isRevoked(claims.userId(), claims.issuedAt())) {
+                throw new IllegalArgumentException("Session ended");
+            }
+            String userIdString = claims.userId().toString();
             accessor.setUser((Principal) () -> userIdString);
+        }
+
+        // Messages are sent over REST; a client SEND would publish straight to the broker.
+        if (StompCommand.SEND.equals(accessor.getCommand())) {
+            throw new IllegalArgumentException("Sending over the socket is not supported");
         }
 
         if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {

@@ -1,9 +1,17 @@
 import 'package:apsbrat_frontend/core/constants/social_platforms.dart';
 import 'package:apsbrat_frontend/core/models/person.dart';
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
+import 'package:apsbrat_frontend/features/auth/data/auth_repository.dart';
+import 'package:apsbrat_frontend/features/community/data/community_repository.dart'
+    show friendlyError;
+import 'package:apsbrat_frontend/features/community/presentation/post_card.dart'
+    show confirmDialog, showReportSheet;
 import 'package:apsbrat_frontend/features/connections/data/connection_repository.dart';
+import 'package:apsbrat_frontend/features/settings/data/block_repository.dart';
 import 'package:apsbrat_frontend/features/feed/presentation/widgets/feed_shared.dart';
-import 'package:apsbrat_frontend/features/feed/presentation/widgets/school_timeline.dart';
+import 'package:apsbrat_frontend/features/career/data/career_models.dart';
+import 'package:apsbrat_frontend/features/career/data/career_repository.dart';
+import 'package:apsbrat_frontend/features/career/presentation/journey_timeline.dart';
 import 'package:apsbrat_frontend/features/profile/data/profile_models.dart';
 import 'package:apsbrat_frontend/features/profile/data/profile_repository.dart';
 import 'package:flutter/material.dart';
@@ -60,15 +68,26 @@ class ProfileScreen extends ConsumerWidget {
 // ── Header (back only — no edit controls on someone else's profile) ───────────
 
 class _Header extends StatelessWidget {
-  const _Header({required this.onBack, this.profile});
+  const _Header({
+    required this.onBack,
+    this.profile,
+    this.headline,
+    this.trailing,
+  });
 
   final VoidCallback onBack;
   final Profile? profile;
 
+  /// Top-right action (the Report / Block menu).
+  final Widget? trailing;
+
+  /// "Engineer at Zomato" — their current job or college.
+  final String? headline;
+
   @override
   Widget build(BuildContext context) {
     final p = profile;
-    final subtitle = p == null
+    final subtitle = p == null || p.deleted
         ? ''
         : [
             if ((p.username ?? '').isNotEmpty) '@${p.username}',
@@ -79,11 +98,41 @@ class _Header extends StatelessWidget {
       waveColor: Colors.white,
       child: Column(
         children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: FeedIconBtn(icon: Icons.arrow_back_rounded, onTap: onBack),
+          Row(
+            children: [
+              FeedIconBtn(icon: Icons.arrow_back_rounded, onTap: onBack),
+              const Spacer(),
+              ?trailing,
+            ],
           ),
-          if (p != null) ...[
+          if (p != null && p.deleted) ...[
+            const SizedBox(height: 6),
+            Container(
+              width: 76,
+              height: 76,
+              decoration: const BoxDecoration(
+                color: Colors.black26,
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: const Icon(
+                Icons.person_off_outlined,
+                size: 34,
+                color: Colors.white70,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              p.fullName.isEmpty ? 'Unknown user' : p.fullName,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const _HeaderPill('Unknown user', icon: Icons.help_outline_rounded),
+          ] else if (p != null) ...[
             const SizedBox(height: 6),
             Container(
               width: 76,
@@ -112,10 +161,31 @@ class _Header extends StatelessWidget {
                 color: Colors.white,
               ),
             ),
+            if ((headline ?? '').isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 2, bottom: 2),
+                child: Text(
+                  headline!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.gold,
+                  ),
+                ),
+              ),
             if (subtitle.isNotEmpty)
               Text(
                 subtitle,
                 style: const TextStyle(fontSize: 12, color: Colors.white54),
+              ),
+            if (activeLabel(p.lastActiveAt) case final active?)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Text(
+                  active,
+                  style: const TextStyle(fontSize: 12, color: AppColors.gold),
+                ),
               ),
             const SizedBox(height: 8),
             Wrap(
@@ -212,9 +282,32 @@ class _ProfileBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final p = profile;
+    if (p.deleted) {
+      return Column(
+        children: [
+          _Header(onBack: () => context.pop(), profile: p),
+          const Expanded(
+            child: EmptyState(
+              icon: Icons.person_off_outlined,
+              title: 'This account was deleted',
+              message:
+                  'Their posts and messages are still here, shown as an unknown user.',
+            ),
+          ),
+        ],
+      );
+    }
+    final career = ref.watch(careerProvider(p.id)).valueOrNull ?? const [];
+    final headline = careerHeadline(career) ?? p.profession;
+    final isMe = ref.watch(myUserIdProvider).valueOrNull == p.id;
     return Column(
       children: [
-        _Header(onBack: () => context.pop(), profile: p),
+        _Header(
+          onBack: () => context.pop(),
+          profile: p,
+          headline: headline,
+          trailing: isMe ? null : _SafetyMenu(userId: p.id, name: p.fullName),
+        ),
         Expanded(
           child: ListView(
             padding: const EdgeInsets.fromLTRB(18, 14, 18, 28),
@@ -227,17 +320,64 @@ class _ProfileBody extends ConsumerWidget {
               const SizedBox(height: 18),
               const SectionLabel('About'),
               const SizedBox(height: 10),
-              _AboutCard(profile: p),
+              _AboutCard(profile: p, headline: headline),
               const SizedBox(height: 20),
-              const SectionLabel('APS Schools'),
+              const SectionLabel('Journey'),
               const SizedBox(height: 10),
-              SchoolTimeline(schools: p.schools),
+              JourneyTimeline(career: career, schools: p.schools),
               const SizedBox(height: 20),
               const SectionLabel('Socials'),
               const SizedBox(height: 10),
               _SocialsCard(profile: p),
             ],
           ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Report or block this person.
+class _SafetyMenu extends ConsumerWidget {
+  const _SafetyMenu({required this.userId, required this.name});
+
+  final String userId;
+  final String name;
+
+  Future<void> _block(BuildContext context, WidgetRef ref) async {
+    final ok = await confirmDialog(
+      context,
+      title: 'Block $name?',
+      message:
+          "You won't see each other in search, communities or chat. You can unblock from Settings.",
+      action: 'Block',
+    );
+    if (!ok || !context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final router = GoRouter.of(context);
+    try {
+      await ref.read(blockRepositoryProvider).block(userId);
+      refreshAfterBlock(ref, userId);
+      messenger.showSnackBar(SnackBar(content: Text('$name is blocked')));
+      router.pop();
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(friendlyError(e))));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return PopupMenuButton<String>(
+      tooltip: 'More',
+      icon: const Icon(Icons.more_vert_rounded, color: Colors.white),
+      onSelected: (v) => v == 'block'
+          ? _block(context, ref)
+          : showReportSheet(context, ref, 'USER', userId),
+      itemBuilder: (_) => const [
+        PopupMenuItem(value: 'report', child: Text('Report user')),
+        PopupMenuItem(
+          value: 'block',
+          child: Text('Block user', style: TextStyle(color: Colors.redAccent)),
         ),
       ],
     );
@@ -419,16 +559,17 @@ class _MutualSheet extends ConsumerWidget {
 }
 
 class _AboutCard extends StatelessWidget {
-  const _AboutCard({required this.profile});
+  const _AboutCard({required this.profile, this.headline});
 
   final Profile profile;
+  final String? headline;
 
   @override
   Widget build(BuildContext context) {
     final p = profile;
     final rows = <(IconData, String, String?)>[
       (Icons.location_on_outlined, 'Current city', p.city),
-      (Icons.work_outline_rounded, 'What they do now', p.profession),
+      (Icons.work_outline_rounded, 'What they do now', headline),
       (Icons.phone_outlined, 'Phone', p.phone),
     ];
     return Container(

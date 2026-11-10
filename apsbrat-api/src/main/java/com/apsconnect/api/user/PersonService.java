@@ -2,6 +2,7 @@ package com.apsconnect.api.user;
 
 import com.apsconnect.api.connection.Connection;
 import com.apsconnect.api.connection.ConnectionRepository;
+import com.apsconnect.api.common.security.SecurityUtils;
 import com.apsconnect.api.connection.ConnectionStatus;
 import com.apsconnect.api.user.history.UserSchoolHistory;
 import com.apsconnect.api.user.history.UserSchoolHistoryRepository;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -23,11 +25,14 @@ public class PersonService {
 
     private final UserSchoolHistoryRepository historyRepository;
     private final ConnectionRepository connectionRepository;
+    private final PresenceService presenceService;
 
     /** Single person — one history query. Prefer toPeople(...) for lists. */
     @Transactional(readOnly = true)
     public PersonDto toPerson(User user) {
-        return build(user, historyRepository.findAllByUser_Id(user.getId()), 0, "NONE");
+        return build(user, historyRepository.findAllByUser_Id(user.getId()), 0, "NONE",
+                presenceService.visibleLastActive(SecurityUtils.currentUserIdOrNull(), List.of(user))
+                        .get(user.getId()));
     }
 
     /**
@@ -42,6 +47,7 @@ public class PersonService {
     /**
      * Same as {@link #toPeople(List)} but also fills each person's number of
      * mutual connections with {@code viewerId} (one extra query for the whole list).
+     * Last-active is judged for viewerId, or the signed-in user when that's null.
      */
     @Transactional(readOnly = true)
     public List<PersonDto> toPeople(List<User> users, UUID viewerId) {
@@ -53,9 +59,12 @@ public class PersonService {
                 .collect(Collectors.groupingBy(h -> h.getUser().getId()));
         Map<UUID, Integer> mutual = mutualCounts(viewerId, ids);
         Map<UUID, String> relation = relations(viewerId, ids);
+        Map<UUID, LocalDateTime> lastActive = presenceService.visibleLastActive(
+                viewerId != null ? viewerId : SecurityUtils.currentUserIdOrNull(), users);
         return users.stream()
                 .map(u -> build(u, byUser.getOrDefault(u.getId(), List.of()),
-                        mutual.getOrDefault(u.getId(), 0), relation.getOrDefault(u.getId(), "NONE")))
+                        mutual.getOrDefault(u.getId(), 0), relation.getOrDefault(u.getId(), "NONE"),
+                        lastActive.get(u.getId())))
                 .toList();
     }
 
@@ -89,7 +98,8 @@ public class PersonService {
         return counts;
     }
 
-    private PersonDto build(User user, List<UserSchoolHistory> history, int mutualCount, String relation) {
+    private PersonDto build(User user, List<UserSchoolHistory> history, int mutualCount, String relation,
+                            LocalDateTime lastActiveAt) {
         UserSchoolHistory primary = history.stream()
                 .filter(UserSchoolHistory::isPrimary)
                 .findFirst()
@@ -123,7 +133,8 @@ public class PersonService {
                 user.getProfession(),
                 user.getCurrentStatus(),
                 user.getProfilePicUrl(),
-                false,
+                PresenceService.isOnline(lastActiveAt),
+                lastActiveAt,
                 tags,
                 mutualCount,
                 relation

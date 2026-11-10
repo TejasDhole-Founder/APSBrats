@@ -29,6 +29,10 @@ public class UserSettings {
     @Column(nullable = false)
     private Boolean discoverable;
 
+    /** Others see "Active now / 2h ago". Off also hides everyone else's from me. */
+    @Column(nullable = false)
+    private Boolean showActivity;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
@@ -49,6 +53,9 @@ public class UserSettings {
         }
         if (discoverable == null) {
             discoverable = Boolean.TRUE;
+        }
+        if (showActivity == null) {
+            showActivity = Boolean.TRUE;
         }
     }
 

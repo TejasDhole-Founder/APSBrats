@@ -8,6 +8,7 @@ public record ChatMessageDto(
         UUID conversationId,
         UUID senderId,
         String body,
+        String imageUrl,
         boolean mine,
         LocalDateTime createdAt
 ) {

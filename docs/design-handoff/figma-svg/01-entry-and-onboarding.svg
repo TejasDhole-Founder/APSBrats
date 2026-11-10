@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="1840" viewBox="0 0 600 1840" font-family="Roboto, Arial, sans-serif">
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9A7070"/></marker></defs>
+<rect width="600" height="1840" fill="#FBF8F6"/>
+<text x="80" y="88" font-size="22" font-weight="700" fill="#7B1414">Entry and onboarding</text>
+<path d="M300,178 C300,231 300,231 300,284" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="300" y="227" font-size="11" fill="#5C0F0F" text-anchor="middle" paint-order="stroke" stroke="#FBF8F6" stroke-width="4">Get Started / Log In</text>
+<path d="M300,342 C300,395 420,395 420,448" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="360" y="391" font-size="11" fill="#5C0F0F" text-anchor="middle" paint-order="stroke" stroke="#FBF8F6" stroke-width="4">Send Code</text>
+<path d="M300,342 C300,395 180,395 180,448" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="240" y="391" font-size="11" fill="#5C0F0F" text-anchor="middle" paint-order="stroke" stroke="#FBF8F6" stroke-width="4">or</text>
+<path d="M420,506 C420,559 300,559 300,612" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="360" y="555" font-size="11" fill="#5C0F0F" text-anchor="middle" paint-order="stroke" stroke="#FBF8F6" stroke-width="4">Verify</text>
+<path d="M180,506 C180,559 300,559 300,612" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M300,716 C300,1156 300,1156 300,1596" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="300" y="1152" font-size="11" fill="#5C0F0F" text-anchor="middle" paint-order="stroke" stroke="#FBF8F6" stroke-width="4">Yes</text>
+<path d="M300,716 C300,746 180,746 180,776" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="240" y="742" font-size="11" fill="#5C0F0F" text-anchor="middle" paint-order="stroke" stroke="#FBF8F6" stroke-width="4">No</text>
+<path d="M300,716 C300,746 420,746 420,776" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="360" y="742" font-size="11" fill="#5C0F0F" text-anchor="middle" paint-order="stroke" stroke="#FBF8F6" stroke-width="4">No, tries a feature</text>
+<path d="M180,834 C180,887 300,887 300,940" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M300,998 C300,1051 300,1051 300,1104" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M300,1208 C300,1238 300,1238 300,1268" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="300" y="1234" font-size="11" fill="#5C0F0F" text-anchor="middle" paint-order="stroke" stroke="#FBF8F6" stroke-width="4">Alumni</text>
+<path d="M300,1208 C300,1320 300,1320 300,1432" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="300" y="1316" font-size="11" fill="#5C0F0F" text-anchor="middle" paint-order="stroke" stroke="#FBF8F6" stroke-width="4">Student</text>
+<path d="M300,1326 C300,1379 300,1379 300,1432" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M300,1490 C300,1543 300,1543 300,1596" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<rect x="200" y="120" width="200" height="58" rx="29" fill="#7B1414"/>
+<text x="300" y="153" font-size="12.5" font-weight="500" fill="#fff" text-anchor="middle">Splash</text>
+<rect x="200" y="284" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="300" y="317" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Login: enter email</text>
+<rect x="80" y="448" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="180" y="481" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Continue with Google</text>
+<rect x="320" y="448" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="420" y="481" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Enter 6-digit code</text>
+<polygon points="300,612 400,664 300,716 200,664" fill="#F6E7BF" stroke="#D4A84A" stroke-width="1.5"/>
+<text x="300" y="660.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Name + username</text>
+<text x="300" y="675.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">saved?</text>
+<rect x="80" y="776" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="180" y="801.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Identity: name, username,</text>
+<text x="180" y="816.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">date of birth, status</text>
+<rect x="200" y="940" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="300" y="973" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Schools (optional to fill)</text>
+<polygon points="300,1104 400,1156 300,1208 200,1156" fill="#F6E7BF" stroke="#D4A84A" stroke-width="1.5"/>
+<text x="300" y="1152.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Student or</text>
+<text x="300" y="1167.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">alumni?</text>
+<rect x="200" y="1268" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="300" y="1293.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Life after school</text>
+<text x="300" y="1308.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">(skippable)</text>
+<rect x="200" y="1432" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="300" y="1465" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Socials (optional)</text>
+<rect x="200" y="1596" width="200" height="58" rx="12" fill="#E9F3E4" stroke="#6BA35A" stroke-width="1.5"/>
+<text x="300" y="1629" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Home</text>
+<rect x="320" y="776" width="200" height="58" rx="12" fill="#FDEBEB" stroke="#D86060" stroke-width="1.5"/>
+<text x="420" y="794" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Social features locked:</text>
+<text x="420" y="809" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">"Finish setting up your</text>
+<text x="420" y="824" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">profile first"</text>
+<rect x="80" y="1806" width="14" height="14" rx="3" fill="#7B1414" stroke="#7B1414"/><text x="100" y="1818" font-size="11" fill="#9A7070">Start</text>
+<rect x="180" y="1806" width="14" height="14" rx="3" fill="#fff" stroke="#EADCDC"/><text x="200" y="1818" font-size="11" fill="#9A7070">Step</text>
+<rect x="280" y="1806" width="14" height="14" rx="3" fill="#F6E7BF" stroke="#D4A84A"/><text x="300" y="1818" font-size="11" fill="#9A7070">Decision</text>
+<rect x="380" y="1806" width="14" height="14" rx="3" fill="#E9F3E4" stroke="#6BA35A"/><text x="400" y="1818" font-size="11" fill="#9A7070">Result</text>
+<rect x="480" y="1806" width="14" height="14" rx="3" fill="#FDEBEB" stroke="#D86060"/><text x="500" y="1818" font-size="11" fill="#9A7070">Blocked / limit</text>
+</svg>

@@ -146,9 +146,16 @@ class _RequestsSheetState extends ConsumerState<RequestsSheet> {
                     child: CircularProgressIndicator(color: AppColors.crimson),
                   ),
                 ),
-                error: (_, __) => const Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Text('Could not load requests.'),
+                error: (_, __) => EmptyState(
+                  icon: Icons.wifi_off_rounded,
+                  title: 'Could not load requests',
+                  message: 'Check your connection and try again.',
+                  action: TextButton(
+                    onPressed: () => ref
+                      ..invalidate(pendingConnectionsProvider)
+                      ..invalidate(sentConnectionsProvider),
+                    child: const Text('Retry'),
+                  ),
                 ),
                 data: (list) {
                   final people = list

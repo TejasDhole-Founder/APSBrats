@@ -1,3 +1,8 @@
+import 'dart:async';
+
+import 'package:apsbrat_frontend/core/network/dio_client.dart';
+import 'package:apsbrat_frontend/features/career/data/career_models.dart';
+import 'package:apsbrat_frontend/features/onboarding/data/services/onboarding_draft_store.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SchoolHistoryDraft {
@@ -24,6 +29,31 @@ class SchoolHistoryDraft {
   final String yearJoined;
   final String yearLeft;
   final bool isMostMissed;
+
+  Map<String, dynamic> toJson() => {
+    'schoolId': schoolId,
+    'schoolName': schoolName,
+    'classFrom': classFrom,
+    'classTo': classTo,
+    'section': section,
+    'stream': stream,
+    'yearJoined': yearJoined,
+    'yearLeft': yearLeft,
+    'isMostMissed': isMostMissed,
+  };
+
+  factory SchoolHistoryDraft.fromJson(Map<String, dynamic> json) =>
+      SchoolHistoryDraft(
+        schoolId: json['schoolId'] as String? ?? '',
+        schoolName: json['schoolName'] as String? ?? '',
+        classFrom: json['classFrom'] as String? ?? '',
+        classTo: json['classTo'] as String? ?? '',
+        section: json['section'] as String? ?? '',
+        stream: json['stream'] as String? ?? '',
+        yearJoined: json['yearJoined'] as String? ?? '',
+        yearLeft: json['yearLeft'] as String? ?? '',
+        isMostMissed: json['isMostMissed'] as bool? ?? false,
+      );
 
   SchoolHistoryDraft copyWith({
     String? schoolId,
@@ -111,6 +141,34 @@ String? schoolOverlapProblem(List<SchoolHistoryDraft> drafts) {
   return null;
 }
 
+/// How many school years a card covers. One class takes one session, so
+/// Class 11 to 12 is two: joining in 2019 means leaving in 2021.
+/// Null until both classes are picked.
+int? schoolSpanYears(SchoolHistoryDraft d) {
+  if (d.classFrom.isEmpty || d.classTo.isEmpty) return null;
+  final span = _classTo(d) - _classFrom(d) + 1;
+  return span < 1 ? null : span;
+}
+
+/// Works out one year from the other. [fill] is 'left' (from Year Joined) or
+/// 'joined' (from Year Left). The source year must be a full 4-digit year;
+/// otherwise the filled year is cleared rather than left stale.
+SchoolHistoryDraft fillSchoolYear(SchoolHistoryDraft d, String fill) {
+  final span = schoolSpanYears(d);
+  if (span == null) return d;
+  int? year(String s) {
+    final y = int.tryParse(s);
+    return (s.length == 4 && y != null && y >= 1900) ? y : null;
+  }
+
+  if (fill == 'left') {
+    final joined = year(d.yearJoined);
+    return d.copyWith(yearLeft: joined == null ? '' : '${joined + span}');
+  }
+  final left = year(d.yearLeft);
+  return d.copyWith(yearJoined: left == null ? '' : '${left - span}');
+}
+
 /// Stream is chosen in Class 11, so only entries reaching 11 or 12 have one.
 const kStreamFirstClass = 11;
 
@@ -128,9 +186,7 @@ int _classTo(SchoolHistoryDraft d) => _classNumber(d.classTo);
 /// API payload builder).
 (int, int) _years(SchoolHistoryDraft d) {
   final end = int.tryParse(d.yearLeft) ?? DateTime.now().year;
-  final start =
-      int.tryParse(d.yearJoined) ??
-      (end - (_classTo(d) - _classFrom(d)).clamp(0, 20));
+  final start = int.tryParse(d.yearJoined) ?? (end - (schoolSpanYears(d) ?? 1));
   return (start, end);
 }
 
@@ -157,6 +213,11 @@ class OnboardingFlowState {
     this.twitter = '',
     this.customLabel = '',
     this.customHandle = '',
+    this.career = const [
+      CareerDraft(),
+      CareerDraft(kind: kEducation, current: false),
+    ],
+    this.step = 1,
   });
 
   final String firstName;
@@ -175,6 +236,15 @@ class OnboardingFlowState {
   final String twitter;
   final String customLabel;
   final String customHandle;
+
+  /// The jobs and colleges typed on the "After school" step (alumni only),
+  /// as many of each as they like. Starts with one blank card of each kind;
+  /// blank cards are ignored.
+  final List<CareerDraft> career;
+
+  /// Furthest step reached (1 profile, 2 schools, 3 after school, 4 socials):
+  /// where a returning user is taken back to.
+  final int step;
 
   String get fullName => '$firstName $lastName'.trim();
 
@@ -195,6 +265,8 @@ class OnboardingFlowState {
     String? twitter,
     String? customLabel,
     String? customHandle,
+    List<CareerDraft>? career,
+    int? step,
   }) {
     return OnboardingFlowState(
       firstName: firstName ?? this.firstName,
@@ -213,12 +285,124 @@ class OnboardingFlowState {
       twitter: twitter ?? this.twitter,
       customLabel: customLabel ?? this.customLabel,
       customHandle: customHandle ?? this.customHandle,
+      career: career ?? this.career,
+      step: step ?? this.step,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'firstName': firstName,
+    'lastName': lastName,
+    'username': username,
+    'email': email,
+    'dob': dob,
+    'city': city,
+    'profession': profession,
+    'gender': gender,
+    'isStudent': isStudent,
+    'schoolHistory': [for (final d in schoolHistory) d.toJson()],
+    'instagram': instagram,
+    'linkedin': linkedin,
+    'whatsapp': whatsapp,
+    'twitter': twitter,
+    'customLabel': customLabel,
+    'customHandle': customHandle,
+    'career': [for (final c in career) c.toJson()],
+    'step': step,
+  };
+
+  factory OnboardingFlowState.fromJson(Map<String, dynamic> json) {
+    final schools = [
+      for (final d in (json['schoolHistory'] as List? ?? const []))
+        SchoolHistoryDraft.fromJson(d as Map<String, dynamic>),
+    ];
+    return OnboardingFlowState(
+      firstName: json['firstName'] as String? ?? '',
+      lastName: json['lastName'] as String? ?? '',
+      username: json['username'] as String? ?? '',
+      email: json['email'] as String? ?? '',
+      dob: json['dob'] as String? ?? '',
+      city: json['city'] as String? ?? '',
+      profession: json['profession'] as String? ?? '',
+      gender: json['gender'] as String? ?? '',
+      isStudent: json['isStudent'] as bool? ?? false,
+      schoolHistory: schools.isEmpty ? const [SchoolHistoryDraft()] : schools,
+      instagram: json['instagram'] as String? ?? '',
+      linkedin: json['linkedin'] as String? ?? '',
+      whatsapp: json['whatsapp'] as String? ?? '',
+      twitter: json['twitter'] as String? ?? '',
+      customLabel: json['customLabel'] as String? ?? '',
+      customHandle: json['customHandle'] as String? ?? '',
+      career: json['career'] is List
+          ? [
+              for (final c in json['career'] as List)
+                CareerDraft.fromJson(c as Map<String, dynamic>),
+            ]
+          : const OnboardingFlowState().career,
+      step: (json['step'] as num?)?.toInt() ?? 1,
     );
   }
 }
 
 class OnboardingFlowNotifier extends StateNotifier<OnboardingFlowState> {
-  OnboardingFlowNotifier() : super(const OnboardingFlowState());
+  OnboardingFlowNotifier(this._store) : super(const OnboardingFlowState());
+
+  final OnboardingDraftStore _store;
+
+  /// True once the user has changed anything this session; a late draft load
+  /// must never overwrite what they just typed.
+  bool _touched = false;
+
+  int get step => state.step;
+
+  bool get isStudent => state.isStudent;
+
+  /// Every change is also written to the device, so closing the app mid-way
+  /// loses nothing.
+  @override
+  set state(OnboardingFlowState value) {
+    _touched = true;
+    super.state = value;
+    unawaited(_store.save(value).catchError((_) {}));
+  }
+
+  /// Loads a previously saved draft, if there is one for this account.
+  Future<void> hydrate() async {
+    if (_touched) return;
+    final saved = await _store.load();
+    if (saved != null && mounted && !_touched) super.state = saved;
+  }
+
+  /// Moves the "furthest step" marker forward (never back).
+  void markStep(int step) {
+    if (step > state.step) state = state.copyWith(step: step);
+  }
+
+  /// Saves what has been typed so far on the profile step (no validation).
+  void syncIdentity({
+    required String firstName,
+    required String lastName,
+    required String username,
+    required String dob,
+    required String city,
+    required String profession,
+    required String gender,
+    required bool isStudent,
+    String? email,
+  }) {
+    state = state.copyWith(
+      firstName: firstName,
+      lastName: lastName,
+      username: username,
+      // Keep the saved email when the live session is not available yet.
+      email: (email == null || email.isEmpty) ? null : email,
+      dob: dob,
+      city: city,
+      profession: profession,
+      gender: gender,
+      isStudent: isStudent,
+    );
+  }
 
   void saveIdentity({
     required String firstName,
@@ -280,12 +464,62 @@ class OnboardingFlowNotifier extends StateNotifier<OnboardingFlowState> {
     );
   }
 
-  void reset() {
-    state = const OnboardingFlowState();
+  void updateCareer(int index, CareerDraft draft) {
+    final next = [...state.career];
+    next[index] = draft;
+    state = state.copyWith(career: next);
   }
+
+  /// "+ Add another company / college". A new job starts as "currently
+  /// working here"; a new college as finished.
+  void addCareer(String kind) {
+    state = state.copyWith(
+      career: [
+        ...state.career,
+        kind == kWork
+            ? const CareerDraft()
+            : const CareerDraft(kind: kEducation, current: false),
+      ],
+    );
+  }
+
+  void removeCareer(int index) {
+    final next = [...state.career]..removeAt(index);
+    state = state.copyWith(career: next);
+  }
+
+  /// Skip: nothing from this step is saved.
+  void skipAfterSchool() {
+    state = state.copyWith(career: const []);
+  }
+
+  /// Registration finished (or abandoned): forget the draft everywhere.
+  void reset() {
+    _touched = false;
+    super.state = const OnboardingFlowState();
+    unawaited(_store.clear());
+  }
+}
+
+/// Where a returning user should land: loads their saved draft and picks the
+/// furthest step they had reached.
+Future<String> resumeOnboardingRoute(OnboardingFlowNotifier flow) async {
+  await flow.hydrate();
+  final student = flow.isStudent;
+  return switch (flow.step) {
+    >= 4 when student => '/onboarding/schools/socials',
+    >= 4 => '/onboarding/schools/after-school/socials',
+    // Drafts saved before the "After school" step existed used 3 for socials.
+    3 when student => '/onboarding/schools/socials',
+    3 => '/onboarding/schools/after-school',
+    2 => '/onboarding/schools',
+    _ => '/onboarding',
+  };
 }
 
 final onboardingFlowProvider =
     StateNotifierProvider<OnboardingFlowNotifier, OnboardingFlowState>(
-      (ref) => OnboardingFlowNotifier(),
+      (ref) => OnboardingFlowNotifier(
+        OnboardingDraftStore(ref.watch(secureStorageProvider)),
+      ),
     );

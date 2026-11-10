@@ -139,6 +139,31 @@ class _SchoolCardState extends State<_SchoolCard> {
   late final TextEditingController _yearJoinedCtrl;
   late final TextEditingController _yearLeftCtrl;
 
+  /// Which year we worked out for the user ('joined' / 'left'), so it keeps
+  /// following the other one. Typing in it yourself makes it yours (null).
+  String? _auto;
+
+  /// Saves a change, then refreshes the worked-out year (if any) to match.
+  void _emit(SchoolHistoryDraft next) {
+    final auto = _auto;
+    widget.onChanged(auto == null ? next : fillSchoolYear(next, auto));
+  }
+
+  void _onYearJoined(String v) {
+    final next = widget.entry.copyWith(yearJoined: v);
+    if (_auto == 'joined') _auto = null;
+    // Fill "Year left" only if it's blank or was filled by us.
+    if (_auto == null && widget.entry.yearLeft.isEmpty) _auto = 'left';
+    _emit(next);
+  }
+
+  void _onYearLeft(String v) {
+    final next = widget.entry.copyWith(yearLeft: v);
+    if (_auto == 'left') _auto = null;
+    if (_auto == null && widget.entry.yearJoined.isEmpty) _auto = 'joined';
+    _emit(next);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -264,8 +289,7 @@ class _SchoolCardState extends State<_SchoolCard> {
                         label: 'From Class',
                         value: entry.classFrom,
                         items: kClassOptions,
-                        onChanged: (v) =>
-                            widget.onChanged(entry.copyWith(classFrom: v)),
+                        onChanged: (v) => _emit(entry.copyWith(classFrom: v)),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -274,7 +298,7 @@ class _SchoolCardState extends State<_SchoolCard> {
                         label: 'To Class',
                         value: entry.classTo,
                         items: kClassOptions,
-                        onChanged: (v) => widget.onChanged(
+                        onChanged: (v) => _emit(
                           entry.copyWith(
                             classTo: v,
                             // Stream only exists from Class 11; drop it when
@@ -321,8 +345,7 @@ class _SchoolCardState extends State<_SchoolCard> {
                       child: _YearField(
                         label: 'Year Joined',
                         controller: _yearJoinedCtrl,
-                        onChanged: (v) =>
-                            widget.onChanged(entry.copyWith(yearJoined: v)),
+                        onChanged: _onYearJoined,
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -330,8 +353,7 @@ class _SchoolCardState extends State<_SchoolCard> {
                       child: _YearField(
                         label: 'Year Left',
                         controller: _yearLeftCtrl,
-                        onChanged: (v) =>
-                            widget.onChanged(entry.copyWith(yearLeft: v)),
+                        onChanged: _onYearLeft,
                       ),
                     ),
                   ],

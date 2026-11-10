@@ -1,25 +1,23 @@
 package com.apsconnect.api.community;
 
-import com.apsconnect.api.user.PersonDto;
-
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
+/**
+ * A community as the app sees it. myRole is null when I'm not a member;
+ * requested is true when I've asked to join a PRIVATE one and wait for approval.
+ */
 public record CommunityDto(
         UUID id,
-        String name,
-        String badge,
         CommunityType type,
-        int members,
-        int online,
-        String lastSender,
-        String lastMessage,
-        LocalDateTime time,
-        List<PersonDto> avatars,
-        long unreadCount,
-        String autoJoinLabel,
-        boolean isYourSection,
-        boolean isYourSchool
+        String name,
+        String description,
+        CommunityVisibility visibility,
+        int memberCount,
+        MemberRole myRole,
+        boolean requested
 ) {
+    public static CommunityDto of(Community c, MemberRole myRole, boolean requested) {
+        return new CommunityDto(c.getId(), c.getType(), c.getName(), c.getDescription(),
+                c.getVisibility(), c.getMemberCount(), myRole, requested);
+    }
 }

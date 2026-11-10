@@ -23,10 +23,11 @@ import java.util.UUID;
 public class UserSocialLinkController {
     private final UserSocialLinkService userSocialLinkService;
 
-    /** Viewing someone's social links is fine for any logged-in user (profile pages show them). */
+    /** Someone's social links, filtered by their privacy settings (see the service). */
     @GetMapping
     public ResponseEntity<ApiResponse<List<UserSocialLinkDto>>> getSocialLinks(@PathVariable UUID userId) {
-        return ResponseEntity.ok(ApiResponse.success(userSocialLinkService.getLinks(userId)));
+        return ResponseEntity.ok(ApiResponse.success(
+                userSocialLinkService.getLinks(com.apsconnect.api.common.security.SecurityUtils.currentUserId(), userId)));
     }
 
     /** Writing is not — only the owner may change their own links. */

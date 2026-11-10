@@ -30,6 +30,7 @@ public class PeopleSearchService {
 
     private final UserRepository userRepository;
     private final PersonService personService;
+    private final com.apsconnect.api.safety.UserBlockRepository blockRepository;
 
     /** Optional narrowing. Any null field means "don't filter on this". */
     public record Filters(UUID schoolId, Short batch, Short classTo, String section, Stream stream,
@@ -40,20 +41,28 @@ public class PeopleSearchService {
         }
     }
 
+    /** [communityId] non-null limits results to that community's members (its directory). */
     @Transactional(readOnly = true)
-    public List<PersonDto> search(UUID viewerId, String query, Filters filters, boolean scopeMine, int page, int size) {
+    public List<PersonDto> search(UUID viewerId, String query, Filters filters, boolean scopeMine,
+                                  UUID communityId, int page, int size) {
         int pageSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
         int offset = Math.max(page, 0) * pageSize;
 
         String normalized = normalize(query);
         List<String> tokens = tokens(normalized);
 
+        // People I blocked or who blocked me never show up (a placeholder keeps NOT IN non-empty).
+        java.util.Set<UUID> blocked = new java.util.HashSet<>(blockRepository.findBlockedIdsInvolving(viewerId));
+        blocked.add(new UUID(0, 0));
+
         List<User> users = userRepository.searchPeople(
                 viewerId,
+                blocked,
                 normalized.isEmpty() ? null : normalized,
                 tokens.isEmpty() ? null : "%" + tokens.get(0) + "%",
                 tokens.isEmpty() ? null : wordPrefixPattern(tokens),
                 scopeMine,
+                communityId,
                 filters.usesSchoolHistory(),
                 filters.schoolId(),
                 filters.batch(),

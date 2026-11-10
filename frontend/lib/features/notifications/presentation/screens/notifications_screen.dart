@@ -63,6 +63,12 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   void _open(AppNotification n) {
     if (n.refType == 'USER' && n.refId != null) {
       context.go('/home/profile/${n.refId}');
+    } else if (n.refType == 'POST' && n.refId != null) {
+      // Someone commented on my post: open it with its comments.
+      context.push('/home/post/${n.refId}');
+    } else if (n.refType == 'EVENT' && n.refId != null) {
+      // An event I RSVP'd to changed or was cancelled.
+      context.push('/home/event/${n.refId}');
     } else if (n.actorId != null) {
       context.go('/home/profile/${n.actorId}');
     }
@@ -126,10 +132,14 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                 loading: () => const Center(
                   child: CircularProgressIndicator(color: AppColors.crimson),
                 ),
-                error: (_, __) => const EmptyState(
+                error: (_, __) => EmptyState(
                   icon: Icons.wifi_off_rounded,
                   title: 'Could not load notifications',
                   message: 'Check your connection and try again.',
+                  action: TextButton(
+                    onPressed: () => ref.invalidate(notificationsProvider),
+                    child: const Text('Retry'),
+                  ),
                 ),
                 data: (list) {
                   if (list.isEmpty) {

@@ -12,7 +12,10 @@ import com.apsconnect.api.user.social.UserSocialLinkRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.JdbcTemplate;
+import com.apsconnect.api.common.web.RequestIdFilter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +35,7 @@ public class AccountService {
     private final UserSocialLinkRepository socialLinkRepository;
     private final UserSettingsService settingsService;
     private final AuthService authService;
+    private final JdbcTemplate jdbc;
 
     @Transactional(readOnly = true)
     public AccountExportDto export(UUID userId) {
@@ -61,12 +65,14 @@ public class AccountService {
         historyRepository.deleteAllByUser_Id(userId);
         socialLinkRepository.deleteAllByUser_Id(userId);
 
-        String tombstone = "deleted_" + user.getId();
+        // Unique placeholders that fit the columns (phone is varchar(40), email is NOT NULL).
+        String tombstone = user.getId().toString().replace("-", "");
         user.setDeletedAt(LocalDateTime.now());
-        user.setUsername(tombstone);
+        user.setUsername("deleted_" + tombstone);
         user.setPhone(tombstone);
-        user.setEmail(null);
-        user.setFullName("Deleted user");
+        user.setEmail("deleted+" + tombstone + "@deleted.invalid");
+        // The name stays, so their posts and messages still show who wrote them;
+        // everything else about the person is removed.
         user.setBio(null);
         user.setCity(null);
         user.setProfession(null);
@@ -79,6 +85,9 @@ public class AccountService {
         user.setIsVerified(Boolean.FALSE);
         userRepository.save(user);
 
+        // Same transaction as the anonymisation: the audit row exists if and only if it happened.
+        jdbc.update("INSERT INTO account_deletions (user_id, request_id) VALUES (?, ?)",
+                userId, MDC.get(RequestIdFilter.MDC_KEY));
         authService.revokeAllFor(userId);
         log.info("Account soft-deleted and anonymized for userId={}", userId);
     }

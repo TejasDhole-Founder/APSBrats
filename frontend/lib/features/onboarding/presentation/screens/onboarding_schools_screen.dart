@@ -23,8 +23,14 @@ class _OnboardingSchoolsScreenState
       ref.read(onboardingFlowProvider).schoolHistory,
     );
     setState(() => _error = problem);
-    if (problem == null) {
+    if (problem != null) return;
+    final notifier = ref.read(onboardingFlowProvider.notifier);
+    if (notifier.isStudent) {
+      notifier.markStep(4);
       context.go('/onboarding/schools/socials');
+    } else {
+      notifier.markStep(3);
+      context.go('/onboarding/schools/after-school');
     }
   }
 
@@ -34,11 +40,18 @@ class _OnboardingSchoolsScreenState
     final notifier = ref.read(onboardingFlowProvider.notifier);
 
     return OnboardingFrame(
-      step: 3,
+      step: 2,
+      showAfterSchool: !flow.isStudent,
       title: 'Which APS schools did you call home?',
       subtitle:
           'Add every school you attended — even one year counts. Your batchmates are waiting.',
-      footer: _Footer(onNext: _next, error: _error),
+      footer: _Footer(
+        onNext: _next,
+        error: _error,
+        nextLabel: flow.isStudent
+            ? 'Next — connect my socials'
+            : 'Next — life after school',
+      ),
       child: SchoolHistoryEditor(
         drafts: flow.schoolHistory,
         onAdd: notifier.addSchoolDraft,
@@ -52,9 +65,10 @@ class _OnboardingSchoolsScreenState
 // ── Footer ────────────────────────────────────────────────────────────────────
 
 class _Footer extends StatelessWidget {
-  const _Footer({required this.onNext, this.error});
+  const _Footer({required this.onNext, required this.nextLabel, this.error});
 
   final VoidCallback onNext;
+  final String nextLabel;
   final String? error;
 
   @override
@@ -85,19 +99,19 @@ class _Footer extends StatelessWidget {
               minimumSize: const Size(double.infinity, 0),
             ),
             onPressed: onNext,
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Next — connect my socials',
-                  style: TextStyle(
+                  nextLabel,
+                  style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.5,
                   ),
                 ),
-                SizedBox(width: 6),
-                Icon(Icons.chevron_right_rounded, size: 18),
+                const SizedBox(width: 6),
+                const Icon(Icons.chevron_right_rounded, size: 18),
               ],
             ),
           ),

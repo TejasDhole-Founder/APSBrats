@@ -47,7 +47,7 @@ public class FeedService {
 
     @Transactional(readOnly = true)
     public List<PersonDto> recentJoins(UUID currentUserId) {
-        List<User> users = userRepository.findTop12ByOrderByCreatedAtDesc().stream()
+        List<User> users = userRepository.findTop12ByDeletedAtIsNullAndBannedAtIsNullOrderByCreatedAtDesc().stream()
                 .filter(u -> !u.getId().equals(currentUserId))
                 .toList();
         return personService.toPeople(users);
@@ -56,17 +56,18 @@ public class FeedService {
     @Transactional(readOnly = true)
     public BatchmateBannerDto banner(UUID currentUserId) {
         LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
-        List<User> today = userRepository.findByCreatedAtAfterOrderByCreatedAtDesc(startOfDay).stream()
-                .filter(u -> !u.getId().equals(currentUserId))
-                .toList();
-        List<String> names = today.stream()
+        // A count and three names, not every account created today.
+        long count = userRepository.countByCreatedAtAfterAndDeletedAtIsNullAndBannedAtIsNullAndIdNot(
+                startOfDay, currentUserId);
+        List<String> names = userRepository
+                .findTop3ByCreatedAtAfterAndDeletedAtIsNullAndBannedAtIsNullAndIdNotOrderByCreatedAtDesc(
+                        startOfDay, currentUserId).stream()
                 .map(u -> u.getFullName() == null ? "" : u.getFullName().trim().split("\\s+")[0])
-                .limit(3)
                 .toList();
-        String message = today.isEmpty()
+        String message = count == 0
                 ? "No new batchmates yet today."
-                : today.size() + " new batchmate" + (today.size() == 1 ? "" : "s") + " joined today.";
-        return new BatchmateBannerDto(today.size(), names, message);
+                : count + " new batchmate" + (count == 1 ? "" : "s") + " joined today.";
+        return new BatchmateBannerDto((int) count, names, message);
     }
 
     private String typeLabel(FeedEventType type) {

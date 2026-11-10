@@ -54,15 +54,23 @@ class SocialLink {
 
 /// The one privacy switch. Private hides phone + socials from other users.
 class PrivacySettings {
-  const PrivacySettings({required this.isPrivate, required this.discoverable});
+  const PrivacySettings({
+    required this.isPrivate,
+    required this.discoverable,
+    this.showActivity = true,
+  });
 
   final bool isPrivate;
   final bool discoverable;
+
+  /// Others see "Active now / 2h ago". Off also hides theirs from me.
+  final bool showActivity;
 
   factory PrivacySettings.fromJson(Map<String, dynamic> json) =>
       PrivacySettings(
         isPrivate: json['isPrivate'] as bool? ?? false,
         discoverable: json['discoverable'] as bool? ?? true,
+        showActivity: json['showActivity'] as bool? ?? true,
       );
 }
 
@@ -85,11 +93,16 @@ class Profile {
     required this.schoolsCount,
     required this.connectedCount,
     this.mutualCount = 0,
+    this.lastActiveAt,
+    this.deleted = false,
   });
 
   final String id;
   final String? username;
   final String fullName;
+
+  /// The account was deleted: only the name is left, shown as an unknown user.
+  final bool deleted;
   final String? bio;
   final String? city;
   final String? profession;
@@ -109,6 +122,9 @@ class Profile {
   /// Connections I share with this person (0 on my own profile).
   final int mutualCount;
 
+  /// Null when they (or I) hide activity.
+  final DateTime? lastActiveAt;
+
   factory Profile.fromJson(Map<String, dynamic> json) => Profile(
     id: json['id']?.toString() ?? '',
     username: json['username'] as String?,
@@ -120,7 +136,9 @@ class Profile {
     profilePicUrl: json['profilePicUrl'] as String?,
     isVerified: json['isVerified'] as bool? ?? false,
     isPrivate: json['isPrivate'] as bool? ?? false,
+    deleted: json['deleted'] as bool? ?? false,
     mutualCount: (json['mutualCount'] as num?)?.toInt() ?? 0,
+    lastActiveAt: DateTime.tryParse(json['lastActiveAt']?.toString() ?? ''),
     currentStatus: json['currentStatus'] as String? ?? 'STUDENT',
     schools:
         (json['schools'] as List?)

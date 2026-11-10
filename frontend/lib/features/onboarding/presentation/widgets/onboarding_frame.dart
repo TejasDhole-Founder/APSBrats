@@ -1,6 +1,7 @@
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 
 class OnboardingFrame extends StatefulWidget {
   const OnboardingFrame({
@@ -11,14 +12,19 @@ class OnboardingFrame extends StatefulWidget {
     required this.child,
     this.footer,
     this.headerAction,
+    this.showAfterSchool = false,
   });
 
+  /// 1 Profile, 2 Schools, 3 After school, 4 Socials.
   final int step;
   final String title;
   final String subtitle;
   final Widget child;
   final Widget? footer;
   final Widget? headerAction;
+
+  /// Alumni get the "After school" step; students go straight to Socials.
+  final bool showAfterSchool;
 
   @override
   State<OnboardingFrame> createState() => _OnboardingFrameState();
@@ -33,6 +39,16 @@ class _OnboardingFrameState extends State<OnboardingFrame> {
     super.dispose();
   }
 
+  /// Each step's route sits inside the previous one
+  /// (/onboarding/schools/after-school/...), so "back" is the parent route.
+  /// Going there by address also works after a page reload, when there is no
+  /// history to pop. Typed answers are kept in the saved draft.
+  void _back() {
+    final location = GoRouterState.of(context).matchedLocation;
+    final parent = location.substring(0, location.lastIndexOf('/'));
+    context.go(parent.isEmpty ? '/onboarding' : parent);
+  }
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
@@ -45,6 +61,9 @@ class _OnboardingFrameState extends State<OnboardingFrame> {
           title: widget.title,
           subtitle: widget.subtitle,
           headerAction: widget.headerAction,
+          showAfterSchool: widget.showAfterSchool,
+          // Step 1 has no back: the step before it is the verified email.
+          onBack: widget.step > 1 ? _back : null,
         ),
         widget.child,
         if (widget.footer != null) widget.footer!,
@@ -111,22 +130,25 @@ class _Header extends StatelessWidget {
     required this.title,
     required this.subtitle,
     this.headerAction,
+    required this.showAfterSchool,
+    this.onBack,
   });
 
   final int step;
   final String title;
   final String subtitle;
   final Widget? headerAction;
-
-  static const _steps = [
-    (label: 'Profile', index: 1),
-    (label: 'Verify', index: 2),
-    (label: 'Schools', index: 3),
-    (label: 'Socials', index: 4),
-  ];
+  final bool showAfterSchool;
+  final VoidCallback? onBack;
 
   @override
   Widget build(BuildContext context) {
+    final steps = [
+      (label: 'Profile', index: 1),
+      (label: 'Schools', index: 2),
+      if (showAfterSchool) (label: 'After school', index: 3),
+      (label: 'Socials', index: 4),
+    ];
     return Stack(
       children: [
         Container(
@@ -145,6 +167,21 @@ class _Header extends StatelessWidget {
               // APS Brat logo row
               Row(
                 children: [
+                  if (onBack != null) ...[
+                    IconButton(
+                      tooltip: 'Back',
+                      onPressed: onBack,
+                      icon: const Icon(Icons.arrow_back_rounded),
+                      color: Colors.white,
+                      visualDensity: VisualDensity.compact,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 32,
+                        minHeight: 32,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                  ],
                   Container(
                     width: 30,
                     height: 30,
@@ -208,17 +245,19 @@ class _Header extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              // 4-step breadcrumb
+              // 3-step breadcrumb
               Row(
                 children: [
-                  for (int i = 0; i < _steps.length; i++) ...[
+                  for (int i = 0; i < steps.length; i++) ...[
                     _StepNode(
-                      index: _steps[i].index,
-                      label: _steps[i].label,
-                      active: step == _steps[i].index,
-                      done: step > _steps[i].index,
+                      // The dot shows its position, so a student's Socials
+                      // step reads "3" even though it is step 4 overall.
+                      number: i + 1,
+                      label: steps[i].label,
+                      active: step == steps[i].index,
+                      done: step > steps[i].index,
                     ),
-                    if (i < _steps.length - 1)
+                    if (i < steps.length - 1)
                       const Expanded(child: _StepLine()),
                   ],
                 ],
@@ -269,13 +308,13 @@ class _Header extends StatelessWidget {
 
 class _StepNode extends StatelessWidget {
   const _StepNode({
-    required this.index,
+    required this.number,
     required this.label,
     required this.active,
     required this.done,
   });
 
-  final int index;
+  final int number;
   final String label;
   final bool active;
   final bool done;
@@ -302,7 +341,7 @@ class _StepNode extends StatelessWidget {
           child: done
               ? const Icon(Icons.check, size: 12, color: Colors.white)
               : Text(
-                  '$index',
+                  '$number',
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w800,

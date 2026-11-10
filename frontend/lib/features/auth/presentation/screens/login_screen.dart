@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:apsbrat_frontend/features/auth/presentation/providers/auth_provider.dart';
+import 'package:apsbrat_frontend/features/onboarding/presentation/providers/onboarding_flow_provider.dart';
 import 'package:apsbrat_frontend/features/auth/presentation/widgets/welcome_brand.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +13,11 @@ import 'package:go_router/go_router.dart';
 /// Google. Verifying logs you in if the email already has an account,
 /// otherwise creates a bare one and the router sends you to onboarding.
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({super.key, this.signUp = false});
+
+  /// Opened from "Get Started" rather than "Log In". Same flow underneath --
+  /// this only changes the wording.
+  final bool signUp;
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
@@ -20,6 +25,8 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   static const _resendSeconds = 30;
+
+  late bool _signUp = widget.signUp;
 
   final _emailCtrl = TextEditingController();
   final _otp = List.generate(6, (_) => TextEditingController());
@@ -63,6 +70,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _sendCode() async {
     final email = _emailCtrl.text.trim();
     if (email.isEmpty) return;
+    // Catch an obvious typo here, so it isn't reported as a network failure.
+    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter a valid email address')),
+      );
+      return;
+    }
     await ref.read(authControllerProvider.notifier).requestOtp(email);
     if (mounted && ref.read(authControllerProvider).otpSent) {
       for (final c in _otp) {
@@ -82,13 +96,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _google() async {
-    final ok = await ref.read(authControllerProvider.notifier).signInWithGoogle();
+    final ok = await ref
+        .read(authControllerProvider.notifier)
+        .signInWithGoogle();
     if (ok && mounted) _continue();
   }
 
-  void _continue() {
+  Future<void> _continue() async {
     final user = ref.read(authControllerProvider).user;
-    context.go(user != null && user.needsOnboarding ? '/onboarding' : '/home');
+    if (user != null && user.needsOnboarding) {
+      // Pick up where an unfinished registration was left off.
+      final route = await resumeOnboardingRoute(
+        ref.read(onboardingFlowProvider.notifier),
+      );
+      if (mounted) context.go(route);
+    } else {
+      context.go('/home');
+    }
   }
 
   void _editEmail() {
@@ -153,11 +177,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             const SizedBox(height: 40),
                             RichText(
                               textAlign: TextAlign.center,
-                              text: const TextSpan(
+                              text: TextSpan(
                                 style: Welcome.headline,
                                 children: [
-                                  TextSpan(text: 'Welcome, '),
                                   TextSpan(
+                                    text: _signUp
+                                        ? 'Join us, '
+                                        : 'Welcome back, ',
+                                  ),
+                                  const TextSpan(
                                     text: 'brat',
                                     style: TextStyle(color: Welcome.goldLight),
                                   ),
@@ -168,7 +196,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             Text(
                               state.otpSent
                                   ? 'Enter the 6-digit code we sent you'
-                                  : 'Enter your email to continue',
+                                  : _signUp
+                                  ? 'Create your account with your email'
+                                  : 'Enter your email to log in',
                               textAlign: TextAlign.center,
                               style: const TextStyle(
                                 fontSize: 16,
@@ -206,6 +236,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               _GoogleButton(
                                 loading: state.loading,
                                 onTap: _google,
+                              ),
+                              const SizedBox(height: 6),
+                              TextButton(
+                                onPressed: () =>
+                                    setState(() => _signUp = !_signUp),
+                                child: Text(
+                                  _signUp
+                                      ? 'Already an APS brat?  Log in'
+                                      : 'New here?  Create an account',
+                                  style: const TextStyle(
+                                    color: Welcome.goldLight,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                               ),
                             ],
                             if (kDebugMode) ...[
@@ -260,7 +305,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           children: [
-            const Icon(Icons.mail_outline_rounded, size: 20, color: Welcome.gold),
+            const Icon(
+              Icons.mail_outline_rounded,
+              size: 20,
+              color: Welcome.gold,
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: TextField(

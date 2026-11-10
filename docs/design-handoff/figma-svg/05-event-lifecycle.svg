@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="1348" viewBox="0 0 600 1348" font-family="Roboto, Arial, sans-serif">
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9A7070"/></marker></defs>
+<rect width="600" height="1348" fill="#FBF8F6"/>
+<text x="80" y="88" font-size="22" font-weight="700" fill="#7B1414">Event lifecycle</text>
+<path d="M300,178 C300,231 300,231 300,284" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M300,342 C300,395 180,395 180,448" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M180,506 C180,559 300,559 300,612" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M300,716 C300,746 180,746 180,776" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="240" y="742" font-size="11" fill="#5C0F0F" text-anchor="middle" paint-order="stroke" stroke="#FBF8F6" stroke-width="4">Yes</text>
+<path d="M300,716 C300,746 420,746 420,776" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="360" y="742" font-size="11" fill="#5C0F0F" text-anchor="middle" paint-order="stroke" stroke="#FBF8F6" stroke-width="4">No, edit</text>
+<path d="M320,805 C150,805 150,313 200,313" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M180,834 C180,887 300,887 300,940" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M300,1044 C300,1074 300,1074 300,1104" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="300" y="1070" font-size="11" fill="#5C0F0F" text-anchor="middle" paint-order="stroke" stroke="#FBF8F6" stroke-width="4">Yes</text>
+<path d="M300,342 C300,395 420,395 420,448" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="360" y="391" font-size="11" fill="#5C0F0F" text-anchor="middle" paint-order="stroke" stroke="#FBF8F6" stroke-width="4">Cancel</text>
+<rect x="200" y="120" width="200" height="58" rx="29" fill="#7B1414"/>
+<text x="300" y="138" font-size="12.5" font-weight="500" fill="#fff" text-anchor="middle">Owner/staff: Create event</text>
+<text x="300" y="153" font-size="12.5" font-weight="500" fill="#fff" text-anchor="middle">(title, venue, start AND</text>
+<text x="300" y="168" font-size="12.5" font-weight="500" fill="#fff" text-anchor="middle">end)</text>
+<rect x="200" y="284" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="300" y="309.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Upcoming list: soonest</text>
+<text x="300" y="324.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">first</text>
+<rect x="80" y="448" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="180" y="473.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Members RSVP: Going /</text>
+<text x="180" y="488.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Interested</text>
+<polygon points="300,612 400,664 300,716 200,664" fill="#F6E7BF" stroke="#D4A84A" stroke-width="1.5"/>
+<text x="300" y="660.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Start time</text>
+<text x="300" y="675.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">reached?</text>
+<rect x="80" y="776" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="180" y="801.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Members can share photos</text>
+<text x="180" y="816.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">(tagged post)</text>
+<polygon points="300,940 400,992 300,1044 200,992" fill="#F6E7BF" stroke="#D4A84A" stroke-width="1.5"/>
+<text x="300" y="988.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">End time</text>
+<text x="300" y="1003.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">passed?</text>
+<rect x="200" y="1104" width="200" height="58" rx="12" fill="#E9F3E4" stroke="#6BA35A" stroke-width="1.5"/>
+<text x="300" y="1129.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Moves to Past list (RSVP</text>
+<text x="300" y="1144.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">closed)</text>
+<rect x="320" y="776" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="420" y="801.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Owner edits time or venue:</text>
+<text x="420" y="816.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">RSVPd people notified</text>
+<rect x="320" y="448" width="200" height="58" rx="12" fill="#FDEBEB" stroke="#D86060" stroke-width="1.5"/>
+<text x="420" y="466" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Owner cancels: RSVPd</text>
+<text x="420" y="481" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">people notified, shown</text>
+<text x="420" y="496" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">crossed out</text>
+<rect x="80" y="1314" width="14" height="14" rx="3" fill="#7B1414" stroke="#7B1414"/><text x="100" y="1326" font-size="11" fill="#9A7070">Start</text>
+<rect x="180" y="1314" width="14" height="14" rx="3" fill="#fff" stroke="#EADCDC"/><text x="200" y="1326" font-size="11" fill="#9A7070">Step</text>
+<rect x="280" y="1314" width="14" height="14" rx="3" fill="#F6E7BF" stroke="#D4A84A"/><text x="300" y="1326" font-size="11" fill="#9A7070">Decision</text>
+<rect x="380" y="1314" width="14" height="14" rx="3" fill="#E9F3E4" stroke="#6BA35A"/><text x="400" y="1326" font-size="11" fill="#9A7070">Result</text>
+<rect x="480" y="1314" width="14" height="14" rx="3" fill="#FDEBEB" stroke="#D86060"/><text x="500" y="1326" font-size="11" fill="#9A7070">Blocked / limit</text>
+</svg>

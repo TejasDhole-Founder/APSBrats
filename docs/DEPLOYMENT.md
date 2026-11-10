@@ -95,6 +95,43 @@ Good if you want one box running the `docker-compose.yml`, with **no open ports*
 
 ---
 
+## Part B.5 — Media storage (Cloudflare R2)
+
+The app defaults to storing uploaded photos on local disk (`LocalStorageService`).
+That's fine for Part A/B above, but **wrong for Cloud Run or any host without a
+persistent disk** — the filesystem resets on every restart and every uploaded
+photo silently disappears. Switch to R2 (S3-compatible, same account as your
+`apsbrats.com` Cloudflare zone) before deploying anywhere stateless.
+
+1. **Dashboard → R2 Object Storage → Create bucket.** Name it `apsbrats-media`
+   (or set `R2_BUCKET` to match whatever you pick). Location: Automatic.
+2. **Bucket → Settings → Public access → Custom Domains → Connect Domain.**
+   Enter `media.apsbrats.com` (same zone you already manage). Cloudflare adds the
+   DNS record and issues the cert — don't use the `pub-*.r2.dev` dev URL for
+   anything beyond a quick test; Cloudflare explicitly says not to rely on it.
+3. **R2 → Manage R2 API Tokens → Create API Token.** Permissions: **Object
+   Read & Write**, scoped to the `apsbrats-media` bucket only (not account-wide).
+   Copy the **Access Key ID** and **Secret Access Key** — shown once.
+4. Note your **Account ID** (right side of the R2 overview page).
+5. Set these on the API service (Render/Cloud Run/wherever), **not** in git:
+   ```
+   STORAGE_TYPE=r2
+   R2_ACCOUNT_ID=<from step 4>
+   R2_ACCESS_KEY_ID=<from step 3>
+   R2_SECRET_ACCESS_KEY=<from step 3>
+   R2_BUCKET=apsbrats-media
+   MEDIA_BASE_URL=https://media.apsbrats.com
+   ```
+   `MEDIA_BASE_URL` must be the exact custom domain from step 2 — the app checks
+   every photo a user attaches against this prefix, so a mismatch makes uploads
+   unusable, not just unreachable.
+6. Redeploy, then confirm: upload a photo in the app and open the returned URL
+   directly — it should load from `media.apsbrats.com`, not `/media/...`.
+
+Existing local-disk uploads (if any, from Part A testing) are **not** migrated
+automatically — copy them into the bucket by hand if they need to survive, or
+accept they're test data and move on.
+
 ## Part C — Cloudflare configuration
 
 ### DNS

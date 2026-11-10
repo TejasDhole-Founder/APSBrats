@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -81,10 +82,9 @@ public class CircleService {
     @Transactional(readOnly = true)
     public List<PersonDto> classmates(UUID me, UUID entryId, int page, int size) {
         requireMyEntry(me, entryId);
-        List<UUID> ids = entryId == null
+        return rankedPage(me, "classmates:" + (entryId == null ? "all" : entryId), () -> entryId == null
                 ? historyRepository.findClassmateIds(me)
-                : historyRepository.findClassmateIdsForEntry(me, entryId);
-        return rankedPage(me, "classmates:" + (entryId == null ? "all" : entryId), ids, page, size, false);
+                : historyRepository.findClassmateIdsForEntry(me, entryId), page, size, false);
     }
 
     // ── Schoolmates, ranked by mutual friends ─────────────────────────────────
@@ -98,21 +98,27 @@ public class CircleService {
     public List<PersonDto> schoolmates(UUID me, UUID entryId, boolean batchOnly, int page, int size) {
         requireMyEntry(me, entryId);
         String scope = "schoolmates:" + (entryId == null ? "all" : entryId) + (batchOnly ? ":batch" : "");
-        List<UUID> ids = entryId == null
+        return rankedPage(me, scope, () -> entryId == null
                 ? historyRepository.findSchoolmateIds(me, batchOnly)
-                : historyRepository.findSchoolmateIdsForEntry(me, entryId, batchOnly);
-        return rankedPage(me, scope, ids, page, size, true);
+                : historyRepository.findSchoolmateIdsForEntry(me, entryId, batchOnly), page, size, true);
     }
 
     // ── Shared ranking / paging ───────────────────────────────────────────────
 
-    private List<PersonDto> rankedPage(UUID me, String scope, List<UUID> candidateIds,
+    // ponytail: ranks at most this many candidates (also keeps IN (...) under Postgres' 32k
+    // bind-parameter limit); move ranking into SQL if one school's alumni ever exceed it.
+    static final int MAX_CANDIDATES = 5000;
+
+    /** Candidates are only queried on a cache miss: a cached page costs one user lookup. */
+    private List<PersonDto> rankedPage(UUID me, String scope, Supplier<List<UUID>> candidates,
                                        int page, int size, boolean byMutual) {
         int pageSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
         int from = Math.max(page, 0) * pageSize;
 
         List<UUID> ranked = cache.rankedIds(me, scope).orElseGet(() -> {
-            List<UUID> computed = rank(me, candidateIds, byMutual);
+            List<UUID> ids = candidates.get();
+            List<UUID> computed = rank(me, ids.size() > MAX_CANDIDATES ? ids.subList(0, MAX_CANDIDATES) : ids,
+                    byMutual);
             cache.putRankedIds(me, scope, computed);
             return computed;
         });
@@ -136,10 +142,8 @@ public class CircleService {
         Map<UUID, Integer> mutual = byMutual ? personService.mutualCounts(me, candidateIds) : Map.of();
         Map<UUID, Boolean> sameBatch = sameBatchAsMe(me, candidateIds);
         Map<UUID, String> names = new HashMap<>();
-        for (User u : userRepository.findAllById(candidateIds)) {
-            if (u.getDeletedAt() == null) {
-                names.put(u.getId(), u.getFullName() == null ? "" : u.getFullName().toLowerCase());
-            }
+        for (Object[] row : userRepository.findLiveNames(candidateIds)) {
+            names.put((UUID) row[0], row[1] == null ? "" : ((String) row[1]).toLowerCase());
         }
         return rankIds(candidateIds.stream().filter(names::containsKey).toList(), mutual, sameBatch, names);
     }

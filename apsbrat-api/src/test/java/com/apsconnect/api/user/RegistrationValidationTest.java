@@ -54,11 +54,36 @@ class RegistrationValidationTest {
     }
 
     @Test
-    void rejectsBadEmail() {
+    void rejectsChangingTheEmail() {
         givenExistingUser();
-        assertThatThrownBy(() -> service.updateMe(userId, req("bob", "Bob B", "not-an-email", adultDob)))
+        assertThatThrownBy(() -> service.updateMe(userId, req("bob", "Bob B", "other@example.com", adultDob)))
                 .isInstanceOf(AppException.class)
-                .hasMessageContaining("Email");
+                .hasMessageContaining("can't be changed");
+    }
+
+    @Test
+    void sendingTheSameEmailBackIsFine() {
+        User user = new User();
+        user.setId(userId);
+        user.setEmail("Bob@Example.com");
+        Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        Mockito.when(userRepository.existsByUsernameIgnoreCase(Mockito.anyString())).thenReturn(false);
+
+        UserDto dto = service.updateMe(userId, req("bob", "Bob B", "bob@example.com", adultDob));
+
+        assertThat(dto.username()).isEqualTo("bob");
+    }
+
+    @Test
+    void onboardingNeedsANameAndAUsername() {
+        User user = new User();
+        assertThat(user.isOnboarded()).isFalse();
+        user.setFullName("Dave D");
+        assertThat(user.isOnboarded()).isFalse();
+        user.setUsername("dave");
+        assertThat(user.isOnboarded()).isTrue();
+        user.setFullName(" ");
+        assertThat(user.isOnboarded()).isFalse();
     }
 
     @Test
@@ -72,9 +97,9 @@ class RegistrationValidationTest {
     @Test
     void acceptsValidAdultAndPersists() {
         givenExistingUser();
-        Mockito.when(userRepository.existsByUsername(Mockito.anyString())).thenReturn(false);
+        Mockito.when(userRepository.existsByUsernameIgnoreCase(Mockito.anyString())).thenReturn(false);
 
-        UserDto dto = service.updateMe(userId, req("dave", "Dave D", "dave@example.com", adultDob));
+        UserDto dto = service.updateMe(userId, req("dave", "Dave D", null, adultDob));
 
         assertThat(dto.username()).isEqualTo("dave");
     }

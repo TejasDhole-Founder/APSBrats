@@ -12,6 +12,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final StompAuthChannelInterceptor stompAuthChannelInterceptor;
 
+    /** Same list as CORS (browser clients only; the mobile app sends no Origin). */
+    @org.springframework.beans.factory.annotation.Value("${app.cors.allowed-origins:http://localhost:*,http://127.0.0.1:*}")
+    private String[] allowedOrigins;
+
     public WebSocketConfig(StompAuthChannelInterceptor stompAuthChannelInterceptor) {
         this.stompAuthChannelInterceptor = stompAuthChannelInterceptor;
     }
@@ -24,7 +28,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("http://localhost:*", "http://127.0.0.1:*");
+                .setAllowedOriginPatterns(allowedOrigins);
     }
 
     @Override

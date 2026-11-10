@@ -21,6 +21,9 @@ services:
 
   redis:
     image: redis:7
+    # Cap memory; under pressure evict only keys with a TTL (caches, rate-limit windows,
+    # idempotency results), never TTL-less ones such as token-revocation markers.
+    command: ["redis-server", "--maxmemory", "256mb", "--maxmemory-policy", "volatile-lru"]
     ports:
       - "6379:6379"
     healthcheck:
@@ -47,6 +50,13 @@ services:
       SPRING_FLYWAY_BASELINE_ON_MIGRATE: "false"
       JWT_SECRET: ${JWT_SECRET:-dev-only-change-me-to-a-long-random-secret}
       OTP_MASTER: ${OTP_MASTER:-000000}
+      # Media storage: local disk unless these are set (see .env.example).
+      STORAGE_TYPE: ${STORAGE_TYPE:-local}
+      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID:-}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+      R2_BUCKET: ${R2_BUCKET:-apsbrats-media}
+      MEDIA_BASE_URL: ${MEDIA_BASE_URL:-/media}
     ports:
       - "8080:8080"
     healthcheck:

@@ -2,11 +2,14 @@ package com.apsconnect.api.circle;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -77,11 +80,15 @@ public class CircleCache {
         }
     }
 
-    /** Drop everything cached for this user (connections or schools changed). */
+    /**
+     * Drop everything cached for this user (connections or schools changed).
+     * SCAN, not KEYS: KEYS walks the whole keyspace in one blocking call.
+     */
     public void evictUser(UUID userId) {
-        try {
-            Set<String> keys = redis.keys(prefix(userId) + "*");
-            if (keys != null && !keys.isEmpty()) {
+        try (Cursor<String> cursor = redis.scan(ScanOptions.scanOptions().match(prefix(userId) + "*").count(100).build())) {
+            Set<String> keys = new HashSet<>();
+            cursor.forEachRemaining(keys::add);
+            if (!keys.isEmpty()) {
                 redis.delete(keys);
             }
         } catch (RuntimeException e) {

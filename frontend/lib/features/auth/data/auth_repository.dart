@@ -68,11 +68,38 @@ class AuthRepository {
     return tokens.user;
   }
 
+  /// Revokes this session on the server (so the 30-day refresh token can't be
+  /// reused if it was copied), then wipes everything stored on the device.
+  /// The server call is best-effort: offline or slow, you still get logged out.
   Future<void> logout() async {
-    await _storage.delete(key: kAccessTokenKey);
-    await _storage.delete(key: kRefreshTokenKey);
-    await _storage.delete(key: kUserIdKey);
-    await _storage.delete(key: kOnboardingDoneKey);
+    final refreshToken = await _storage.read(key: kRefreshTokenKey);
+    if (refreshToken != null && refreshToken.isNotEmpty) {
+      try {
+        await _dio
+            .post<dynamic>(
+              ApiEndpoints.authLogout,
+              data: {'refreshToken': refreshToken},
+            )
+            .timeout(const Duration(seconds: 5));
+      } catch (_) {}
+    }
+    await clearLocal();
+  }
+
+  /// Signs the account out on every device (a lost phone, a shared laptop).
+  Future<void> revokeAllSessions() =>
+      _dio.post<dynamic>(ApiEndpoints.authLogoutAll);
+
+  /// Removes every trace of the signed-in user from this device: tokens, user
+  /// id, onboarding flag, and the Google/Firebase sign-in.
+  Future<void> clearLocal() async {
+    try {
+      await GoogleSignIn().signOut();
+    } catch (_) {}
+    try {
+      await FirebaseAuth.instance.signOut();
+    } catch (_) {}
+    await _storage.deleteAll();
   }
 
   Future<String?> currentUserId() => _storage.read(key: kUserIdKey);
@@ -85,6 +112,11 @@ class AuthRepository {
   Future<void> markOnboardingDone() =>
       _storage.write(key: kOnboardingDoneKey, value: '1');
 }
+
+/// The signed-in user's id, from secure storage (works on a cold start too).
+final myUserIdProvider = FutureProvider<String?>(
+  (ref) => ref.watch(authRepositoryProvider).currentUserId(),
+);
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository(

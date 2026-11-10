@@ -3,6 +3,7 @@ package com.apsconnect.api.profile;
 import com.apsconnect.api.user.UserStatus;
 import com.apsconnect.api.user.social.UserSocialLinkDto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,6 +26,10 @@ public record ProfileDto(
         /** Connections the viewer shares with this person (0 on own profile). */
         int mutualCount,
         /** True when the owner hides phone and socials from other users. */
-        boolean isPrivate
+        boolean isPrivate,
+        /** Last time they used the app; null when they or the viewer hide activity. */
+        LocalDateTime lastActiveAt,
+        /** The account was deleted: only the name remains, everything else is blank. */
+        boolean deleted
 ) {
 }

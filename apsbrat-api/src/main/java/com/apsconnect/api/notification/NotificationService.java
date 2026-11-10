@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -40,6 +41,23 @@ public class NotificationService {
                        User actor, NotificationRef refType, UUID refId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException("User not found", HttpStatus.NOT_FOUND));
+        notificationRepository.save(build(user, type, title, body, actor, refType, refId));
+    }
+
+    /**
+     * The same notice to many people (e.g. everyone who RSVP'd): no lookup per recipient,
+     * and the inserts go out in JDBC batches (hibernate.jdbc.batch_size).
+     */
+    @Transactional
+    public void createAll(Collection<UUID> userIds, NotificationType type, String title, String body,
+                          User actor, NotificationRef refType, UUID refId) {
+        notificationRepository.saveAll(userIds.stream()
+                .map(id -> build(userRepository.getReferenceById(id), type, title, body, actor, refType, refId))
+                .toList());
+    }
+
+    private static Notification build(User user, NotificationType type, String title, String body,
+                                      User actor, NotificationRef refType, UUID refId) {
         Notification n = new Notification();
         n.setUser(user);
         n.setActor(actor);
@@ -50,7 +68,7 @@ public class NotificationService {
         n.setRefId(refId);
         n.setRead(false);
         n.setCreatedAt(LocalDateTime.now());
-        notificationRepository.save(n);
+        return n;
     }
 
     /**

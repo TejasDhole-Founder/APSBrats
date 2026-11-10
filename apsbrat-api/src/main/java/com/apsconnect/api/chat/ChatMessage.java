@@ -28,6 +28,10 @@ public class ChatMessage {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String body;
 
+    /** One optional photo (an address from POST /media/images). */
+    @Column(name = "image_url")
+    private String imageUrl;
+
     @Column(name = "read_at")
     private LocalDateTime readAt;
 

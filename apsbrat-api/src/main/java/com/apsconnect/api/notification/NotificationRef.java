@@ -6,8 +6,10 @@ public enum NotificationRef {
     CONNECTION,
     /** ref_id = users.id — open that profile. */
     USER,
-    /** ref_id = communities.id. */
-    COMMUNITY,
     /** ref_id = conversations.id. */
-    CONVERSATION
+    CONVERSATION,
+    /** ref_id = posts.id — someone commented on my post. */
+    POST,
+    /** ref_id = community_events.id — an event I RSVP'd to changed or was cancelled. */
+    EVENT
 }

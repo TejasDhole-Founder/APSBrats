@@ -15,6 +15,7 @@ class Person {
     required this.profilePicUrl,
     required this.online,
     required this.tags,
+    this.lastActiveAt,
     this.mutualCount = 0,
     this.relation = 'NONE',
   });
@@ -31,6 +32,9 @@ class Person {
   final String? profilePicUrl;
   final bool online;
   final List<String> tags;
+
+  /// Last time they used the app; null when they (or I) hide activity.
+  final DateTime? lastActiveAt;
 
   /// People connected to both me and this person.
   final int mutualCount;
@@ -54,6 +58,7 @@ class Person {
       tags:
           (json['tags'] as List?)?.map((e) => e.toString()).toList() ??
           const [],
+      lastActiveAt: DateTime.tryParse(json['lastActiveAt']?.toString() ?? ''),
       mutualCount: (json['mutualCount'] as num?)?.toInt() ?? 0,
       relation: json['relation'] as String? ?? 'NONE',
     );
@@ -67,6 +72,18 @@ class Person {
   Color get bg => _colors.$1;
 
   Color get fg => _colors.$2;
+}
+
+/// "Active now" (last 5 minutes), "Active 12m ago", "Active 3h ago",
+/// "Active 2d ago"; null when hidden or longer than a week ago.
+String? activeLabel(DateTime? lastActiveAt, {DateTime? now}) {
+  if (lastActiveAt == null) return null;
+  final diff = (now ?? DateTime.now()).difference(lastActiveAt);
+  if (diff.inMinutes < 5) return 'Active now';
+  if (diff.inHours < 1) return 'Active ${diff.inMinutes}m ago';
+  if (diff.inDays < 1) return 'Active ${diff.inHours}h ago';
+  if (diff.inDays < 7) return 'Active ${diff.inDays}d ago';
+  return null;
 }
 
 const _avatarPalette = <(Color, Color)>[

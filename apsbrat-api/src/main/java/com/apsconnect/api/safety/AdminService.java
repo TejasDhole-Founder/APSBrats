@@ -3,8 +3,7 @@ package com.apsconnect.api.safety;
 import com.apsconnect.api.auth.AuthService;
 import com.apsconnect.api.common.exception.AppException;
 import com.apsconnect.api.common.exception.ErrorCode;
-import com.apsconnect.api.community.CommunityMember;
-import com.apsconnect.api.community.CommunityMemberRepository;
+
 import com.apsconnect.api.user.User;
 import com.apsconnect.api.user.UserRepository;
 import com.apsconnect.api.user.UserRole;
@@ -25,7 +24,6 @@ public class AdminService {
     private final ReportRepository reportRepository;
     private final ModerationActionRepository actionRepository;
     private final UserRepository userRepository;
-    private final CommunityMemberRepository memberRepository;
     private final AuthService authService;
 
     @Transactional(readOnly = true)
@@ -50,7 +48,11 @@ public class AdminService {
     @Transactional
     public void suspendUser(UUID actorId, UUID userId, int days, String reason) {
         User user = requireUser(userId);
-        int span = Math.max(1, days);
+        // Staff can only be suspended by an admin (a moderator can't act against an admin).
+        if (user.getRole() == UserRole.ADMIN || user.getRole() == UserRole.MODERATOR) {
+            requireAdmin(actorId);
+        }
+        int span = Math.min(Math.max(1, days), 365);
         user.setSuspendedUntil(LocalDateTime.now().plusDays(span));
         userRepository.save(user);
         authService.revokeAllFor(userId);
@@ -87,14 +89,6 @@ public class AdminService {
         userRepository.save(user);
         authService.revokeAllFor(userId);
         log(actorId, userId, "SET_ROLE_" + role.name(), null, null);
-    }
-
-    @Transactional
-    public void removeCommunityMember(UUID actorId, UUID communityId, UUID userId, String reason) {
-        CommunityMember member = memberRepository.findByCommunity_IdAndUser_Id(communityId, userId)
-                .orElseThrow(() -> new AppException("Membership not found", HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND));
-        memberRepository.delete(member);
-        log(actorId, userId, "REMOVE_FROM_COMMUNITY", reason, null);
     }
 
     @Transactional(readOnly = true)

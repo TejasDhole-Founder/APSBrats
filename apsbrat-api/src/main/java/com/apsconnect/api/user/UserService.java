@@ -58,26 +58,20 @@ public class UserService {
                 .orElseThrow(() -> new AppException("User not found", HttpStatus.NOT_FOUND));
 
         String username = request.username().trim();
+        // The email is the login identity and can't be changed (for now). Sending the
+        // same address back is fine; a different one is refused.
         String email = blankToNull(request.email());
-        if (email != null) {
-            email = email.toLowerCase();
+        if (email != null && !email.equalsIgnoreCase(user.getEmail())) {
+            throw badRequest("Email can't be changed");
         }
-        validateProfileFields(request.fullName(), username, email, request.dob());
+        validateProfileFields(request.fullName(), username, user.getEmail(), request.dob());
 
-        if (!username.equals(user.getUsername()) && userRepository.existsByUsername(username)) {
+        if (!username.equalsIgnoreCase(user.getUsername()) && userRepository.existsByUsernameIgnoreCase(username)) {
             throw new AppException("Username already exists", HttpStatus.CONFLICT);
-        }
-        if (email != null && !email.equals(user.getEmail()) && userRepository.existsByEmail(email)) {
-            throw new AppException("Email already exists", HttpStatus.CONFLICT);
         }
 
         user.setUsername(username);
         user.setFullName(request.fullName().trim());
-        // Email is the login identity; only overwrite it when one was actually sent
-        // (the onboarding profile step doesn't re-send it — it was fixed at login).
-        if (email != null) {
-            user.setEmail(email);
-        }
         user.setDob(request.dob());
         user.setCity(blankToNull(request.city()));
         user.setProfession(blankToNull(request.profession()));
@@ -96,7 +90,7 @@ public class UserService {
         if (problem != null) {
             return AvailabilityDto.no(problem);
         }
-        if (userRepository.existsByUsername(normalized)) {
+        if (userRepository.existsByUsernameIgnoreCase(normalized)) {
             return AvailabilityDto.no("This username already exists. Please select something else.");
         }
         return AvailabilityDto.ok();

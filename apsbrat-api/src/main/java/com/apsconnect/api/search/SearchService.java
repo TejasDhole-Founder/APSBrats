@@ -1,9 +1,5 @@
 package com.apsconnect.api.search;
 
-import com.apsconnect.api.community.Community;
-import com.apsconnect.api.community.CommunityMemberRepository;
-import com.apsconnect.api.community.CommunityRepository;
-import com.apsconnect.api.community.DiscoverCommunityDto;
 import com.apsconnect.api.safety.UserBlockRepository;
 import com.apsconnect.api.user.PersonDto;
 import com.apsconnect.api.user.PersonService;
@@ -28,8 +24,6 @@ public class SearchService {
     private static final int MAX_RESULTS = 50;
 
     private final UserRepository userRepository;
-    private final CommunityRepository communityRepository;
-    private final CommunityMemberRepository communityMemberRepository;
     private final PersonService personService;
     private final UserBlockRepository blockRepository;
     private final UserSettingsService settingsService;
@@ -38,7 +32,7 @@ public class SearchService {
     public SearchResultDto search(UUID currentUserId, String query) {
         String term = query == null ? "" : query.trim();
         if (term.isEmpty()) {
-            return new SearchResultDto(List.of(), List.of());
+            return new SearchResultDto(List.of());
         }
 
         Set<UUID> excluded = new HashSet<>(blockRepository.findBlockedIdsInvolving(currentUserId));
@@ -59,18 +53,6 @@ public class SearchService {
 
         List<PersonDto> people = personService.toPeople(users);
 
-        List<DiscoverCommunityDto> communities = communityRepository.findByNameContainingIgnoreCase(term).stream()
-                .limit(MAX_RESULTS)
-                .map(this::toDiscover)
-                .toList();
-
-        return new SearchResultDto(people, communities);
-    }
-
-    private DiscoverCommunityDto toDiscover(Community c) {
-        long count = c.getMemberCountOverride() != null
-                ? c.getMemberCountOverride()
-                : communityMemberRepository.countByCommunity_Id(c.getId());
-        return new DiscoverCommunityDto(c.getId(), c.getName(), count + " members", c.getSubtitle());
+        return new SearchResultDto(people);
     }
 }

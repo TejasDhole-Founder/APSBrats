@@ -1,4 +1,5 @@
 import 'package:apsbrat_frontend/core/network/dio_client.dart';
+import 'package:apsbrat_frontend/features/profile/presentation/widgets/profile_photo.dart';
 import 'package:apsbrat_frontend/core/theme/app_inputs.dart';
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
 import 'package:apsbrat_frontend/features/auth/data/auth_models.dart';
@@ -133,7 +134,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           .updateMe(
             fullName: _fullName.text.trim(),
             username: _username.text.trim(),
-            email: _nullIfEmpty(_email.text),
             city: _nullIfEmpty(_city.text),
             profession: _nullIfEmpty(_profession.text),
             gender: _gender,
@@ -196,7 +196,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         color: AppColors.crimson,
                       ),
                     )
-                  : Form(key: _formKey, child: _buildForm()),
+                  : Form(
+                      key: _formKey,
+                      // Errors show as soon as a field is edited, not only after Save.
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      child: _buildForm(),
+                    ),
             ),
           ],
         ),
@@ -208,6 +213,20 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
       children: [
+        Center(
+          child: Column(
+            children: [
+              const ProfilePhotoButton(size: 88, onDarkBackground: false),
+              const SizedBox(height: 6),
+              TextButton(
+                onPressed: () => changeProfilePhoto(context, ref),
+                style: TextButton.styleFrom(foregroundColor: AppColors.crimson),
+                child: const Text('Change photo'),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
         _field(
           'PHONE · USED TO LOG IN',
           TextFormField(
@@ -240,8 +259,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           TextFormField(
             controller: _username,
             focusNode: _usernameCheck.focus,
+            inputFormatters: usernameInputFormatters,
             decoration: appInputDecoration(
-              '@arjun.singh',
+              'arjun.singh',
               suffix: _usernameSuffix,
             ).copyWith(errorText: _usernameCheck.error),
             validator: _required,
@@ -250,12 +270,22 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           hintColor: _usernameCheck.confirmed ? Colors.green : null,
         ),
         _field(
-          'EMAIL (OPTIONAL)',
+          'EMAIL',
           TextFormField(
             controller: _email,
-            keyboardType: TextInputType.emailAddress,
-            decoration: appInputDecoration('you@example.com'),
+            readOnly: true,
+            enabled: false,
+            style: const TextStyle(fontSize: 13, color: kTxt3),
+            decoration: appInputDecoration(
+              '',
+              suffix: const Icon(
+                Icons.lock_outline_rounded,
+                size: 16,
+                color: kTxt3,
+              ),
+            ),
           ),
+          hint: "Email can't be changed.",
         ),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,

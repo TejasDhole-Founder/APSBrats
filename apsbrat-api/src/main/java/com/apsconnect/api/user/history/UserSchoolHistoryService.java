@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.apsconnect.api.community.CommunityService;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -23,6 +23,7 @@ public class UserSchoolHistoryService {
     private final SchoolRepository schoolRepository;
     private final UserSchoolHistoryRepository userSchoolHistoryRepository;
     private final com.apsconnect.api.circle.CircleCache circleCache;
+    private final CommunityService communityService;
 
     /** A user's schools, most recent first. Shared by the profile, the data export and the GET endpoint. */
     @Transactional(readOnly = true)
@@ -68,6 +69,7 @@ public class UserSchoolHistoryService {
 
         userSchoolHistoryRepository.deleteAllByUser_Id(userId);
         userSchoolHistoryRepository.saveAll(items);
+        communityService.dropSchoolsNoLongerListed(userId);
         circleCache.evictUser(userId);
     }
 

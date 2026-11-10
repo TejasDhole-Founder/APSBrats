@@ -29,7 +29,7 @@ class AppNotification {
   final String? actorName;
   final String? actorInitials;
 
-  /// What it points at: CONNECTION · USER · COMMUNITY · CONVERSATION.
+  /// What it points at: CONNECTION · USER · CONVERSATION · POST.
   final String? refType;
   final String? refId;
 

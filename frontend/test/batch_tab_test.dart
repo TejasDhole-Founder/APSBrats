@@ -53,9 +53,7 @@ Widget _tab({
       schoolmatesProvider.overrideWith((ref, q) async => schoolmates),
       peopleSearchProvider.overrideWith((ref, query) async => const <Person>[]),
     ],
-    child: MaterialApp(
-      home: Scaffold(body: BatchTab(onGoCommunities: () {})),
-    ),
+    child: MaterialApp(home: Scaffold(body: const BatchTab())),
   );
 }
 

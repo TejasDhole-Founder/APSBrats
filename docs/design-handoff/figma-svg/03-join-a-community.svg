@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="1184" viewBox="0 0 600 1184" font-family="Roboto, Arial, sans-serif">
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9A7070"/></marker></defs>
+<rect width="600" height="1184" fill="#FBF8F6"/>
+<text x="80" y="88" font-size="22" font-weight="700" fill="#7B1414">Join a community</text>
+<path d="M180,178 C180,231 300,231 300,284" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M300,388 C300,418 180,418 180,448" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="240" y="414" font-size="11" fill="#5C0F0F" text-anchor="middle" paint-order="stroke" stroke="#FBF8F6" stroke-width="4">Public</text>
+<path d="M300,388 C300,418 420,418 420,448" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="360" y="414" font-size="11" fill="#5C0F0F" text-anchor="middle" paint-order="stroke" stroke="#FBF8F6" stroke-width="4">Private</text>
+<path d="M180,506 C180,723 180,723 180,940" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M420,506 C420,559 300,559 300,612" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M300,670 C300,723 300,723 300,776" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M300,880 C300,910 180,910 180,940" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="240" y="906" font-size="11" fill="#5C0F0F" text-anchor="middle" paint-order="stroke" stroke="#FBF8F6" stroke-width="4">Approve</text>
+<path d="M300,880 C300,910 420,910 420,940" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="360" y="906" font-size="11" fill="#5C0F0F" text-anchor="middle" paint-order="stroke" stroke="#FBF8F6" stroke-width="4">Reject</text>
+<path d="M320,969 C30,969 30,149 80,149" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M420,178 C420,559 180,559 180,940" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<rect x="80" y="120" width="200" height="58" rx="29" fill="#7B1414"/>
+<text x="180" y="153" font-size="12.5" font-weight="500" fill="#fff" text-anchor="middle">Discover / search</text>
+<polygon points="300,284 400,336 300,388 200,336" fill="#F6E7BF" stroke="#D4A84A" stroke-width="1.5"/>
+<text x="300" y="332.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Public or</text>
+<text x="300" y="347.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">private?</text>
+<rect x="80" y="448" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="180" y="481" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Tap Join</text>
+<rect x="320" y="448" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="420" y="481" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Tap Request</text>
+<rect x="80" y="940" width="200" height="58" rx="12" fill="#E9F3E4" stroke="#6BA35A" stroke-width="1.5"/>
+<text x="180" y="965.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Member: Feed, Chat,</text>
+<text x="180" y="980.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Events, Members</text>
+<rect x="200" y="612" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="300" y="637.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Requested: waiting for the</text>
+<text x="300" y="652.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">owner</text>
+<polygon points="300,776 400,828 300,880 200,828" fill="#F6E7BF" stroke="#D4A84A" stroke-width="1.5"/>
+<text x="300" y="832" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Owner decides</text>
+<rect x="320" y="940" width="200" height="58" rx="12" fill="#FDEBEB" stroke="#D86060" stroke-width="1.5"/>
+<text x="420" y="973" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Rejected: back to Discover</text>
+<rect x="320" y="120" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="420" y="145.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">School community: join</text>
+<text x="420" y="160.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">from "Your schools"</text>
+<rect x="80" y="1150" width="14" height="14" rx="3" fill="#7B1414" stroke="#7B1414"/><text x="100" y="1162" font-size="11" fill="#9A7070">Start</text>
+<rect x="180" y="1150" width="14" height="14" rx="3" fill="#fff" stroke="#EADCDC"/><text x="200" y="1162" font-size="11" fill="#9A7070">Step</text>
+<rect x="280" y="1150" width="14" height="14" rx="3" fill="#F6E7BF" stroke="#D4A84A"/><text x="300" y="1162" font-size="11" fill="#9A7070">Decision</text>
+<rect x="380" y="1150" width="14" height="14" rx="3" fill="#E9F3E4" stroke="#6BA35A"/><text x="400" y="1162" font-size="11" fill="#9A7070">Result</text>
+<rect x="480" y="1150" width="14" height="14" rx="3" fill="#FDEBEB" stroke="#D86060"/><text x="500" y="1162" font-size="11" fill="#9A7070">Blocked / limit</text>
+</svg>

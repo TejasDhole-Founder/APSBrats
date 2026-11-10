@@ -4,6 +4,7 @@ import com.apsconnect.api.common.exception.AppException;
 import com.apsconnect.api.connection.ConnectionRepository;
 import com.apsconnect.api.safety.UserBlockRepository;
 import com.apsconnect.api.user.PersonService;
+import com.apsconnect.api.user.PresenceService;
 import com.apsconnect.api.user.User;
 import com.apsconnect.api.user.UserRepository;
 import com.apsconnect.api.user.history.UserSchoolHistoryService;
@@ -30,12 +31,19 @@ public class ProfileService {
     private final UserBlockRepository blockRepository;
     private final UserSettingsService settingsService;
     private final PersonService personService;
+    private final PresenceService presenceService;
 
     @Transactional(readOnly = true)
     public ProfileDto getById(UUID viewerId, UUID userId) {
         User user = userRepository.findById(userId)
-                .filter(u -> u.getDeletedAt() == null)
                 .orElseThrow(() -> new AppException("Profile not found", HttpStatus.NOT_FOUND));
+
+        // A deleted account: their posts and messages stay under their name, but
+        // opening the profile shows no details (the app says "Unknown user").
+        if (user.getDeletedAt() != null) {
+            return new ProfileDto(user.getId(), null, user.getFullName(), null, null, null, null, null,
+                    false, null, List.of(), List.of(), 0, 0, 0, 0, false, null, true);
+        }
 
         boolean self = user.getId().equals(viewerId);
         if (!self && blockRepository.existsBetween(viewerId, user.getId())) {
@@ -77,7 +85,9 @@ public class ProfileService {
                 schools.size(),
                 connectedCount,
                 mutualCount,
-                settings.isPrivate()
+                settings.isPrivate(),
+                presenceService.visibleLastActive(viewerId, List.of(user)).get(user.getId()),
+                false
         );
     }
 }

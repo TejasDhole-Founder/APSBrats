@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -176,6 +177,30 @@ public class AuthService {
             }
         }
         redis.delete(setKey);
+        // Access tokens already issued can't be recalled; remember the moment so
+        // the filter rejects them until they'd have expired anyway.
+        redis.opsForValue().set(revokedKey(userId), String.valueOf(System.currentTimeMillis()),
+                Duration.ofMillis(jwtService.getAccessTokenExpiryMillis() + 60_000));
+    }
+
+    /** True when this user's tokens were revoked (ban, suspend, delete, role change) after it was issued. */
+    /**
+     * Fails open on a Redis outage: otherwise every request would 401 and the app would sign
+     * everyone out. The exposure is bounded by the 15-minute access-token lifetime.
+     */
+    public boolean isRevoked(UUID userId, java.util.Date issuedAt) {
+        String revokedAt;
+        try {
+            revokedAt = redis.opsForValue().get(revokedKey(userId));
+        } catch (DataAccessException e) {
+            log.warn("Revocation check skipped, Redis unavailable: {}", e.getMessage());
+            return false;
+        }
+        return revokedAt != null && issuedAt != null && issuedAt.getTime() <= Long.parseLong(revokedAt);
+    }
+
+    private static String revokedKey(UUID userId) {
+        return "revoked:" + userId;
     }
 
     private AuthTokens issueTokens(User user) {

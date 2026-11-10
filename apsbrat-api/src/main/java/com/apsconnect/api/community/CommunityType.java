@@ -1,8 +1,4 @@
 package com.apsconnect.api.community;
 
-public enum CommunityType {
-    SECTION,
-    SCHOOL,
-    ALL_YEARS,
-    GLOBAL
-}
+/** SCHOOL: one per APS school. INTEREST: created by a user. */
+public enum CommunityType { SCHOOL, INTEREST }

@@ -1,11 +1,13 @@
 package com.apsconnect.api.chat;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+/** Text, a photo, or both. At least one is required (checked in ChatService). */
 public record SendChatMessageRequest(
-        @NotBlank(message = "body is required")
         @Size(max = 4000, message = "body too long")
-        String body
+        String body,
+
+        @Size(max = 300, message = "Invalid photo")
+        String imageUrl
 ) {
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
 import 'package:apsbrat_frontend/features/chat/data/chat_repository.dart';
 import 'package:apsbrat_frontend/features/chat/data/chat_socket.dart';
+import 'package:apsbrat_frontend/features/community/presentation/communities_tab.dart';
 import 'package:apsbrat_frontend/features/feed/data/dummy_data.dart';
 import 'package:apsbrat_frontend/features/feed/presentation/widgets/batch_tab.dart';
 import 'package:apsbrat_frontend/features/feed/presentation/widgets/batchmate_overlay.dart';
@@ -13,7 +14,9 @@ import 'package:apsbrat_frontend/features/feed/presentation/widgets/profile_tab.
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:apsbrat_frontend/features/connections/data/circle_repository.dart';
 import 'package:apsbrat_frontend/features/connections/data/connection_repository.dart';
+import 'package:apsbrat_frontend/features/search/data/search_repository.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -22,8 +25,31 @@ class HomeScreen extends ConsumerStatefulWidget {
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
+/// Tab positions; must match the order of [_BottomNav._items].
+const _messagesTab = 3;
+
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _tab = 0;
+
+  /// A tab is built (and fetches its data) on first visit, then kept alive
+  /// in the IndexedStack so switching back is instant.
+  final _visited = <int>{0};
+
+  void _goTo(int i) {
+    // Returning to Batchmates refreshes only what that tab shows, so a request
+    // answered on another device isn't shown stale. A first visit fetches anyway.
+    if (i == 1 && _tab != 1 && _visited.contains(1)) {
+      ref
+        ..invalidate(circleSummaryProvider)
+        ..invalidate(batchmatesProvider)
+        ..invalidate(peopleSearchProvider);
+    }
+    setState(() {
+      _visited.add(i);
+      _tab = i;
+    });
+  }
+
   AppPerson? _chatPerson;
   AppPerson? _batchmatePerson;
   StreamSubscription? _chatSocketSubscription;
@@ -77,7 +103,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         } else if (_batchmatePerson != null) {
           _closeBatchmate();
         } else {
-          setState(() => _tab = 0);
+          _goTo(0);
         }
       },
       child: AnnotatedRegion<SystemUiOverlayStyle>(
@@ -95,25 +121,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         HomeTab(
                           onOpenBatchmate: _openBatchmate,
                           onOpenChat: _openChat,
-                          onGoMessages: () => setState(() => _tab = 2),
+                          onGoMessages: () => _goTo(_messagesTab),
                         ),
-                        BatchTab(
-                          onGoCommunities: () => setState(() => _tab = 2),
-                        ),
-                        const MessagesTab(),
-                        const ProfileTab(),
+                        _visited.contains(1)
+                            ? const BatchTab()
+                            : const SizedBox.shrink(),
+                        _visited.contains(2)
+                            ? const CommunitiesTab()
+                            : const SizedBox.shrink(),
+                        _visited.contains(3)
+                            ? const MessagesTab()
+                            : const SizedBox.shrink(),
+                        _visited.contains(4)
+                            ? const ProfileTab()
+                            : const SizedBox.shrink(),
                       ],
                     ),
                   ),
-                  _BottomNav(
-                    current: _tab,
-                    onTap: (i) {
-                      // Opening Batchmates pulls fresh counts and lists so a
-                      // request answered elsewhere is never shown stale.
-                      if (i == 1 && _tab != 1) refreshConnections(ref);
-                      setState(() => _tab = i);
-                    },
-                  ),
+                  _BottomNav(current: _tab, onTap: _goTo),
                 ],
               ),
 
@@ -145,6 +170,7 @@ class _BottomNav extends StatelessWidget {
   static const _items = [
     (Icons.home_rounded, Icons.home_outlined, 'Home'),
     (Icons.people_rounded, Icons.people_outline_rounded, 'Batchmates'),
+    (Icons.groups_rounded, Icons.groups_outlined, 'Communities'),
     (Icons.chat_bubble_rounded, Icons.chat_bubble_outline_rounded, 'Messages'),
     (Icons.person_rounded, Icons.person_outline_rounded, 'Profile'),
   ];
@@ -179,16 +205,23 @@ class _BottomNav extends StatelessWidget {
                             : const Color(0xFFAAAAAA),
                       ),
                       const SizedBox(height: 3),
-                      Text(
-                        label,
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: active
-                              ? FontWeight.w700
-                              : FontWeight.w400,
-                          color: active
-                              ? AppColors.crimson
-                              : const Color(0xFFAAAAAA),
+                      // Five tabs share the width: on a narrow phone a long
+                      // label ("Communities") shrinks a little instead of
+                      // wrapping onto a second line.
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          label,
+                          maxLines: 1,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: active
+                                ? FontWeight.w700
+                                : FontWeight.w400,
+                            color: active
+                                ? AppColors.crimson
+                                : const Color(0xFFAAAAAA),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 2),

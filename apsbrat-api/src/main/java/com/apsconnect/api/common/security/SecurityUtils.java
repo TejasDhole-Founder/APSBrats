@@ -18,4 +18,10 @@ public final class SecurityUtils {
         }
         return id;
     }
+
+    /** The signed-in user, or null outside a signed-in request. */
+    public static UUID currentUserIdOrNull() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.getPrincipal() instanceof UUID id ? id : null;
+    }
 }

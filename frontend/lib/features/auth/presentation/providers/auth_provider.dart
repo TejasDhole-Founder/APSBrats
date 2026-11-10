@@ -115,6 +115,14 @@ class AuthController extends StateNotifier<AuthState> {
     _ref.read(chatSocketProvider).disconnect();
     state = const AuthState();
   }
+
+  /// Throws if the server didn't confirm, so the user isn't told it worked when it didn't.
+  Future<void> logoutEverywhere() async {
+    await _repo.revokeAllSessions();
+    await _repo.clearLocal();
+    _ref.read(chatSocketProvider).disconnect();
+    state = const AuthState();
+  }
 }
 
 final authControllerProvider = StateNotifierProvider<AuthController, AuthState>(

@@ -1,6 +1,7 @@
 package com.apsconnect.api.auth;
 
 import com.apsconnect.api.common.response.ApiResponse;
+import com.apsconnect.api.common.security.SecurityUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -47,11 +48,19 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(null, "Logged out"));
     }
 
+    /** Signs this account out everywhere: every refresh token dropped, every access token rejected. */
+    @PostMapping("/logout-all")
+    public ResponseEntity<ApiResponse<Void>> logoutAll() {
+        authService.revokeAllFor(SecurityUtils.currentUserId());
+        return ResponseEntity.ok(ApiResponse.success(null, "Logged out of all devices"));
+    }
+
+    /**
+     * Tomcat's RemoteIpValve (server.forward-headers-strategy: native) has already replaced
+     * this with the X-Forwarded-For client when the request came through a trusted proxy.
+     * Reading the header here directly would let any caller pick their own IP.
+     */
     private String clientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            return forwarded.split(",")[0].trim();
-        }
         return request.getRemoteAddr();
     }
 }

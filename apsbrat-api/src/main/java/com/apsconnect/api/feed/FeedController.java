@@ -22,7 +22,7 @@ public class FeedController {
     @GetMapping("/activity")
     public ResponseEntity<ApiResponse<List<FeedEventDto>>> activity(
             @RequestParam(defaultValue = "20") int limit) {
-        return ResponseEntity.ok(ApiResponse.success(feedService.activity(limit)));
+        return ResponseEntity.ok(ApiResponse.success(feedService.activity(Math.min(Math.max(limit, 1), 50))));
     }
 
     @GetMapping("/recent-joins")

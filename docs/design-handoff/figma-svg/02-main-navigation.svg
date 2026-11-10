@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="856" viewBox="0 0 1800 856" font-family="Roboto, Arial, sans-serif">
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9A7070"/></marker></defs>
+<rect width="1800" height="856" fill="#FBF8F6"/>
+<text x="80" y="88" font-size="22" font-weight="700" fill="#7B1414">Main navigation (5 tabs)</text>
+<path d="M900,178 C900,231 420,231 420,284" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M900,178 C900,231 660,231 660,284" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M900,178 C900,231 900,231 900,284" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M900,178 C900,231 1140,231 1140,284" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M900,178 C900,231 1380,231 1380,284" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M420,342 C420,395 420,395 420,448" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M420,506 C420,559 180,559 180,612" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M420,342 C420,477 900,477 900,612" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M660,342 C660,395 660,395 660,448" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M660,506 C660,559 420,559 420,612" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M1140,342 C1140,477 420,477 420,612" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M900,342 C900,395 900,395 900,448" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M900,506 C900,559 660,559 660,612" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M900,506 C900,559 900,559 900,612" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M900,506 C900,559 1140,559 1140,612" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M900,506 C900,559 1380,559 1380,612" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M1380,342 C1380,395 1140,395 1140,448" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M1380,342 C1380,395 1380,395 1380,448" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M1380,506 C1380,559 1620,559 1620,612" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<rect x="800" y="120" width="200" height="58" rx="29" fill="#7B1414"/>
+<text x="900" y="153" font-size="12.5" font-weight="500" fill="#fff" text-anchor="middle">Home shell</text>
+<rect x="320" y="284" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="420" y="317" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Home</text>
+<rect x="560" y="284" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="660" y="317" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Batchmates</text>
+<rect x="800" y="284" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="900" y="317" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Communities</text>
+<rect x="1040" y="284" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="1140" y="317" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Messages</text>
+<rect x="1280" y="284" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="1380" y="317" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Profile</text>
+<rect x="320" y="448" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="420" y="481" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Notifications</text>
+<rect x="80" y="612" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="180" y="645" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Connection requests</text>
+<rect x="560" y="448" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="660" y="481" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Someone's profile</text>
+<rect x="320" y="612" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="420" y="645" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">1:1 Chat</text>
+<rect x="800" y="448" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="900" y="481" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Community page</text>
+<rect x="560" y="612" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="660" y="645" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Event</text>
+<rect x="800" y="612" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="900" y="645" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Post + comments</text>
+<rect x="1040" y="612" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="1140" y="645" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Community chat</text>
+<rect x="1280" y="612" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="1380" y="645" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Join requests (owner)</text>
+<rect x="1040" y="448" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="1140" y="473.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Edit profile / schools /</text>
+<text x="1140" y="488.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">career / socials</text>
+<rect x="1280" y="448" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="1380" y="481" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Settings sheet</text>
+<rect x="1520" y="612" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="1620" y="645" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Blocked users</text>
+<rect x="80" y="822" width="14" height="14" rx="3" fill="#7B1414" stroke="#7B1414"/><text x="100" y="834" font-size="11" fill="#9A7070">Start</text>
+<rect x="180" y="822" width="14" height="14" rx="3" fill="#fff" stroke="#EADCDC"/><text x="200" y="834" font-size="11" fill="#9A7070">Step</text>
+<rect x="280" y="822" width="14" height="14" rx="3" fill="#F6E7BF" stroke="#D4A84A"/><text x="300" y="834" font-size="11" fill="#9A7070">Decision</text>
+<rect x="380" y="822" width="14" height="14" rx="3" fill="#E9F3E4" stroke="#6BA35A"/><text x="400" y="834" font-size="11" fill="#9A7070">Result</text>
+<rect x="480" y="822" width="14" height="14" rx="3" fill="#FDEBEB" stroke="#D86060"/><text x="500" y="834" font-size="11" fill="#9A7070">Blocked / limit</text>
+</svg>

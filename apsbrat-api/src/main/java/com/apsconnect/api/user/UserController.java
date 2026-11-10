@@ -27,7 +27,9 @@ public class UserController {
     public ResponseEntity<ApiResponse<List<PersonDto>>> getUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return ResponseEntity.ok(ApiResponse.success(userService.getUsers(page, size)));
+        // Bounded: this must not be a way to download everyone.
+        return ResponseEntity.ok(ApiResponse.success(
+                userService.getUsers(Math.max(page, 0), Math.min(Math.max(size, 1), 50))));
     }
 
     @GetMapping("/username-available")

@@ -36,10 +36,14 @@ class ChatRepository {
     return PagedResult.fromJson(data, ChatMessage.fromJson);
   }
 
-  Future<ChatMessage> send(String conversationId, String body) async {
+  Future<ChatMessage> send(
+    String conversationId,
+    String body, {
+    String? imageUrl,
+  }) async {
     final res = await _dio.post<dynamic>(
       ApiEndpoints.conversationMessages(conversationId),
-      data: {'body': body},
+      data: {'body': body, 'imageUrl': ?imageUrl},
     );
     return ChatMessage.fromJson(dataMap(res));
   }

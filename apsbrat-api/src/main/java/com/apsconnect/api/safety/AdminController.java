@@ -2,6 +2,8 @@ package com.apsconnect.api.safety;
 
 import com.apsconnect.api.common.response.ApiResponse;
 import com.apsconnect.api.common.security.SecurityUtils;
+import com.apsconnect.api.community.CommunityChatService;
+import com.apsconnect.api.community.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +23,27 @@ import java.util.UUID;
 public class AdminController {
 
     private final AdminService adminService;
+    private final PostService postService;
+    private final CommunityChatService communityChatService;
+
+    /** Undo an auto-hide (or a removal) after review. */
+    @PostMapping("/posts/{postId}/restore")
+    public ResponseEntity<ApiResponse<Void>> restorePost(@PathVariable UUID postId) {
+        postService.restorePost(postId);
+        return ResponseEntity.ok(ApiResponse.success(null, "Post restored"));
+    }
+
+    @PostMapping("/comments/{commentId}/restore")
+    public ResponseEntity<ApiResponse<Void>> restoreComment(@PathVariable UUID commentId) {
+        postService.restoreComment(commentId);
+        return ResponseEntity.ok(ApiResponse.success(null, "Comment restored"));
+    }
+
+    @PostMapping("/community-messages/{messageId}/restore")
+    public ResponseEntity<ApiResponse<Void>> restoreCommunityMessage(@PathVariable UUID messageId) {
+        communityChatService.restore(messageId);
+        return ResponseEntity.ok(ApiResponse.success(null, "Message restored"));
+    }
 
     @GetMapping("/reports")
     public ResponseEntity<ApiResponse<List<ReportDto>>> reports(
@@ -64,16 +87,6 @@ public class AdminController {
             @RequestBody AdminRequests.SetRoleRequest request) {
         adminService.setRole(SecurityUtils.currentUserId(), userId, request.role());
         return ResponseEntity.ok(ApiResponse.success(null, "Role updated"));
-    }
-
-    @PostMapping("/communities/{communityId}/members/{userId}/remove")
-    public ResponseEntity<ApiResponse<Void>> removeMember(
-            @PathVariable UUID communityId,
-            @PathVariable UUID userId,
-            @RequestBody(required = false) AdminRequests.BanRequest request) {
-        String reason = request != null ? request.reason() : null;
-        adminService.removeCommunityMember(SecurityUtils.currentUserId(), communityId, userId, reason);
-        return ResponseEntity.ok(ApiResponse.success(null, "Member removed"));
     }
 
     @GetMapping("/actions")

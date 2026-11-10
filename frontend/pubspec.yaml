@@ -32,6 +32,8 @@ dependencies:
   video_player: ^2.9.1
   chewie: ^1.13.1
   shimmer: ^3.0.0
+  emoji_picker_flutter: ^2.2.0
+  share_plus: ^10.0.0
 
 dev_dependencies:
   flutter_test:

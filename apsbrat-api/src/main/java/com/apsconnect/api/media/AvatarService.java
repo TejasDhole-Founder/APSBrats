@@ -38,7 +38,7 @@ public class AvatarService {
         }
 
         byte[] sanitized = imageProcessor.toSanitizedJpeg(raw, file.getContentType());
-        String key = "avatars/" + userId + "-" + System.currentTimeMillis() + ".jpg";
+        String key = "profile/" + userId + "/" + UUID.randomUUID() + ".jpg";
         String url = storageService.store(key, sanitized, "image/jpeg");
 
         user.setProfilePicUrl(url);

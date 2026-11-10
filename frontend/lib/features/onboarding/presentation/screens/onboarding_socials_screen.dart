@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
 import 'package:apsbrat_frontend/features/auth/data/auth_repository.dart';
 import 'package:apsbrat_frontend/features/auth/presentation/providers/auth_provider.dart';
+import 'package:apsbrat_frontend/features/career/data/career_models.dart';
+import 'package:apsbrat_frontend/features/career/data/career_repository.dart';
 import 'package:apsbrat_frontend/features/onboarding/data/models/school_history_registration_model.dart';
 import 'package:apsbrat_frontend/features/onboarding/data/models/social_link_registration_model.dart';
 import 'package:apsbrat_frontend/features/onboarding/presentation/providers/onboarding_flow_provider.dart';
@@ -10,6 +14,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 
@@ -30,6 +35,9 @@ class _OnboardingSocialsScreenState
   final _customLabelCtrl = TextEditingController();
   final _customHandleCtrl = TextEditingController();
 
+  late final OnboardingFlowNotifier _flow;
+  Timer? _saveTimer;
+
   bool _submitting = false;
   String? _error;
 
@@ -43,10 +51,56 @@ class _OnboardingSocialsScreenState
     _twitterCtrl.text = flow.twitter;
     _customLabelCtrl.text = flow.customLabel;
     _customHandleCtrl.text = flow.customHandle;
+    _flow = ref.read(onboardingFlowProvider.notifier);
+    for (final c in [
+      _instagramCtrl,
+      _linkedinCtrl,
+      _whatsappCtrl,
+      _twitterCtrl,
+      _customLabelCtrl,
+      _customHandleCtrl,
+    ]) {
+      c.addListener(_scheduleSave);
+    }
+  }
+
+  /// Saves what has been typed so far, shortly after the user pauses.
+  void _scheduleSave() {
+    _saveTimer?.cancel();
+    _saveTimer = Timer(const Duration(milliseconds: 400), _syncDraft);
+  }
+
+  /// [deferred] is for dispose: Riverpod does not allow changing state while a
+  /// screen is being torn down, so the values are read now and saved a moment
+  /// later, after the frame.
+  void _syncDraft({bool deferred = false}) {
+    final instagram = _instagramCtrl.text.trim();
+    final linkedin = _linkedinCtrl.text.trim();
+    final whatsapp = _whatsappCtrl.text.trim();
+    final twitter = _twitterCtrl.text.trim();
+    final customLabel = _customLabelCtrl.text.trim();
+    final customHandle = _customHandleCtrl.text.trim();
+    final flow = _flow;
+
+    void save() {
+      if (!flow.mounted) return;
+      flow.saveSocials(
+        instagram: instagram,
+        linkedin: linkedin,
+        whatsapp: whatsapp,
+        twitter: twitter,
+        customLabel: customLabel,
+        customHandle: customHandle,
+      );
+    }
+
+    deferred ? Future(save) : save();
   }
 
   @override
   void dispose() {
+    _saveTimer?.cancel();
+    _syncDraft(deferred: true);
     _instagramCtrl.dispose();
     _linkedinCtrl.dispose();
     _whatsappCtrl.dispose();
@@ -72,8 +126,13 @@ class _OnboardingSocialsScreenState
     // The account exists from the moment the email (or Google) was verified —
     // this is filling in the profile that account still needs, not creating
     // a new one.
-    final userId = ref.read(authControllerProvider).user?.id;
-    if (userId == null) {
+    // Read it from the device, not from memory: after the app is closed or
+    // reloaded mid-registration the in-memory login is empty, but the saved
+    // session (tokens + user id) is still valid.
+    final userId =
+        ref.read(authControllerProvider).user?.id ??
+        await ref.read(authRepositoryProvider).currentUserId();
+    if (userId == null || userId.isEmpty) {
       setState(() => _error = 'Your session expired — please log in again.');
       return;
     }
@@ -85,13 +144,15 @@ class _OnboardingSocialsScreenState
 
     try {
       final profileRepo = ref.read(profileRepositoryProvider);
+      // Only finished cards from "After school" are saved; Skip leaves none.
+      final career = flow.career.where((c) => c.problem == null).toList();
 
       await profileRepo.updateMe(
         fullName: flow.fullName,
         username: flow.username,
-        dob: flow.dob.isEmpty ? null : flow.dob,
+        dob: apiDob(flow.dob),
         city: flow.city.isEmpty ? null : flow.city,
-        profession: flow.profession.isEmpty ? null : flow.profession,
+        profession: _profession(flow, career),
         gender: flow.gender.isEmpty ? null : flow.gender,
         currentStatus: flow.isStudent ? 'STUDENT' : 'ALUMNI',
       );
@@ -114,11 +175,31 @@ class _OnboardingSocialsScreenState
         );
       }
 
+      // Best effort: a job that fails to save must not block finishing
+      // registration. It can be added again from the profile's Journey tab.
+      var careerSaved = true;
+      final careerRepo = ref.read(careerRepositoryProvider);
+      for (final draft in career) {
+        try {
+          await careerRepo.save(draft);
+        } catch (_) {
+          careerSaved = false;
+        }
+      }
+      ref.invalidate(myCareerProvider);
+
       await ref.read(authRepositoryProvider).markOnboardingDone();
       ref.read(onboardingFlowProvider.notifier).reset();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile completed')),
+        SnackBar(
+          content: Text(
+            careerSaved
+                ? 'Profile completed'
+                : "Profile completed. Your work details didn't save, add them "
+                      'from the Journey tab.',
+          ),
+        ),
       );
       context.go('/home');
     } on DioException catch (e) {
@@ -136,10 +217,30 @@ class _OnboardingSocialsScreenState
     }
   }
 
+  /// The one-line "what I do" other screens still read (people cards etc.):
+  /// the current job, else the current college, else the latest job.
+  String? _profession(OnboardingFlowState flow, List<CareerDraft> career) {
+    CareerDraft? pick(bool Function(CareerDraft) test) =>
+        career.where(test).firstOrNull;
+    final c =
+        pick((c) => c.isWork && c.current) ??
+        pick((c) => !c.isWork && c.current) ??
+        pick((c) => c.isWork);
+    if (c != null) {
+      return c.isWork
+          ? '${c.title.trim()} at ${c.organizationName.trim()}'
+          : '${c.title.trim()} student at ${c.organizationName.trim()}';
+    }
+    final text = flow.profession.trim();
+    return text.isEmpty ? null : text;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isStudent = ref.watch(onboardingFlowProvider).isStudent;
     return OnboardingFrame(
       step: 4,
+      showAfterSchool: !isStudent,
       title: 'Connect your socials',
       subtitle:
           'All fields are optional — add whatever you\'re comfortable sharing with your batchmates.',
@@ -465,5 +566,21 @@ class _Footer extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// The form shows the birthday as 10/01/2006 (day/month/year); the API wants
+/// 2006-01-10. Anything unreadable is left out rather than failing signup.
+String? apiDob(String text) {
+  final t = text.trim();
+  if (t.isEmpty) return null;
+  try {
+    return DateFormat(
+      'yyyy-MM-dd',
+    ).format(DateFormat('dd/MM/yyyy').parseStrict(t));
+  } on FormatException {
+    // Already in API form (e.g. an older saved draft)?
+    final iso = DateTime.tryParse(t);
+    return iso == null ? null : DateFormat('yyyy-MM-dd').format(iso);
   }
 }

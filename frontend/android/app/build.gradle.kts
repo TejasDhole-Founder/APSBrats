@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -33,11 +35,35 @@ android {
         versionName = flutter.versionName
     }
 
+    // Release signing: create android/key.properties (never commit it) with
+    //   storeFile=<path to your .jks>  storePassword=...  keyAlias=...  keyPassword=...
+    // Without it a release build is signed with the DEBUG key: fine for trying
+    // `flutter run --release` locally, but the Play Store will reject it.
+    val keyProps = Properties()
+    val keyFile = rootProject.file("key.properties")
+    if (keyFile.exists()) {
+        keyFile.inputStream().use { keyProps.load(it) }
+    }
+
+    signingConfigs {
+        if (keyFile.exists()) {
+            create("release") {
+                keyAlias = keyProps.getProperty("keyAlias")
+                keyPassword = keyProps.getProperty("keyPassword")
+                storeFile = file(keyProps.getProperty("storeFile"))
+                storePassword = keyProps.getProperty("storePassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = if (keyFile.exists()) {
+                signingConfigs.getByName("release")
+            } else {
+                logger.warn("WARNING: android/key.properties not found, signing the release build with the DEBUG key")
+                signingConfigs.getByName("debug")
+            }
         }
     }
 }

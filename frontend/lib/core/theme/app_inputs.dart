@@ -1,5 +1,6 @@
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// The standard form field look used across profile and onboarding forms:
 /// white fill, soft border, crimson focus ring, red error ring.
@@ -35,3 +36,14 @@ const appFieldLabelStyle = TextStyle(
   letterSpacing: 0.8,
   color: AppColors.crimson,
 );
+
+/// Instagram-style usernames: letters, numbers, periods and underscores, up to
+/// 30 characters, always lowercase. Anything else is dropped as you type.
+final List<TextInputFormatter> usernameInputFormatters = [
+  FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9._]')),
+  LengthLimitingTextInputFormatter(30),
+  TextInputFormatter.withFunction(
+    (oldValue, newValue) =>
+        newValue.copyWith(text: newValue.text.toLowerCase()),
+  ),
+];

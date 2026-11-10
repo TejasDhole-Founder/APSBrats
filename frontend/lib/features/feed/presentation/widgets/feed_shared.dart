@@ -1,3 +1,4 @@
+import 'package:apsbrat_frontend/core/media/photos.dart';
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -227,7 +228,8 @@ class AvatarCircle extends StatelessWidget {
         ClipOval(
           child: hasPhoto
               ? CachedNetworkImage(
-                  imageUrl: imageUrl!,
+                  // The server sends "/media/…"; add the server's address.
+                  imageUrl: mediaUrl(imageUrl!),
                   width: size,
                   height: size,
                   fit: BoxFit.cover,
@@ -274,17 +276,30 @@ class AvatarCircle extends StatelessWidget {
 
 // ── Empty state ───────────────────────────────────────────────────────────────
 
+/// Two APS students searching an empty folder: for "no messages" and
+/// empty community pages.
+const kEmptyInboxImage = 'assets/images/inbox_empty.png';
+
 class EmptyState extends StatelessWidget {
   const EmptyState({
     super.key,
     required this.icon,
     required this.title,
     required this.message,
+    this.image,
+    this.action,
   });
 
   final IconData icon;
   final String title;
   final String message;
+
+  /// An illustration (asset path) shown instead of the round icon,
+  /// e.g. [kEmptyInboxImage].
+  final String? image;
+
+  /// A button under the message, e.g. Retry on an error state.
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) {
@@ -292,15 +307,21 @@ class EmptyState extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 36),
       child: Column(
         children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: const BoxDecoration(
-              color: kCrimsonLight,
-              shape: BoxShape.circle,
+          if (image != null)
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 300, maxHeight: 200),
+              child: Image.asset(image!, fit: BoxFit.contain),
+            )
+          else
+            Container(
+              width: 56,
+              height: 56,
+              decoration: const BoxDecoration(
+                color: kCrimsonLight,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 26, color: kCrimsonMed),
             ),
-            child: Icon(icon, size: 26, color: kCrimsonMed),
-          ),
           const SizedBox(height: 14),
           Text(
             title,
@@ -317,6 +338,7 @@ class EmptyState extends StatelessWidget {
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 12, color: kTxt3, height: 1.5),
           ),
+          if (action != null) ...[const SizedBox(height: 16), action!],
         ],
       ),
     );

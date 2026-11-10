@@ -39,7 +39,7 @@ public class PeopleSearchController {
         var filters = new PeopleSearchService.Filters(
                 schoolId, batch, classTo, blankToNull(section), stream, status, blankToNull(city));
         return ResponseEntity.ok(ApiResponse.success(
-                peopleSearchService.search(SecurityUtils.currentUserId(), q, filters, mine, page, size)));
+                peopleSearchService.search(SecurityUtils.currentUserId(), q, filters, mine, null, page, size)));
     }
 
     private static String blankToNull(String value) {

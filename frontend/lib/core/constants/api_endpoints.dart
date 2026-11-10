@@ -12,10 +12,13 @@ class ApiEndpoints {
   static const authGoogle = '/auth/google';
   static const authRefresh = '/auth/refresh';
   static const authLogout = '/auth/logout';
+  static const authLogoutAll = '/auth/logout-all';
 
   // Account (DPDP) + media
   static const usersMeAvatar = '/users/me/avatar';
   static const usersMeExport = '/users/me/export';
+  static const usersMeBlocks = '/users/me/blocks';
+  static String userBlock(String userId) => '/users/$userId/block';
   static const usersMe = '/users/me';
   static const usersMeSettings = '/users/me/settings';
 
@@ -44,13 +47,53 @@ class ApiEndpoints {
   static String connectionAccept(String userId) =>
       '/connections/$userId/accept';
 
-  // Communities
-  static const communities = '/communities';
+  // Career (jobs + college) — one timeline per person
+  static const organizationsSearch = '/organizations/search';
+  static const career = '/career';
+  static String careerEntry(String id) => '/career/$id';
+  static String userCareer(String userId) => '/users/$userId/career';
+
+  // Communities (school + interest), posts, likes, comments
+  static const communitiesMine = '/communities/mine';
   static const communitiesDiscover = '/communities/discover';
+  static const communities = '/communities';
   static String community(String id) => '/communities/$id';
-  static String communityMessages(String id) => '/communities/$id/messages';
   static String communityJoin(String id) => '/communities/$id/join';
-  static String communityRead(String id) => '/communities/$id/read';
+  static String communityLeave(String id) => '/communities/$id/members/me';
+  static String communityMember(String id, String userId) =>
+      '/communities/$id/members/$userId';
+  static String communityRequests(String id) => '/communities/$id/requests';
+  static String communityRequestDecision(
+    String id,
+    String userId,
+    String decision,
+  ) => '/communities/$id/requests/$userId/$decision';
+  static String communityPosts(String id) => '/communities/$id/posts';
+  static String communityMembers(String id) => '/communities/$id/members';
+  static String communityChat(String id) => '/communities/$id/chat';
+  static String communityChatMessages(String id) =>
+      '/communities/$id/chat/messages';
+  static String communityChatRead(String id) => '/communities/$id/chat/read';
+  static String communityMessage(String id) => '/community-messages/$id';
+  static String communityEvents(String id) => '/communities/$id/events';
+  static String event(String id) => '/events/$id';
+  static String eventCancel(String id) => '/events/$id/cancel';
+  static String eventRsvp(String id) => '/events/$id/rsvp';
+  static String eventAttendees(String id) => '/events/$id/attendees';
+  static String eventPosts(String id) => '/events/$id/posts';
+  static String communityMemories(String id) => '/communities/$id/memories';
+  static String communityMemoryYears(String id) =>
+      '/communities/$id/memories/years';
+  static const feedHome = '/feed/home';
+  static String post(String id) => '/posts/$id';
+  static String postLike(String id) => '/posts/$id/like';
+  static String postPin(String id) => '/posts/$id/pin';
+  static String postComments(String id) => '/posts/$id/comments';
+  static String comment(String id) => '/comments/$id';
+  static const reports = '/reports';
+
+  // Photos for posts and chat: upload first, then attach the returned address.
+  static const mediaImages = '/media/images';
 
   // Conversations (DMs)
   static const conversations = '/conversations';

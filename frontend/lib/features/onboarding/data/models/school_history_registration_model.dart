@@ -30,7 +30,7 @@ class SchoolHistoryRegistrationModel {
     final batchEnd = int.tryParse(draft.yearLeft) ?? DateTime.now().year;
     final batchStart =
         int.tryParse(draft.yearJoined) ??
-        (batchEnd - (classTo - classFrom).clamp(0, 20));
+        (batchEnd - (classTo - classFrom + 1).clamp(1, 20));
 
     return SchoolHistoryRegistrationModel(
       schoolId: draft.schoolId,

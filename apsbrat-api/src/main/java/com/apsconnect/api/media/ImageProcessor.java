@@ -27,6 +27,11 @@ public class ImageProcessor {
     private static final int MAX_DIMENSION = 1024;
 
     public byte[] toSanitizedJpeg(byte[] input, String contentType) {
+        return toSanitizedJpeg(input, contentType, MAX_DIMENSION);
+    }
+
+    /** Same checks and clean-up, scaled so neither side exceeds [maxDimension] pixels. */
+    public byte[] toSanitizedJpeg(byte[] input, String contentType, int maxDimension) {
         if (input == null || input.length == 0) {
             throw bad("Empty file");
         }
@@ -49,7 +54,7 @@ public class ImageProcessor {
             throw bad("Unsupported or corrupt image");
         }
 
-        BufferedImage rgb = scaleToRgb(source);
+        BufferedImage rgb = scaleToRgb(source, maxDimension);
 
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -62,11 +67,11 @@ public class ImageProcessor {
         }
     }
 
-    // One pass: scale within MAX_DIMENSION and convert to RGB in a single draw.
-    private BufferedImage scaleToRgb(BufferedImage source) {
+    // One pass: scale within maxDimension and convert to RGB in a single draw.
+    private BufferedImage scaleToRgb(BufferedImage source, int maxDimension) {
         int w = source.getWidth();
         int h = source.getHeight();
-        double scale = Math.min(1.0, Math.min((double) MAX_DIMENSION / w, (double) MAX_DIMENSION / h));
+        double scale = Math.min(1.0, Math.min((double) maxDimension / w, (double) maxDimension / h));
         int nw = Math.max(1, (int) Math.round(w * scale));
         int nh = Math.max(1, (int) Math.round(h * scale));
         BufferedImage rgb = new BufferedImage(nw, nh, BufferedImage.TYPE_INT_RGB);

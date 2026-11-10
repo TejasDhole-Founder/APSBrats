@@ -69,6 +69,24 @@ public class JwtService {
         return "refresh".equals(parse(token).get("type", String.class));
     }
 
+    public long getAccessTokenExpiryMillis() {
+        return accessTokenExpiry;
+    }
+
+    /** What a request needs from a bearer token. */
+    public record AccessClaims(UUID userId, String role, Date issuedAt) {
+    }
+
+    /** A valid ACCESS token only: a refresh token is rejected (401) as a bearer. */
+    public AccessClaims parseAccess(String token) {
+        Claims claims = parse(token);
+        if (!"access".equals(claims.get("type", String.class))) {
+            throw new AppException("Invalid or expired token", HttpStatus.UNAUTHORIZED);
+        }
+        return new AccessClaims(UUID.fromString(claims.getSubject()), claims.get("role", String.class),
+                claims.getIssuedAt());
+    }
+
     private String build(UUID userId, long ttlMillis, String type, String email, String jti, String role) {
         Date now = new Date();
         var builder = Jwts.builder()

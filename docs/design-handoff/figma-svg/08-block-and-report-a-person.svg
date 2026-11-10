@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="1020" viewBox="0 0 840 1020" font-family="Roboto, Arial, sans-serif">
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9A7070"/></marker></defs>
+<rect width="840" height="1020" fill="#FBF8F6"/>
+<text x="80" y="88" font-size="22" font-weight="700" fill="#7B1414">Block or report a person</text>
+<path d="M420,178 C420,231 420,231 420,284" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M420,388 C420,418 180,418 180,448" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="300" y="414" font-size="11" fill="#5C0F0F" text-anchor="middle" paint-order="stroke" stroke="#FBF8F6" stroke-width="4">Report</text>
+<path d="M420,388 C420,418 420,418 420,448" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="420" y="414" font-size="11" fill="#5C0F0F" text-anchor="middle" paint-order="stroke" stroke="#FBF8F6" stroke-width="4">Block</text>
+<path d="M180,506 C180,559 300,559 300,612" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M420,506 C420,559 540,559 540,612" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M540,670 C540,723 420,723 420,776" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M420,388 C420,418 660,418 660,448" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="540" y="414" font-size="11" fill="#5C0F0F" text-anchor="middle" paint-order="stroke" stroke="#FBF8F6" stroke-width="4">Self</text>
+<rect x="320" y="120" width="200" height="58" rx="29" fill="#7B1414"/>
+<text x="420" y="145.5" font-size="12.5" font-weight="500" fill="#fff" text-anchor="middle">Open someone's profile,</text>
+<text x="420" y="160.5" font-size="12.5" font-weight="500" fill="#fff" text-anchor="middle">tap the menu</text>
+<polygon points="420,284 520,336 420,388 320,336" fill="#F6E7BF" stroke="#D4A84A" stroke-width="1.5"/>
+<text x="420" y="340" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Choose</text>
+<rect x="80" y="448" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="180" y="481" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Report user: pick a reason</text>
+<rect x="200" y="612" width="200" height="58" rx="12" fill="#E9F3E4" stroke="#6BA35A" stroke-width="1.5"/>
+<text x="300" y="637.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Report filed (repeats</text>
+<text x="300" y="652.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">count once)</text>
+<rect x="320" y="448" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="420" y="481" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Block user: confirm</text>
+<rect x="440" y="612" width="200" height="58" rx="12" fill="#E9F3E4" stroke="#6BA35A" stroke-width="1.5"/>
+<text x="540" y="637.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Hidden both ways: search,</text>
+<text x="540" y="652.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">members, chat, profile</text>
+<rect x="320" y="776" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="420" y="801.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Settings &gt; Blocked users &gt;</text>
+<text x="420" y="816.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Unblock</text>
+<rect x="560" y="448" width="200" height="58" rx="12" fill="#FDEBEB" stroke="#D86060" stroke-width="1.5"/>
+<text x="660" y="473.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Cannot report or block</text>
+<text x="660" y="488.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">yourself</text>
+<rect x="80" y="986" width="14" height="14" rx="3" fill="#7B1414" stroke="#7B1414"/><text x="100" y="998" font-size="11" fill="#9A7070">Start</text>
+<rect x="180" y="986" width="14" height="14" rx="3" fill="#fff" stroke="#EADCDC"/><text x="200" y="998" font-size="11" fill="#9A7070">Step</text>
+<rect x="280" y="986" width="14" height="14" rx="3" fill="#F6E7BF" stroke="#D4A84A"/><text x="300" y="998" font-size="11" fill="#9A7070">Decision</text>
+<rect x="380" y="986" width="14" height="14" rx="3" fill="#E9F3E4" stroke="#6BA35A"/><text x="400" y="998" font-size="11" fill="#9A7070">Result</text>
+<rect x="480" y="986" width="14" height="14" rx="3" fill="#FDEBEB" stroke="#D86060"/><text x="500" y="998" font-size="11" fill="#9A7070">Blocked / limit</text>
+</svg>

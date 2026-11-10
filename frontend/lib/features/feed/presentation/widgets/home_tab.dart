@@ -1,7 +1,10 @@
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
+import 'package:apsbrat_frontend/features/community/data/community_repository.dart';
+import 'package:apsbrat_frontend/features/community/presentation/post_card.dart';
 import 'package:apsbrat_frontend/features/feed/data/dummy_data.dart';
 import 'package:apsbrat_frontend/features/feed/presentation/widgets/feed_shared.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 class HomeTab extends StatelessWidget {
@@ -373,22 +376,16 @@ class HomeTab extends StatelessWidget {
             ),
           const SizedBox(height: 18),
 
-          // Activity feed
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 18),
-            child: SectionLabel('Activity feed'),
-          ),
-          const SizedBox(height: 12),
+          // Newest posts from the communities I've joined (communities Chapter 12).
+          const _CommunityPosts(),
 
-          if (!kShowDemoContent)
-            const EmptyState(
-              icon: Icons.dynamic_feed_rounded,
-              title: 'Nothing in your feed yet',
-              message:
-                  'When batchmates join or connect with you, their activity will show up here.',
-            ),
-
+          // Sample activity cards are demo-only; there is no real activity feed yet.
           if (kShowDemoContent) ...[
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 18),
+              child: SectionLabel('Activity feed'),
+            ),
+            const SizedBox(height: 12),
             _FeedCard(
               person: dummyRecentJoins[0],
               title: 'Priya Khanna joined APS Brat',
@@ -434,6 +431,54 @@ class HomeTab extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+}
+
+// ── From your communities ─────────────────────────────────────────────────────
+
+/// The newest posts across every community I've joined, with "Show more" to
+/// load the next page. Hidden entirely until I've joined one, so Home stays
+/// tidy for new users.
+class _CommunityPosts extends ConsumerWidget {
+  const _CommunityPosts();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final feed = ref.watch(postFeedProvider(''));
+    final notifier = ref.read(postFeedProvider('').notifier);
+    if (feed.items.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SectionLabel('From your communities'),
+          const SizedBox(height: 12),
+          for (final p in feed.items) ...[
+            PostCard(
+              post: p,
+              showCommunity: true,
+              onChanged: notifier.replace,
+              onDeleted: () => notifier.remove(p.id),
+            ),
+            const SizedBox(height: 10),
+          ],
+          if (feed.loading)
+            const Center(
+              child: CircularProgressIndicator(color: AppColors.crimson),
+            )
+          else if (feed.hasMore)
+            Center(
+              child: TextButton(
+                onPressed: notifier.loadMore,
+                style: TextButton.styleFrom(foregroundColor: AppColors.crimson),
+                child: const Text('Show more'),
+              ),
+            ),
         ],
       ),
     );

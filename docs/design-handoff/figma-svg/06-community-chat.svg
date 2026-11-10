@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="1020" viewBox="0 0 840 1020" font-family="Roboto, Arial, sans-serif">
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9A7070"/></marker></defs>
+<rect width="840" height="1020" fill="#FBF8F6"/>
+<text x="80" y="88" font-size="22" font-weight="700" fill="#7B1414">Community chat</text>
+<path d="M420,178 C420,231 420,231 420,284" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M420,342 C420,395 300,395 300,448" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M300,506 C300,559 180,559 180,612" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M180,670 C180,723 300,723 300,776" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M300,506 C300,559 660,559 660,612" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="480" y="555" font-size="11" fill="#5C0F0F" text-anchor="middle" paint-order="stroke" stroke="#FBF8F6" stroke-width="4">Too many</text>
+<path d="M420,342 C420,395 540,395 540,448" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<path d="M540,552 C540,582 420,582 420,612" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="480" y="578" font-size="11" fill="#5C0F0F" text-anchor="middle" paint-order="stroke" stroke="#FBF8F6" stroke-width="4">Yes</text>
+<path d="M420,670 C420,723 540,723 540,776" fill="none" stroke="#9A7070" stroke-width="1.5" marker-end="url(#ar)"/>
+<rect x="320" y="120" width="200" height="58" rx="29" fill="#7B1414"/>
+<text x="420" y="145.5" font-size="12.5" font-weight="500" fill="#fff" text-anchor="middle">Member opens Chat (tab, or</text>
+<text x="420" y="160.5" font-size="12.5" font-weight="500" fill="#fff" text-anchor="middle">header button for schools)</text>
+<rect x="320" y="284" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="420" y="309.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Messages load, newest at</text>
+<text x="420" y="324.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">bottom, older on scroll</text>
+<rect x="200" y="448" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="300" y="481" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Send text or one photo</text>
+<rect x="80" y="612" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="180" y="637.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Live push to every</text>
+<text x="180" y="652.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">connected member</text>
+<rect x="200" y="776" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="300" y="801.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Unread count on header</text>
+<text x="300" y="816.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Chat button</text>
+<polygon points="540,448 640,500 540,552 440,500" fill="#F6E7BF" stroke="#D4A84A" stroke-width="1.5"/>
+<text x="540" y="504" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Bad message?</text>
+<rect x="320" y="612" width="200" height="58" rx="12" fill="#fff" stroke="#EADCDC" stroke-width="1.5"/>
+<text x="420" y="630" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Long-press: Report, or</text>
+<text x="420" y="645" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Delete (author / owner /</text>
+<text x="420" y="660" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">staff)</text>
+<rect x="440" y="776" width="200" height="58" rx="12" fill="#FDEBEB" stroke="#D86060" stroke-width="1.5"/>
+<text x="540" y="794" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">3 different reporters:</text>
+<text x="540" y="809" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">auto-hidden, removal</text>
+<text x="540" y="824" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">pushed live</text>
+<rect x="560" y="612" width="200" height="58" rx="12" fill="#FDEBEB" stroke="#D86060" stroke-width="1.5"/>
+<text x="660" y="637.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">Over 120 messages/hour:</text>
+<text x="660" y="652.5" font-size="12.5" font-weight="500" fill="#1A0606" text-anchor="middle">slow down</text>
+<rect x="80" y="986" width="14" height="14" rx="3" fill="#7B1414" stroke="#7B1414"/><text x="100" y="998" font-size="11" fill="#9A7070">Start</text>
+<rect x="180" y="986" width="14" height="14" rx="3" fill="#fff" stroke="#EADCDC"/><text x="200" y="998" font-size="11" fill="#9A7070">Step</text>
+<rect x="280" y="986" width="14" height="14" rx="3" fill="#F6E7BF" stroke="#D4A84A"/><text x="300" y="998" font-size="11" fill="#9A7070">Decision</text>
+<rect x="380" y="986" width="14" height="14" rx="3" fill="#E9F3E4" stroke="#6BA35A"/><text x="400" y="998" font-size="11" fill="#9A7070">Result</text>
+<rect x="480" y="986" width="14" height="14" rx="3" fill="#FDEBEB" stroke="#D86060"/><text x="500" y="998" font-size="11" fill="#9A7070">Blocked / limit</text>
+</svg>
