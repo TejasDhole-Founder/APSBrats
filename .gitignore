@@ -23,6 +23,9 @@
 .DS_Store
 Thumbs.db
 
+# Local-disk media uploads (LocalStorageService) — dev-only, never real content
+apsbrat-api/media/
+
 # Logs
 *.log
 activity_log.txt
