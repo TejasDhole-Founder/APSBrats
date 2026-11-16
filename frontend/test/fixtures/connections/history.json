@@ -1,0 +1,17 @@
+{
+  "success": true,
+  "data": [
+    {
+      "id": "e3ebe675-c571-432f-96ec-21a97515bf76",
+      "type": "REQUESTED",
+      "actorId": "01ba1e86-490d-430b-b102-44cfe62f4cc7",
+      "createdAt": "2026-11-15T19:32:37.984788"
+    },
+    {
+      "id": "0864538d-2899-4af3-bcd0-1a9a37d29823",
+      "type": "ACCEPTED",
+      "actorId": "facd7951-c387-4b66-a4d6-1457be0feb5c",
+      "createdAt": "2026-11-15T19:32:38.228755"
+    }
+  ]
+}

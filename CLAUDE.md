@@ -57,3 +57,7 @@ Fields: `firstName, lastName, username, phone, email, dob, city, profession, gen
 - Every error response includes a machine-readable `code` (ErrorCode enum) and a `requestId` (`X-Request-Id`, propagated via MDC by `RequestIdFilter`).
 - Log levels: 4xx = WARN (no stack), 5xx = ERROR (with stack). Never log PII (phone, email, OTP, JWT, message bodies).
 - When touching error handling, add/extend tests covering 400 (validation), 404, 409, and a forced 500 (assert generic body + requestId + that it was logged).
+
+## Engineering wiki
+- `docs/engineering-wiki/` is the project's documentation. When a change touches a feature, API contract, schema/migration, architecture, security behaviour or a known risk, update the affected wiki file(s) in the same task, plus `CHANGELOG.md` and `CURRENT-STATE.md` when the state changes.
+- Verify claims against the code; mark anything unconfirmed `UNVERIFIED`. Never put secrets or real hostnames in the wiki. See `docs/engineering-wiki/README.md` for the maintenance rules.

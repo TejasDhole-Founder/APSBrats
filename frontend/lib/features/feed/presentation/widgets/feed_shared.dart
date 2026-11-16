@@ -1,4 +1,6 @@
 import 'package:apsbrat_frontend/core/media/photos.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:apsbrat_frontend/core/theme/app_icons.dart';
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -71,7 +73,7 @@ class CrimsonHeader extends StatelessWidget {
 class FeedIconBtn extends StatelessWidget {
   const FeedIconBtn({super.key, required this.icon, this.onTap});
 
-  final IconData icon;
+  final AppIconData icon;
   final VoidCallback? onTap;
 
   @override
@@ -86,7 +88,7 @@ class FeedIconBtn extends StatelessWidget {
           border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, size: 18, color: Colors.white),
+        child: HugeIcon(icon: icon, size: 18, color: Colors.white),
       ),
     );
   }
@@ -137,7 +139,11 @@ class FeedSearchBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(
         children: [
-          const Icon(Icons.search_rounded, size: 18, color: kTxt),
+          const HugeIcon(
+            icon: HugeIcons.strokeRoundedSearch01,
+            size: 18,
+            color: kTxt,
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: TextField(
@@ -165,7 +171,11 @@ class FeedSearchBar extends StatelessWidget {
             const SizedBox(width: 8),
             GestureDetector(
               onTap: onClear,
-              child: const Icon(Icons.close_rounded, size: 18, color: kTxt3),
+              child: const HugeIcon(
+                icon: HugeIcons.strokeRoundedCancel01,
+                size: 18,
+                color: kTxt3,
+              ),
             ),
           ],
           if (onFilterTap != null) ...[
@@ -180,8 +190,8 @@ class FeedSearchBar extends StatelessWidget {
                   color: filterActive ? AppColors.crimson : Colors.transparent,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.tune_rounded,
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedSetting07,
                   size: 18,
                   color: filterActive ? Colors.white : kTxt,
                 ),
@@ -290,7 +300,7 @@ class EmptyState extends StatelessWidget {
     this.action,
   });
 
-  final IconData icon;
+  final AppIconData icon;
   final String title;
   final String message;
 
@@ -320,7 +330,7 @@ class EmptyState extends StatelessWidget {
                 color: kCrimsonLight,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 26, color: kCrimsonMed),
+              child: HugeIcon(icon: icon, size: 26, color: kCrimsonMed),
             ),
           const SizedBox(height: 14),
           Text(

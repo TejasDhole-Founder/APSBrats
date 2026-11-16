@@ -18,6 +18,11 @@ class CommunityRepository {
     dataMap(await _dio.get<dynamic>(ApiEndpoints.communitiesMine)),
   );
 
+  Future<List<CommunityChatItem>> myChats() async => dataList(
+    await _dio.get<dynamic>(ApiEndpoints.communitiesMyChats),
+    CommunityChatItem.fromJson,
+  );
+
   Future<List<Community>> discover(String query) async => dataList(
     await _dio.get<dynamic>(
       ApiEndpoints.communitiesDiscover,
@@ -365,6 +370,11 @@ final communityRepositoryProvider = Provider<CommunityRepository>(
 final myCommunitiesProvider = FutureProvider.autoDispose<MyCommunities>(
   (ref) => ref.watch(communityRepositoryProvider).mine(),
 );
+
+final myCommunityChatsProvider =
+    FutureProvider.autoDispose<List<CommunityChatItem>>(
+      (ref) => ref.watch(communityRepositoryProvider).myChats(),
+    );
 
 final discoverProvider = FutureProvider.autoDispose
     .family<List<Community>, String>(

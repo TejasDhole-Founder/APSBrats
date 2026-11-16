@@ -1,4 +1,5 @@
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:apsbrat_frontend/features/onboarding/presentation/providers/onboarding_flow_provider.dart';
 import 'package:apsbrat_frontend/features/onboarding/presentation/widgets/onboarding_frame.dart';
 import 'package:apsbrat_frontend/features/onboarding/presentation/widgets/school_history_editor.dart';
@@ -50,7 +51,7 @@ class _OnboardingSchoolsScreenState
         error: _error,
         nextLabel: flow.isStudent
             ? 'Next — connect my socials'
-            : 'Next — life after school',
+            : 'Next — Life after school',
       ),
       child: SchoolHistoryEditor(
         drafts: flow.schoolHistory,
@@ -94,7 +95,9 @@ class _Footer extends StatelessWidget {
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.crimsonDark,
               foregroundColor: Colors.white,
-              shape: const StadiumBorder(),
+              shape: const StadiumBorder(
+                side: BorderSide(color: Color(0xFFD4A84A), width: 1.5),
+              ),
               padding: const EdgeInsets.symmetric(vertical: 14),
               minimumSize: const Size(double.infinity, 0),
             ),
@@ -111,7 +114,10 @@ class _Footer extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 6),
-                const Icon(Icons.chevron_right_rounded, size: 18),
+                const HugeIcon(
+                  icon: HugeIcons.strokeRoundedArrowRight01,
+                  size: 18,
+                ),
               ],
             ),
           ),

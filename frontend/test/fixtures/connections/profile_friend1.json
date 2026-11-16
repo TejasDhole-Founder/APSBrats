@@ -1,0 +1,23 @@
+{
+  "success": true,
+  "data": {
+    "id": "facd7951-c387-4b66-a4d6-1457be0feb5c",
+    "username": "fx_friend1",
+    "fullName": "Bilal Khan",
+    "bio": null,
+    "city": null,
+    "profession": null,
+    "phone": null,
+    "profilePicUrl": null,
+    "isVerified": true,
+    "currentStatus": "STUDENT",
+    "schools": [],
+    "socials": [],
+    "schoolsCount": 0,
+    "connectedCount": 2,
+    "mutualCount": 1,
+    "isPrivate": false,
+    "lastActiveAt": "2026-11-15T19:32:38.106421",
+    "deleted": false
+  }
+}

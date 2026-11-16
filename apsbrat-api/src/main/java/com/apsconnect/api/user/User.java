@@ -6,6 +6,7 @@ import lombok.Setter;
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -40,6 +41,20 @@ public class User {
     private String profilePicUrl;
     private String bio;
     private String city;
+    private String state;
+    private String country;
+
+    /** Coordinates from the phone, rounded before they are saved. */
+    @Column(precision = 9, scale = 6)
+    private BigDecimal latitude;
+
+    @Column(precision = 9, scale = 6)
+    private BigDecimal longitude;
+
+    /** Provider place id for the chosen city, so the same place always matches. */
+    @Column(name = "place_id", length = 64)
+    private String placeId;
+
     private String websiteUrl;
 
     @Enumerated(EnumType.STRING)

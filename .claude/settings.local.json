@@ -1,8 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(Get-ChildItem -Path \"c:\\\\APSConnect\\\\APSBrats\\\\frontend\\\\lib\" -Recurse -Directory -Filter \"screens\")",
-      "Bash(Select-Object -ExpandProperty FullName)"
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(mvn -q test:*)",
+      "Bash(flutter analyze:*)",
+      "Bash(flutter test:*)"
+    ],
+    "deny": [
+      "Read(./.env)"
     ]
   }
 }

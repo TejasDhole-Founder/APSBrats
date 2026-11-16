@@ -6,8 +6,6 @@ import com.apsconnect.api.notification.NotificationRef;
 import com.apsconnect.api.notification.NotificationService;
 import com.apsconnect.api.notification.NotificationType;
 import com.apsconnect.api.safety.UserBlockRepository;
-import com.apsconnect.api.user.PersonDto;
-import com.apsconnect.api.user.PersonService;
 import com.apsconnect.api.user.User;
 import com.apsconnect.api.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,76 +14,109 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Every change to a relationship: request, accept, decline / withdraw / remove, and the
+ * removal a block causes. Lists, status and mutual connections live in {@link ConnectionQueryService}.
+ *
+ * <p>Each change first takes the pair's lock ({@link ConnectionRepository#lock}), reads the
+ * single row for the pair, checks who may do what, writes the new state, records a history
+ * event, and notifies the other person, all in one transaction. The lock makes two people
+ * acting on each other at once (or two taps of the same button) run one after the other, even
+ * across servers; the unique key on the pair is the safety net underneath.
+ */
 @Service
 @RequiredArgsConstructor
 public class ConnectionService {
 
     private final ConnectionRepository connectionRepository;
+    private final ConnectionEventRepository eventRepository;
     private final UserRepository userRepository;
-    private final PersonService personService;
     private final NotificationService notificationService;
     private final UserBlockRepository blockRepository;
     private final CircleCache circleCache;
 
+    /**
+     * Ask to connect. Returns PENDING, or ACCEPTED when the other person had already asked me
+     * (then their request is simply accepted: still one row).
+     */
     @Transactional
-    public void requestConnection(UUID currentUserId, UUID targetUserId) {
+    public ConnectionStatus requestConnection(UUID currentUserId, UUID targetUserId) {
         if (currentUserId.equals(targetUserId)) {
             throw new AppException("Cannot connect with yourself", HttpStatus.BAD_REQUEST);
         }
+        UserPair pair = UserPair.of(currentUserId, targetUserId);
+        connectionRepository.lock(pair);
+
         User requester = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new AppException("User not found", HttpStatus.NOT_FOUND));
         User addressee = userRepository.findById(targetUserId)
                 .filter(u -> u.getDeletedAt() == null)
                 .orElseThrow(() -> new AppException("Target user not found", HttpStatus.NOT_FOUND));
+        // Checked after taking the lock: a block that committed while we waited is seen here.
         if (blockRepository.existsBetween(currentUserId, targetUserId)) {
             throw new AppException("Target user not found", HttpStatus.NOT_FOUND);
         }
 
-        // One row per pair. A live row means "already asked / already friends";
-        // a closed row (declined, withdrawn, removed) is reused for the new request.
-        Connection connection = connectionRepository.findBetween(currentUserId, targetUserId).stream()
-                .findFirst().orElse(null);
-        if (connection != null && connection.getStatus().isLive()) {
-            throw new AppException("Connection already exists", HttpStatus.CONFLICT);
-        }
-        if (connection == null) {
-            connection = new Connection();
-        }
-        connection.setRequester(requester);
-        connection.setAddressee(addressee);
-        connection.setStatus(ConnectionStatus.PENDING);
-        connection.setCreatedAt(LocalDateTime.now());
-        connection.setAcceptedAt(null);
-        connection = connectionRepository.save(connection);
+        Connection connection = connectionRepository.findByPair(pair.low(), pair.high()).orElse(null);
+        LocalDateTime now = LocalDateTime.now();
 
-        notificationService.create(targetUserId, NotificationType.CONNECTION_REQUEST,
-                requester.getFullName() + " wants to connect",
-                "You have a new connection request on APS Brat.",
-                requester, NotificationRef.CONNECTION, connection.getId());
-        circleCache.evictUser(currentUserId);
-        circleCache.evictUser(targetUserId);
+        if (connection == null) {
+            connection = connectionRepository.saveAndFlush(Connection.newRequest(requester, addressee));
+            record(connection, currentUserId, ConnectionEventType.REQUESTED, now, null);
+            notifyRequest(requester, addressee, connection);
+            evict(currentUserId, targetUserId);
+            return ConnectionStatus.PENDING;
+        }
+
+        switch (connection.getStatus()) {
+            case ACCEPTED -> throw new AppException("Connection already exists", HttpStatus.CONFLICT);
+            case PENDING -> {
+                if (connection.getRequester().getId().equals(currentUserId)) {
+                    throw new AppException("Connection already exists", HttpStatus.CONFLICT);
+                }
+                // They already asked me and I am asking them: that is a yes.
+                record(connection, currentUserId, ConnectionEventType.REQUESTED, now,
+                        Map.of("reason", "REVERSE_REQUEST"));
+                accept(connection, currentUserId, now.plusNanos(1_000));
+                return ConnectionStatus.ACCEPTED;
+            }
+            default -> {
+                // Declined, withdrawn or removed before: reuse the row for the new request.
+                // created_at stays; requested_at is the new request.
+                connection.setRequester(requester);
+                connection.setAddressee(addressee);
+                connection.setStatus(ConnectionStatus.PENDING);
+                connection.setRequestedAt(now);
+                connection.setAcceptedAt(null);
+                connectionRepository.saveAndFlush(connection);
+                record(connection, currentUserId, ConnectionEventType.REQUESTED, now, null);
+                notifyRequest(requester, addressee, connection);
+                evict(currentUserId, targetUserId);
+                return ConnectionStatus.PENDING;
+            }
+        }
     }
 
+    /** Only the person who received the request can accept it. Accepting twice changes nothing. */
     @Transactional
     public void acceptConnection(UUID currentUserId, UUID otherUserId) {
-        Connection connection = pendingBetween(currentUserId, otherUserId);
+        UserPair pair = UserPair.of(currentUserId, otherUserId);
+        connectionRepository.lock(pair);
+        Connection connection = connectionRepository.findByPair(pair.low(), pair.high())
+                .orElseThrow(() -> new AppException("No pending request from this user", HttpStatus.NOT_FOUND));
         if (!connection.getAddressee().getId().equals(currentUserId)) {
             throw new AppException("Only the person who received the request can accept it", HttpStatus.FORBIDDEN);
         }
-        connection.setStatus(ConnectionStatus.ACCEPTED);
-        connection.setAcceptedAt(LocalDateTime.now());
-        connectionRepository.save(connection);
-
-        notificationService.create(otherUserId, NotificationType.CONNECTION_ACCEPTED,
-                connection.getAddressee().getFullName() + " accepted your request",
-                "You can now message each other on APS Brat.",
-                connection.getAddressee(), NotificationRef.USER, currentUserId);
-        circleCache.evictUser(currentUserId);
-        circleCache.evictUser(otherUserId);
+        if (connection.getStatus() == ConnectionStatus.ACCEPTED) {
+            return;
+        }
+        if (connection.getStatus() != ConnectionStatus.PENDING) {
+            throw new AppException("No pending request from this user", HttpStatus.NOT_FOUND);
+        }
+        accept(connection, currentUserId, LocalDateTime.now());
     }
 
     /**
@@ -95,16 +126,32 @@ public class ConnectionService {
      */
     @Transactional
     public ConnectionStatus endConnection(UUID currentUserId, UUID otherUserId) {
-        Connection connection = connectionRepository.findBetween(currentUserId, otherUserId).stream()
+        UserPair pair = UserPair.of(currentUserId, otherUserId);
+        connectionRepository.lock(pair);
+        Connection connection = connectionRepository.findByPair(pair.low(), pair.high())
                 .filter(c -> c.getStatus().isLive())
-                .findFirst()
                 .orElseThrow(() -> new AppException("No connection with this user", HttpStatus.NOT_FOUND));
         ConnectionStatus next = closedStatus(connection, currentUserId);
-        connection.setStatus(next);
-        connectionRepository.save(connection);
-        circleCache.evictUser(currentUserId);
-        circleCache.evictUser(otherUserId);
+        close(connection, next, currentUserId, null);
+        evict(currentUserId, otherUserId);
         return next;
+    }
+
+    /**
+     * Called when [blockerId] blocks [blockedId]: whatever was live between them ends (REMOVED, as
+     * before) and the history says so. The reason is kept in the event only, so the blocked person
+     * cannot tell a block from an ordinary removal.
+     */
+    @Transactional
+    public void endForBlock(UUID blockerId, UUID blockedId) {
+        UserPair pair = UserPair.of(blockerId, blockedId);
+        connectionRepository.lock(pair);
+        connectionRepository.findByPair(pair.low(), pair.high())
+                .filter(c -> c.getStatus().isLive())
+                .ifPresent(c -> {
+                    close(c, ConnectionStatus.REMOVED, blockerId, Map.of("reason", "BLOCK"));
+                    evict(blockerId, blockedId);
+                });
     }
 
     static ConnectionStatus closedStatus(Connection connection, UUID actor) {
@@ -115,68 +162,44 @@ public class ConnectionService {
         return actorIsAddressee ? ConnectionStatus.DECLINED : ConnectionStatus.WITHDRAWN;
     }
 
-    @Transactional(readOnly = true)
-    public List<PersonDto> listBatchmates(UUID currentUserId) {
-        List<User> others = connectionRepository.findAcceptedForUser(currentUserId).stream()
-                .map(c -> other(c, currentUserId))
-                .filter(u -> u.getDeletedAt() == null)
-                .sorted(Comparator.comparing(User::getFullName, String.CASE_INSENSITIVE_ORDER))
-                .toList();
-        return personService.toPeople(others, currentUserId);
+    // ── helpers ──────────────────────────────────────────────────────────
+
+    /** Marks a pending row accepted by its addressee, records it, and tells the person who asked. */
+    private void accept(Connection connection, UUID actorId, LocalDateTime at) {
+        User addressee = connection.getAddressee();
+        UUID requesterId = connection.getRequester().getId();
+        connection.setStatus(ConnectionStatus.ACCEPTED);
+        connection.setAcceptedAt(at);
+        connectionRepository.saveAndFlush(connection);
+        record(connection, actorId, ConnectionEventType.ACCEPTED, at, null);
+
+        notificationService.create(requesterId, NotificationType.CONNECTION_ACCEPTED,
+                addressee.getFullName() + " accepted your request",
+                "You can now message each other on APS Brat.",
+                addressee, NotificationRef.USER, addressee.getId());
+        evict(requesterId, addressee.getId());
     }
 
-    @Transactional(readOnly = true)
-    public List<PersonDto> listPending(UUID currentUserId) {
-        List<User> requesters = connectionRepository.findPendingIncoming(currentUserId).stream()
-                .map(Connection::getRequester)
-                .toList();
-        return personService.toPeople(requesters, currentUserId);
+    private void close(Connection connection, ConnectionStatus next, UUID actorId, Map<String, String> metadata) {
+        connection.setStatus(next);
+        connectionRepository.saveAndFlush(connection);
+        record(connection, actorId, ConnectionEventType.valueOf(next.name()), LocalDateTime.now(), metadata);
     }
 
-    @Transactional(readOnly = true)
-    public List<PersonDto> listSent(UUID currentUserId) {
-        List<User> addressees = connectionRepository.findPendingSent(currentUserId).stream()
-                .map(Connection::getAddressee)
-                .toList();
-        return personService.toPeople(addressees, currentUserId);
+    private void notifyRequest(User requester, User addressee, Connection connection) {
+        notificationService.create(addressee.getId(), NotificationType.CONNECTION_REQUEST,
+                requester.getFullName() + " wants to connect",
+                "You have a new connection request on APS Brat.",
+                requester, NotificationRef.CONNECTION, connection.getId());
     }
 
-    /** People connected to both me and the other user, ordered by name. */
-    @Transactional(readOnly = true)
-    public List<PersonDto> listMutual(UUID currentUserId, UUID otherUserId) {
-        List<UUID> ids = connectionRepository.findMutualIds(currentUserId, otherUserId);
-        if (ids.isEmpty()) {
-            return List.of();
-        }
-        List<User> people = userRepository.findAllById(ids).stream()
-                .filter(u -> u.getDeletedAt() == null)
-                .sorted(Comparator.comparing(User::getFullName, String.CASE_INSENSITIVE_ORDER))
-                .toList();
-        return personService.toPeople(people, currentUserId);
+    private void record(Connection connection, UUID actorId, ConnectionEventType type,
+                        LocalDateTime at, Map<String, String> metadata) {
+        eventRepository.save(ConnectionEvent.of(connection.getId(), actorId, type, at, metadata));
     }
 
-    @Transactional(readOnly = true)
-    public String statusWith(UUID currentUserId, UUID otherUserId) {
-        Connection c = connectionRepository.findBetween(currentUserId, otherUserId).stream()
-                .filter(x -> x.getStatus().isLive())
-                .findFirst().orElse(null);
-        if (c == null) {
-            return "NONE";
-        }
-        if (c.getStatus() == ConnectionStatus.ACCEPTED) {
-            return "CONNECTED";
-        }
-        return c.getRequester().getId().equals(currentUserId) ? "PENDING_OUT" : "PENDING_IN";
-    }
-
-    private Connection pendingBetween(UUID a, UUID b) {
-        return connectionRepository.findBetween(a, b).stream()
-                .filter(c -> c.getStatus() == ConnectionStatus.PENDING)
-                .findFirst()
-                .orElseThrow(() -> new AppException("No pending request from this user", HttpStatus.NOT_FOUND));
-    }
-
-    private User other(Connection c, UUID currentUserId) {
-        return c.getRequester().getId().equals(currentUserId) ? c.getAddressee() : c.getRequester();
+    private void evict(UUID a, UUID b) {
+        circleCache.evictUser(a);
+        circleCache.evictUser(b);
     }
 }

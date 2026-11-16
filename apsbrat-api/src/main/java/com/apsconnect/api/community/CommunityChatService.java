@@ -63,6 +63,31 @@ public class CommunityChatService {
     public record Summary(CommunityMessageDto lastMessage, long unreadCount, boolean canModerate, Long onlineCount) {
     }
 
+    /** One row of the Social list: a joined community with its latest message and my unread count. */
+    public record ChatListItem(CommunityDto community, CommunityMessageDto lastMessage, long unreadCount) {
+    }
+
+    // ponytail: 2 queries per joined community; batch into grouped queries if members join hundreds.
+    @Transactional(readOnly = true)
+    public List<ChatListItem> myChats(UUID userId) {
+        Set<UUID> hidden = hiddenSenders(userId);
+        LocalDateTime future = LocalDateTime.now().plusMinutes(1);
+        List<ChatListItem> items = new ArrayList<>();
+        for (CommunityDto community : communityService.mine(userId).joined()) {
+            CommunityMember me = memberRepository.findById(new CommunityMember.Key(community.id(), userId))
+                    .orElse(null);
+            if (me == null) {
+                continue;
+            }
+            List<CommunityMessage> last = messageRepository.findPage(community.id(), ContentStatus.ACTIVE,
+                    future, hidden, PageRequest.of(0, 1));
+            LocalDateTime since = me.getChatReadAt() != null ? me.getChatReadAt() : me.getJoinedAt();
+            long unread = messageRepository.countUnread(community.id(), ContentStatus.ACTIVE, userId, hidden, since);
+            items.add(new ChatListItem(community, last.isEmpty() ? null : toDtos(last, false).get(0), unread));
+        }
+        return items;
+    }
+
     /** Oldest first within the page, like a chat screen; the cursor walks back in time. */
     @Transactional(readOnly = true)
     public CursorPage<CommunityMessageDto> messages(UUID userId, UUID communityId, String cursor, int limit) {

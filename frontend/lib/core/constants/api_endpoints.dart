@@ -55,6 +55,7 @@ class ApiEndpoints {
 
   // Communities (school + interest), posts, likes, comments
   static const communitiesMine = '/communities/mine';
+  static const communitiesMyChats = '/communities/mine/chats';
   static const communitiesDiscover = '/communities/discover';
   static const communities = '/communities';
   static String community(String id) => '/communities/$id';

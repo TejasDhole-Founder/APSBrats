@@ -1,14 +1,23 @@
 import 'package:apsbrat_frontend/core/models/person.dart';
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
+import 'package:apsbrat_frontend/features/community/data/community_models.dart';
 import 'package:apsbrat_frontend/features/feed/presentation/widgets/feed_shared.dart';
 import 'package:apsbrat_frontend/features/profile/data/profile_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:apsbrat_frontend/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Shared look of the community screens: warm page, soft cards, pills.
 const kCommunityBg = Color(0xFFFBF8F6);
 const kCardLine = Color(0xFFEADCDC);
 const kTint = Color(0xFFF3ECEC);
+
+/// The school banner for APS Patiala; null for every other community.
+String? communityBannerAsset(Community c) =>
+    c.isSchool && c.name.toLowerCase().contains('patiala')
+    ? 'assets/images/aps_patiala_banner.webp'
+    : null;
 
 BoxDecoration communityCard({
   Color color = Colors.white,
@@ -32,13 +41,13 @@ class CommunityPill extends StatelessWidget {
   });
 
   final String label;
-  final IconData? icon;
+  final AppIconData? icon;
   final VoidCallback? onTap;
   final bool filled;
 
   /// Grow to fill a Row (wraps itself in Expanded).
   final bool expand;
-  final IconData? trailing;
+  final AppIconData? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +65,7 @@ class CommunityPill extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (icon != null) ...[
-                Icon(icon, size: 16, color: fg),
+                HugeIcon(icon: icon!, size: 16, color: fg),
                 const SizedBox(width: 6),
               ],
               Flexible(
@@ -73,7 +82,7 @@ class CommunityPill extends StatelessWidget {
               ),
               if (trailing != null) ...[
                 const SizedBox(width: 4),
-                Icon(trailing, size: 16, color: fg),
+                HugeIcon(icon: trailing!, size: 16, color: fg),
               ],
             ],
           ),
@@ -156,13 +165,17 @@ class PromptCard extends StatelessWidget {
     required this.hint,
     required this.onTap,
     this.leading = const MyAvatar(size: 30),
-    this.trailingIcon = Icons.add_photo_alternate_outlined,
+    this.trailingIcon = HugeIcons.strokeRoundedImage01,
+    this.actionIcons,
   });
 
   final String hint;
   final VoidCallback onTap;
   final Widget leading;
-  final IconData trailingIcon;
+  final AppIconData trailingIcon;
+
+  /// Several action icons in place of [trailingIcon].
+  final List<AppIconData>? actionIcons;
 
   @override
   Widget build(BuildContext context) {
@@ -195,7 +208,23 @@ class PromptCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              Icon(trailingIcon, color: AppColors.crimson, size: 22),
+              if (actionIcons == null)
+                HugeIcon(icon: trailingIcon, color: AppColors.crimson, size: 22)
+              else
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final icon in actionIcons!)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: HugeIcon(
+                          icon: icon,
+                          color: AppColors.crimson,
+                          size: 22,
+                        ),
+                      ),
+                  ],
+                ),
             ],
           ),
         ),

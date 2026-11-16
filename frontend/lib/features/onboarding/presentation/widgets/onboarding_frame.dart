@@ -1,7 +1,9 @@
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class OnboardingFrame extends StatefulWidget {
   const OnboardingFrame({
@@ -171,7 +173,9 @@ class _Header extends StatelessWidget {
                     IconButton(
                       tooltip: 'Back',
                       onPressed: onBack,
-                      icon: const Icon(Icons.arrow_back_rounded),
+                      icon: const HugeIcon(
+                        icon: HugeIcons.strokeRoundedArrowLeft01,
+                      ),
                       color: Colors.white,
                       visualDensity: VisualDensity.compact,
                       padding: EdgeInsets.zero,
@@ -182,23 +186,11 @@ class _Header extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                   ],
-                  Container(
+                  Image.asset(
+                    'assets/images/aps_crest.png',
                     width: 30,
                     height: 30,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.gold, width: 1.5),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    alignment: Alignment.center,
-                    child: const Text(
-                      'APS',
-                      style: TextStyle(
-                        fontSize: 7.5,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.gold,
-                        letterSpacing: 0.4,
-                      ),
-                    ),
+                    semanticLabel: 'APS Brat logo',
                   ),
                   const SizedBox(width: 9),
                   RichText(
@@ -227,12 +219,12 @@ class _Header extends StatelessWidget {
               // Title — last word gold
               RichText(
                 text: TextSpan(
-                  style: const TextStyle(
+                  style: GoogleFonts.cinzel(
                     fontSize: 22,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                     height: 1.25,
                   ),
-                  children: _splitTitle(title),
+                  children: _splitTitle(title.toUpperCase()),
                 ),
               ),
               const SizedBox(height: 6),
@@ -258,7 +250,7 @@ class _Header extends StatelessWidget {
                       done: step > steps[i].index,
                     ),
                     if (i < steps.length - 1)
-                      const Expanded(child: _StepLine()),
+                      Expanded(child: _StepLine(done: step > steps[i].index)),
                   ],
                 ],
               ),
@@ -339,7 +331,11 @@ class _StepNode extends StatelessWidget {
                 : Border.all(color: Colors.white38, width: 1.5),
           ),
           child: done
-              ? const Icon(Icons.check, size: 12, color: Colors.white)
+              ? const HugeIcon(
+                  icon: HugeIcons.strokeRoundedTick02,
+                  size: 12,
+                  color: Colors.white,
+                )
               : Text(
                   '$number',
                   style: TextStyle(
@@ -365,14 +361,16 @@ class _StepNode extends StatelessWidget {
 }
 
 class _StepLine extends StatelessWidget {
-  const _StepLine();
+  const _StepLine({required this.done});
+
+  final bool done;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
-      height: 1.5,
-      color: Colors.white24,
+      height: done ? 2 : 1.5,
+      color: done ? AppColors.gold : Colors.white24,
     );
   }
 }

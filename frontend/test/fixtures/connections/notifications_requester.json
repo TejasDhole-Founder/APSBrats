@@ -1,0 +1,47 @@
+{
+  "success": true,
+  "data": [
+    {
+      "id": "13d06740-51eb-4422-b5ad-1bf45b8d95d8",
+      "type": "CONNECTION_REQUEST",
+      "title": "Dev Singh wants to connect",
+      "body": "You have a new connection request on APS Brat.",
+      "read": false,
+      "createdAt": "2026-11-15T19:32:38.639506",
+      "actorId": "f461969f-1d5a-43bc-a81c-108d01edfb1e",
+      "actorName": "Dev Singh",
+      "actorInitials": "DS",
+      "refType": "CONNECTION",
+      "refId": "db4946a6-2540-44ec-b6aa-2ea44ecf58e4",
+      "actionable": true
+    },
+    {
+      "id": "70cb9a3e-f78e-4f8a-a71e-cba33a1cc3b1",
+      "type": "CONNECTION_ACCEPTED",
+      "title": "Chitra Iyer accepted your request",
+      "body": "You can now message each other on APS Brat.",
+      "read": false,
+      "createdAt": "2026-11-15T19:32:38.408031",
+      "actorId": "73fe01bd-b6df-4fcb-9b1a-1cc080582f81",
+      "actorName": "Chitra Iyer",
+      "actorInitials": "CI",
+      "refType": "USER",
+      "refId": "73fe01bd-b6df-4fcb-9b1a-1cc080582f81",
+      "actionable": false
+    },
+    {
+      "id": "8617e0b3-68e8-4179-9a94-9caff7fbfae7",
+      "type": "CONNECTION_ACCEPTED",
+      "title": "Bilal Khan accepted your request",
+      "body": "You can now message each other on APS Brat.",
+      "read": false,
+      "createdAt": "2026-11-15T19:32:38.246507",
+      "actorId": "facd7951-c387-4b66-a4d6-1457be0feb5c",
+      "actorName": "Bilal Khan",
+      "actorInitials": "BK",
+      "refType": "USER",
+      "refId": "facd7951-c387-4b66-a4d6-1457be0feb5c",
+      "actionable": false
+    }
+  ]
+}

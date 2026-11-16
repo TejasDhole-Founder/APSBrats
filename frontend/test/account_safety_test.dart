@@ -23,7 +23,6 @@ Profile _profile({bool deleted = false}) => Profile(
   currentStatus: 'ALUMNI',
   schools: const [],
   socials: const [],
-  batchmatesCount: 0,
   schoolsCount: 0,
   connectedCount: 0,
   deleted: deleted,

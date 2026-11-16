@@ -1,4 +1,5 @@
 import 'package:apsbrat_frontend/core/media/photos.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:apsbrat_frontend/core/models/person.dart';
 import 'package:apsbrat_frontend/features/chat/data/chat_models.dart';
 import 'package:apsbrat_frontend/features/chat/data/chat_repository.dart';
@@ -279,7 +280,7 @@ class _TopBar extends StatelessWidget implements PreferredSizeWidget {
       leadingWidth: 40,
       leading: IconButton(
         tooltip: 'Back',
-        icon: const Icon(Icons.arrow_back_rounded),
+        icon: const HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01),
         onPressed: () => context.pop(),
       ),
       title: InkWell(
@@ -327,7 +328,7 @@ class _TopBar extends StatelessWidget implements PreferredSizeWidget {
         if (p != null)
           PopupMenuButton<String>(
             tooltip: 'More',
-            icon: const Icon(Icons.more_vert_rounded),
+            icon: const HugeIcon(icon: HugeIcons.strokeRoundedMoreVertical),
             onSelected: (_) => context.push('/home/profile/${p.id}'),
             itemBuilder: (_) => const [
               PopupMenuItem(value: 'profile', child: Text('View profile')),
@@ -521,10 +522,11 @@ class _Bubble extends StatelessWidget {
         ),
         if (mine) ...[
           const SizedBox(width: 3),
-          Icon(
-            pending ? Icons.access_time_rounded : Icons.done_rounded,
+          HugeIcon(
+            icon: pending
+                ? HugeIcons.strokeRoundedClock01
+                : HugeIcons.strokeRoundedTick01,
             size: 15,
-            semanticLabel: pending ? 'Sending' : 'Sent',
             color: onPhoto ? Colors.white : (mine ? _onMineSoft : _timeGrey),
           ),
         ],
@@ -807,10 +809,10 @@ class ChatMessageBar extends StatelessWidget {
                     IconButton(
                       tooltip: showEmoji ? 'Keyboard' : 'Emoji',
                       color: iconColour,
-                      icon: Icon(
-                        showEmoji
-                            ? Icons.keyboard_rounded
-                            : Icons.emoji_emotions_outlined,
+                      icon: HugeIcon(
+                        icon: showEmoji
+                            ? HugeIcons.strokeRoundedKeyboard
+                            : HugeIcons.strokeRoundedSmile,
                       ),
                       onPressed: onEmoji,
                     ),
@@ -856,14 +858,18 @@ class ChatMessageBar extends StatelessWidget {
                         color: iconColour,
                         icon: Transform.rotate(
                           angle: -0.6,
-                          child: const Icon(Icons.attach_file_rounded),
+                          child: const HugeIcon(
+                            icon: HugeIcons.strokeRoundedAttachment01,
+                          ),
                         ),
                         onPressed: onAttach,
                       ),
                       IconButton(
                         tooltip: 'Take a photo',
                         color: iconColour,
-                        icon: const Icon(Icons.photo_camera_outlined),
+                        icon: const HugeIcon(
+                          icon: HugeIcons.strokeRoundedCamera01,
+                        ),
                         onPressed: onCamera,
                       ),
                     ],
@@ -886,7 +892,10 @@ class ChatMessageBar extends StatelessWidget {
                     disabledForegroundColor: Colors.white,
                   ),
                   onPressed: value.text.trim().isEmpty ? null : onSend,
-                  icon: const Icon(Icons.send_rounded, size: 22),
+                  icon: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedSent,
+                    size: 22,
+                  ),
                 ),
               ),
             ),

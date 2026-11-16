@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:hugeicons/hugeicons.dart';
 import 'dart:math';
 
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
@@ -87,8 +88,8 @@ class _ChatOverlayState extends State<ChatOverlay> {
                             color: Colors.white.withValues(alpha: 0.12),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(
-                            Icons.arrow_back_rounded,
+                          child: const HugeIcon(
+                            icon: HugeIcons.strokeRoundedArrowLeft01,
                             size: 16,
                             color: Colors.white,
                           ),
@@ -125,7 +126,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
                           ],
                         ),
                       ),
-                      FeedIconBtn(icon: Icons.more_vert_rounded),
+                      FeedIconBtn(icon: HugeIcons.strokeRoundedMoreVertical),
                     ],
                   ),
                 ),
@@ -285,8 +286,8 @@ class _ChatOverlayState extends State<ChatOverlay> {
                           color: AppColors.crimson,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
-                          Icons.send_rounded,
+                        child: const HugeIcon(
+                          icon: HugeIcons.strokeRoundedSent,
                           size: 17,
                           color: AppColors.gold,
                         ),

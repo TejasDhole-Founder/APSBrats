@@ -1,4 +1,6 @@
 import 'package:apsbrat_frontend/core/constants/social_platforms.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:apsbrat_frontend/core/theme/app_icons.dart';
 import 'package:apsbrat_frontend/core/models/person.dart';
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
 import 'package:apsbrat_frontend/features/auth/data/auth_repository.dart';
@@ -51,7 +53,7 @@ class ProfileScreen extends ConsumerWidget {
               _Header(onBack: () => context.pop()),
               const Expanded(
                 child: EmptyState(
-                  icon: Icons.person_off_outlined,
+                  icon: HugeIcons.strokeRoundedUserBlock01,
                   title: 'Profile not available',
                   message: 'This APSian could not be loaded right now.',
                 ),
@@ -100,7 +102,10 @@ class _Header extends StatelessWidget {
         children: [
           Row(
             children: [
-              FeedIconBtn(icon: Icons.arrow_back_rounded, onTap: onBack),
+              FeedIconBtn(
+                icon: HugeIcons.strokeRoundedArrowLeft01,
+                onTap: onBack,
+              ),
               const Spacer(),
               ?trailing,
             ],
@@ -115,8 +120,8 @@ class _Header extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
-              child: const Icon(
-                Icons.person_off_outlined,
+              child: const HugeIcon(
+                icon: HugeIcons.strokeRoundedUserBlock01,
                 size: 34,
                 color: Colors.white70,
               ),
@@ -131,7 +136,10 @@ class _Header extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            const _HeaderPill('Unknown user', icon: Icons.help_outline_rounded),
+            const _HeaderPill(
+              'Unknown user',
+              icon: HugeIcons.strokeRoundedHelpCircle,
+            ),
           ] else if (p != null) ...[
             const SizedBox(height: 6),
             Container(
@@ -197,12 +205,12 @@ class _Header extends StatelessWidget {
                 if (p.isVerified)
                   const _HeaderPill(
                     'Verified',
-                    icon: Icons.verified_user_rounded,
+                    icon: HugeIcons.strokeRoundedShieldUser,
                   ),
                 if (p.isPrivate)
                   const _HeaderPill(
                     'Private',
-                    icon: Icons.lock_outline_rounded,
+                    icon: HugeIcons.strokeRoundedLockKey,
                   ),
               ],
             ),
@@ -240,7 +248,7 @@ class _HeaderPill extends StatelessWidget {
   const _HeaderPill(this.text, {this.icon});
 
   final String text;
-  final IconData? icon;
+  final AppIconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -255,7 +263,7 @@ class _HeaderPill extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 12, color: AppColors.gold),
+            HugeIcon(icon: icon!, size: 12, color: AppColors.gold),
             const SizedBox(width: 4),
           ],
           Text(
@@ -288,7 +296,7 @@ class _ProfileBody extends ConsumerWidget {
           _Header(onBack: () => context.pop(), profile: p),
           const Expanded(
             child: EmptyState(
-              icon: Icons.person_off_outlined,
+              icon: HugeIcons.strokeRoundedUserBlock01,
               title: 'This account was deleted',
               message:
                   'Their posts and messages are still here, shown as an unknown user.',
@@ -313,10 +321,6 @@ class _ProfileBody extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(18, 14, 18, 28),
             children: [
               _ConnectButton(userId: p.id),
-              if (p.mutualCount > 0) ...[
-                const SizedBox(height: 12),
-                _MutualRow(userId: p.id, count: p.mutualCount),
-              ],
               const SizedBox(height: 18),
               const SectionLabel('About'),
               const SizedBox(height: 10),
@@ -369,7 +373,10 @@ class _SafetyMenu extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return PopupMenuButton<String>(
       tooltip: 'More',
-      icon: const Icon(Icons.more_vert_rounded, color: Colors.white),
+      icon: const HugeIcon(
+        icon: HugeIcons.strokeRoundedMoreVertical,
+        color: Colors.white,
+      ),
       onSelected: (v) => v == 'block'
           ? _block(context, ref)
           : showReportSheet(context, ref, 'USER', userId),
@@ -384,180 +391,6 @@ class _SafetyMenu extends ConsumerWidget {
   }
 }
 
-/// "N mutual batchmates" with a few stacked avatars; tap to see who.
-class _MutualRow extends ConsumerWidget {
-  const _MutualRow({required this.userId, required this.count});
-
-  final String userId;
-  final int count;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final people = ref.watch(mutualConnectionsProvider(userId)).valueOrNull;
-    final preview = (people ?? const <Person>[]).take(3).toList();
-    final names = preview.map((p) => p.name.split(' ').first).toList();
-    final label = switch (names.length) {
-      0 => '$count mutual ${count == 1 ? 'batchmate' : 'batchmates'}',
-      1 when count == 1 => '${names[0]} is a mutual batchmate',
-      1 => '${names[0]} and ${count - 1} more',
-      2 when count == 2 => '${names[0]} and ${names[1]}',
-      _ => '${names[0]}, ${names[1]} and ${count - 2} more',
-    };
-
-    return InkWell(
-      onTap: () => _showMutual(context, ref),
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: const Color(0xFFFCF1F1),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 24.0 + 16.0 * (preview.isEmpty ? 0 : preview.length - 1),
-              height: 28,
-              child: Stack(
-                children: [
-                  for (var i = 0; i < preview.length; i++)
-                    Positioned(
-                      left: i * 16.0,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                        ),
-                        child: AvatarCircle(
-                          initials: preview[i].initials,
-                          bg: preview[i].bg,
-                          fg: preview[i].fg,
-                          size: 24,
-                          fontSize: 9,
-                        ),
-                      ),
-                    ),
-                  if (preview.isEmpty)
-                    const Icon(
-                      Icons.people_alt_rounded,
-                      size: 22,
-                      color: AppColors.crimson,
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: kTxt,
-                ),
-              ),
-            ),
-            const Icon(Icons.chevron_right_rounded, size: 20, color: kTxt3),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showMutual(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => _MutualSheet(userId: userId, count: count),
-    );
-  }
-}
-
-class _MutualSheet extends ConsumerWidget {
-  const _MutualSheet({required this.userId, required this.count});
-
-  final String userId;
-  final int count;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final people = ref.watch(mutualConnectionsProvider(userId));
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(18, 16, 18, 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '$count mutual ${count == 1 ? 'batchmate' : 'batchmates'}',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                color: kTxt,
-              ),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'People you are both connected with.',
-              style: TextStyle(fontSize: 12, color: kTxt3),
-            ),
-            const SizedBox(height: 12),
-            Flexible(
-              child: people.when(
-                loading: () => const Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Center(
-                    child: CircularProgressIndicator(color: AppColors.crimson),
-                  ),
-                ),
-                error: (_, __) => const Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Text('Could not load mutual batchmates.'),
-                ),
-                data: (list) => ListView.separated(
-                  shrinkWrap: true,
-                  itemCount: list.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
-                  itemBuilder: (context, i) {
-                    final p = list[i];
-                    return ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: AvatarCircle(
-                        initials: p.initials,
-                        bg: p.bg,
-                        fg: p.fg,
-                      ),
-                      title: Text(
-                        p.name,
-                        style: const TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                      subtitle: Text(
-                        [
-                          if (p.detail.isNotEmpty) p.detail,
-                          if (p.school.isNotEmpty) p.school,
-                        ].join(' · '),
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        context.go('/home/profile/${p.id}');
-                      },
-                    );
-                  },
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _AboutCard extends StatelessWidget {
   const _AboutCard({required this.profile, this.headline});
 
@@ -567,10 +400,10 @@ class _AboutCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = profile;
-    final rows = <(IconData, String, String?)>[
-      (Icons.location_on_outlined, 'Current city', p.city),
-      (Icons.work_outline_rounded, 'What they do now', headline),
-      (Icons.phone_outlined, 'Phone', p.phone),
+    final rows = <(AppIconData, String, String?)>[
+      (HugeIcons.strokeRoundedLocation01, 'Current city', p.city),
+      (HugeIcons.strokeRoundedBriefcase01, 'What they do now', headline),
+      (HugeIcons.strokeRoundedCall, 'Phone', p.phone),
     ];
     return Container(
       decoration: BoxDecoration(
@@ -605,7 +438,7 @@ class _AboutRow extends StatelessWidget {
     required this.hint,
   });
 
-  final IconData icon;
+  final AppIconData icon;
   final String label;
   final String? value;
   final String hint;
@@ -617,7 +450,7 @@ class _AboutRow extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(14, 11, 14, 11),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: kTxt3),
+          HugeIcon(icon: icon, size: 18, color: kTxt3),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -645,7 +478,11 @@ class _AboutRow extends StatelessWidget {
             ),
           ),
           if (!has && hint == 'Private')
-            const Icon(Icons.lock_outline_rounded, size: 16, color: kTxt3),
+            const HugeIcon(
+              icon: HugeIcons.strokeRoundedLockKey,
+              size: 16,
+              color: kTxt3,
+            ),
         ],
       ),
     );
@@ -662,7 +499,9 @@ class _SocialsCard extends StatelessWidget {
     final p = profile;
     if (p.socials.isEmpty) {
       return EmptyState(
-        icon: p.isPrivate ? Icons.lock_outline_rounded : Icons.link_rounded,
+        icon: p.isPrivate
+            ? HugeIcons.strokeRoundedLockKey
+            : HugeIcons.strokeRoundedLink01,
         title: p.isPrivate ? 'Socials are private' : 'No socials added',
         message: p.isPrivate
             ? '${p.fullName.split(' ').first} keeps contact details private.'
@@ -796,10 +635,14 @@ class _ConnectButtonState extends ConsumerState<_ConnectButton> {
         ref.watch(connectionStatusProvider(widget.userId)).valueOrNull ??
         'NONE';
     final (label, icon, enabled) = switch (status) {
-      'CONNECTED' => ('Connected', Icons.check_rounded, false),
-      'PENDING_OUT' => ('Requested', Icons.hourglass_top_rounded, false),
-      'PENDING_IN' => ('Accept request', Icons.person_add_alt_1_rounded, true),
-      _ => ('Connect', Icons.person_add_alt_1_rounded, true),
+      'CONNECTED' => ('Connected', HugeIcons.strokeRoundedTick02, false),
+      'PENDING_OUT' => ('Requested', HugeIcons.strokeRoundedHourglass, false),
+      'PENDING_IN' => (
+        'Accept request',
+        HugeIcons.strokeRoundedUserAdd02,
+        true,
+      ),
+      _ => ('Connect', HugeIcons.strokeRoundedUserAdd02, true),
     };
     final muted = !enabled;
 
@@ -817,7 +660,7 @@ class _ConnectButtonState extends ConsumerState<_ConnectButton> {
               height: 16,
               child: CircularProgressIndicator(strokeWidth: 2),
             )
-          : Icon(icon, size: 16),
+          : HugeIcon(icon: icon, size: 16),
       label: Text(label, style: const TextStyle(fontWeight: FontWeight.w800)),
     );
   }

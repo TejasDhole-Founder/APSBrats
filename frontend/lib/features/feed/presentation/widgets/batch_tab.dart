@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:apsbrat_frontend/core/theme/app_icons.dart';
 
 import 'package:apsbrat_frontend/core/models/person.dart';
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
@@ -257,7 +259,10 @@ class _BatchTabState extends ConsumerState<BatchTab> {
                   ),
                 );
               },
-              icon: const Icon(Icons.copy_rounded, size: 16),
+              icon: const HugeIcon(
+                icon: HugeIcons.strokeRoundedCopy01,
+                size: 16,
+              ),
               label: const Text(
                 'Copy invite message',
                 style: TextStyle(fontWeight: FontWeight.w800),
@@ -341,7 +346,7 @@ class _BatchTabState extends ConsumerState<BatchTab> {
       first.when(
         loading: () => const _Loading(),
         error: (_, __) => EmptyState(
-          icon: Icons.wifi_off_rounded,
+          icon: HugeIcons.strokeRoundedWifiOff01,
           title: 'Could not search',
           message: 'Check your connection and try again.',
           action: TextButton(
@@ -423,7 +428,7 @@ class _BatchTabState extends ConsumerState<BatchTab> {
       friends.when(
         loading: () => const _Loading(),
         error: (_, __) => EmptyState(
-          icon: Icons.wifi_off_rounded,
+          icon: HugeIcons.strokeRoundedWifiOff01,
           title: 'Could not load your friends',
           message: 'Check your connection and try again.',
           action: TextButton(
@@ -485,7 +490,7 @@ class _BatchTabState extends ConsumerState<BatchTab> {
     if (!summary.hasSection && schools.isNotEmpty) {
       return [
         _HintCardWide(
-          icon: Icons.school_outlined,
+          icon: HugeIcons.strokeRoundedMortarboard01,
           title: 'Add your section to find classmates',
           body:
               'Classmates are matched by school, section and years. None of your school entries has a section yet.',
@@ -593,7 +598,7 @@ class _BatchTabState extends ConsumerState<BatchTab> {
       first.when(
         loading: () => const _Loading(),
         error: (_, __) => EmptyState(
-          icon: Icons.wifi_off_rounded,
+          icon: HugeIcons.strokeRoundedWifiOff01,
           title: 'Could not load',
           message: 'Check your connection and try again.',
           action: TextButton(
@@ -844,7 +849,7 @@ class _Bell extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        FeedIconBtn(icon: Icons.notifications_none_rounded, onTap: onTap),
+        FeedIconBtn(icon: HugeIcons.strokeRoundedNotification01, onTap: onTap),
         if (count > 0)
           Positioned(
             top: -4,
@@ -1166,7 +1171,10 @@ class _ShowMore extends StatelessWidget {
     return Center(
       child: TextButton.icon(
         onPressed: onTap,
-        icon: const Icon(Icons.expand_more_rounded, color: AppColors.crimson),
+        icon: const HugeIcon(
+          icon: HugeIcons.strokeRoundedArrowDown01,
+          color: AppColors.crimson,
+        ),
         label: const Text(
           'Show more',
           style: TextStyle(
@@ -1241,7 +1249,7 @@ class _HintCardWide extends StatelessWidget {
     required this.onTap,
   });
 
-  final IconData icon;
+  final AppIconData icon;
   final String title;
   final String body;
   final String action;
@@ -1258,7 +1266,7 @@ class _HintCardWide extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 22, color: AppColors.crimson),
+          HugeIcon(icon: icon, size: 22, color: AppColors.crimson),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -1348,7 +1356,7 @@ class _SmallEmpty extends StatelessWidget {
             textStyle: const TextStyle(fontSize: 12.5),
           ),
           onPressed: onInvite,
-          icon: const Icon(Icons.send_rounded, size: 15),
+          icon: const HugeIcon(icon: HugeIcons.strokeRoundedSent, size: 15),
           label: const Text(
             'Invite Friends',
             style: TextStyle(fontWeight: FontWeight.w800),
@@ -1419,8 +1427,10 @@ class _NoFriendsState extends StatelessWidget {
                   ),
                 ),
                 onPressed: schoolmates > 0 ? onSeeBatchmates : onInvite,
-                icon: Icon(
-                  schoolmates > 0 ? Icons.groups_rounded : Icons.send_rounded,
+                icon: HugeIcon(
+                  icon: schoolmates > 0
+                      ? HugeIcons.strokeRoundedUserGroup
+                      : HugeIcons.strokeRoundedSent,
                   size: 15,
                 ),
                 label: Text(
@@ -1446,7 +1456,10 @@ class _NoFriendsState extends StatelessWidget {
                     ),
                   ),
                   onPressed: onInvite,
-                  icon: const Icon(Icons.send_rounded, size: 15),
+                  icon: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedSent,
+                    size: 15,
+                  ),
                   label: const Text(
                     'Invite Friends',
                     style: TextStyle(fontWeight: FontWeight.w800),
@@ -1459,7 +1472,7 @@ class _NoFriendsState extends StatelessWidget {
         if (!hasSection) ...[
           const SizedBox(height: 14),
           _HintCardWide(
-            icon: Icons.school_outlined,
+            icon: HugeIcons.strokeRoundedMortarboard01,
             title: 'Add your section to find classmates',
             body:
                 'Your school entry has no section yet, so classmates cannot be matched.',
@@ -1590,8 +1603,8 @@ class _PersonCard extends StatelessWidget {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
-                              Icons.location_on_outlined,
+                            const HugeIcon(
+                              icon: HugeIcons.strokeRoundedLocation01,
                               size: 12,
                               color: kTxt2,
                             ),
@@ -1629,8 +1642,8 @@ class _PersonCard extends StatelessWidget {
                       ),
                     ),
                     onPressed: onMessage,
-                    icon: const Icon(
-                      Icons.chat_bubble_outline_rounded,
+                    icon: const HugeIcon(
+                      icon: HugeIcons.strokeRoundedMessage01,
                       size: 14,
                     ),
                     label: const Text('Message'),
@@ -1673,10 +1686,10 @@ class _PersonCard extends StatelessWidget {
                     onPressed: isRequested
                         ? null
                         : (askedMe ? (onAccept ?? onConnect) : onConnect),
-                    icon: Icon(
-                      isRequested
-                          ? Icons.check_rounded
-                          : Icons.person_add_alt_1_rounded,
+                    icon: HugeIcon(
+                      icon: isRequested
+                          ? HugeIcons.strokeRoundedTick02
+                          : HugeIcons.strokeRoundedUserAdd02,
                       size: 15,
                     ),
                     label: Text(
@@ -1689,8 +1702,8 @@ class _PersonCard extends StatelessWidget {
                   onPressed: onTap,
                   tooltip: 'View profile',
                   visualDensity: VisualDensity.compact,
-                  icon: const Icon(
-                    Icons.more_vert_rounded,
+                  icon: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedMoreVertical,
                     size: 18,
                     color: kTxt3,
                   ),
@@ -1755,8 +1768,8 @@ class _InviteBanner extends StatelessWidget {
                 color: kCrimsonLight,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.group_add_rounded,
+              child: const HugeIcon(
+                icon: HugeIcons.strokeRoundedUserAdd01,
                 size: 20,
                 color: AppColors.crimson,
               ),
@@ -1782,7 +1795,10 @@ class _InviteBanner extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: AppColors.crimson),
+            const HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowRight01,
+              color: AppColors.crimson,
+            ),
           ],
         ),
       ),
@@ -2068,7 +2084,10 @@ class _NoMatchState extends StatelessWidget {
                   ),
                 ),
                 onPressed: onChangeFilters,
-                icon: const Icon(Icons.tune_rounded, size: 15),
+                icon: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedSetting07,
+                  size: 15,
+                ),
                 label: const Text(
                   'Change Filters',
                   style: TextStyle(fontWeight: FontWeight.w800),
@@ -2088,7 +2107,10 @@ class _NoMatchState extends StatelessWidget {
                   ),
                 ),
                 onPressed: onInvite,
-                icon: const Icon(Icons.send_rounded, size: 15),
+                icon: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedSent,
+                  size: 15,
+                ),
                 label: const Text(
                   'Invite Friends',
                   style: TextStyle(fontWeight: FontWeight.w800),
@@ -2149,15 +2171,19 @@ class _IllustrationFallback extends StatelessWidget {
         children: [
           Positioned(
             top: 22,
-            child: Icon(
-              Icons.account_balance_rounded,
+            child: HugeIcon(
+              icon: HugeIcons.strokeRoundedBank,
               size: 26,
               color: AppColors.crimson.withValues(alpha: 0.18),
             ),
           ),
           const Positioned(
             bottom: 24,
-            child: Icon(Icons.groups_rounded, size: 40, color: kCrimsonMed),
+            child: HugeIcon(
+              icon: HugeIcons.strokeRoundedUserGroup,
+              size: 40,
+              color: kCrimsonMed,
+            ),
           ),
         ],
       ),
@@ -2173,7 +2199,7 @@ class _HintCard extends StatelessWidget {
     required this.onTap,
   });
 
-  final IconData icon;
+  final AppIconData icon;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
@@ -2198,7 +2224,7 @@ class _HintCard extends StatelessWidget {
                 color: kCrimsonLight,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 17, color: AppColors.crimson),
+              child: HugeIcon(icon: icon, size: 17, color: AppColors.crimson),
             ),
             const SizedBox(height: 10),
             Text(

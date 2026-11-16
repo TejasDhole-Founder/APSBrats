@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show PathMetric;
 
 import 'package:apsbrat_frontend/core/theme/app_inputs.dart';
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
@@ -7,11 +8,13 @@ import 'package:apsbrat_frontend/features/community/data/community_repository.da
 import 'package:apsbrat_frontend/features/community/presentation/community_ui.dart';
 import 'package:apsbrat_frontend/features/feed/presentation/widgets/feed_shared.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:apsbrat_frontend/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-/// The Communities bottom tab: my schools to join (cover cards), the
-/// communities I'm in (a swipeable row), and Discover (only ones I'm not in).
+/// The Communities half of the Social tab: my schools, the communities I'm in
+/// (a swipeable row with See all), and Discover (only ones I'm not in).
 class CommunitiesTab extends ConsumerStatefulWidget {
   const CommunitiesTab({super.key});
 
@@ -49,14 +52,14 @@ class _CommunitiesTabState extends ConsumerState<CommunitiesTab> {
   }
 
   Widget _heading(String text, {Widget? trailing}) => Padding(
-    padding: const EdgeInsets.fromLTRB(2, 18, 2, 10),
+    padding: const EdgeInsets.fromLTRB(2, 20, 2, 10),
     child: Row(
       children: [
         Expanded(
           child: Text(
             text,
             style: const TextStyle(
-              fontSize: 15,
+              fontSize: 16,
               fontWeight: FontWeight.w800,
               color: kTxt,
             ),
@@ -76,36 +79,21 @@ class _CommunitiesTabState extends ConsumerState<CommunitiesTab> {
       color: kCommunityBg,
       child: Column(
         children: [
-          CrimsonHeader(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    const Expanded(
-                      child: Text(
-                        'Communities',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    FeedIconBtn(
-                      icon: Icons.add_rounded,
-                      onTap: () => showCreateCommunitySheet(context),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _search,
-                  onChanged: _onSearch,
-                  textInputAction: TextInputAction.search,
-                  decoration: appInputDecoration('Search communities').copyWith(
-                    prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                Expanded(
+                  child: FeedSearchBar(
+                    hint: 'Search communities...',
+                    controller: _search,
+                    onChanged: _onSearch,
                   ),
+                ),
+                const SizedBox(width: 10),
+                SquareIconButton(
+                  icon: HugeIcons.strokeRoundedAdd01,
+                  onTap: () => showCreateCommunitySheet(context),
                 ),
               ],
             ),
@@ -123,48 +111,55 @@ class _CommunitiesTabState extends ConsumerState<CommunitiesTab> {
                       error: (e, _) => [
                         _ErrorRow(message: friendlyError(e), onRetry: _refresh),
                       ],
-                      data: (m) => [
-                        if (m.suggested.isNotEmpty) ...[
-                          _heading('Your schools'),
-                          for (final c in m.suggested) ...[
-                            SchoolCommunityCard(community: c),
-                            const SizedBox(height: 10),
+                      data: (m) {
+                        final schools = [
+                          ...m.joined.where((c) => c.isSchool),
+                          ...m.suggested,
+                        ];
+                        final groups = m.joined
+                            .where((c) => !c.isSchool)
+                            .toList();
+                        return [
+                          if (schools.isNotEmpty) ...[
+                            _heading('Your Schools'),
+                            for (final c in schools) ...[
+                              SchoolCommunityCard(community: c),
+                              const SizedBox(height: 10),
+                            ],
                           ],
-                        ],
-                        _heading(
-                          'Your communities',
-                          trailing: m.joined.isEmpty
-                              ? null
-                              : Text(
-                                  '${m.joined.length}',
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    color: kTxt3,
+                          _heading(
+                            'Your Communities',
+                            trailing: groups.isEmpty
+                                ? null
+                                : SeeAllButton(
+                                    onTap: () =>
+                                        context.push('/home/communities'),
                                   ),
-                                ),
-                        ),
-                        if (m.joined.isEmpty)
-                          const Text(
-                            "You haven't joined any yet. Join your school above, or find a group below.",
-                            style: TextStyle(fontSize: 12.5, color: kTxt3),
-                          )
-                        else
-                          SizedBox(
-                            height: 148,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: m.joined.length,
-                              separatorBuilder: (_, _) =>
-                                  const SizedBox(width: 10),
-                              itemBuilder: (_, i) =>
-                                  _JoinedCard(community: m.joined[i]),
-                            ),
                           ),
-                      ],
+                          if (groups.isEmpty)
+                            const Text(
+                              "You haven't joined any yet. Find a group below.",
+                              style: TextStyle(fontSize: 12.5, color: kTxt3),
+                            )
+                          else
+                            SizedBox(
+                              height: 64,
+                              child: ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: groups.length,
+                                separatorBuilder: (_, _) =>
+                                    const SizedBox(width: 10),
+                                itemBuilder: (_, i) =>
+                                    _JoinedCard(community: groups[i]),
+                              ),
+                            ),
+                        ];
+                      },
                     ),
                   _heading(
-                    _query.isEmpty ? 'Discover' : 'Results for "$_query"',
+                    _query.isEmpty
+                        ? 'Discover Communities'
+                        : 'Results for "$_query"',
                   ),
                   ...discover.when(
                     loading: () => [const _Loading()],
@@ -177,44 +172,38 @@ class _CommunitiesTabState extends ConsumerState<CommunitiesTab> {
                       final list = _query.isEmpty
                           ? all.where((c) => !c.isMember).toList()
                           : all;
-                      return [
-                        if (list.isEmpty && _query.isNotEmpty)
+                      if (list.isEmpty && _query.isNotEmpty) {
+                        return [
                           EmptyState(
-                            icon: Icons.groups_outlined,
+                            icon: HugeIcons.strokeRoundedUserGroup,
                             image: kEmptyInboxImage,
                             title: 'Nothing found',
                             message:
                                 'No community matches "$_query". You could create it.',
-                          )
-                        else if (list.isEmpty)
+                          ),
+                        ];
+                      }
+                      if (list.isEmpty) {
+                        return [
                           const Text(
                             "You're in every group so far.",
                             style: TextStyle(fontSize: 12.5, color: kTxt3),
-                          )
-                        else
-                          Container(
-                            decoration: communityCard(),
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            child: Column(
-                              children: [
-                                for (var i = 0; i < list.length; i++)
-                                  CommunityTile(
-                                    community: list[i],
-                                    divider: i < list.length - 1,
-                                  ),
-                              ],
-                            ),
                           ),
-                        const SizedBox(height: 12),
-                        PromptCard(
-                          hint: "Can't find your group? Create one",
-                          leading: const Icon(
-                            Icons.group_add_outlined,
-                            color: AppColors.crimson,
-                            size: 26,
+                        ];
+                      }
+                      return [
+                        Container(
+                          decoration: communityCard(),
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Column(
+                            children: [
+                              for (var i = 0; i < list.length; i++)
+                                CommunityTile(
+                                  community: list[i],
+                                  divider: i < list.length - 1,
+                                ),
+                            ],
                           ),
-                          trailingIcon: Icons.add_circle_outline_rounded,
-                          onTap: () => showCreateCommunitySheet(context),
                         ),
                       ];
                     },
@@ -252,7 +241,149 @@ Future<void> _joinCommunity(
   }
 }
 
-/// One of my schools I haven't joined: a cover strip, the APS badge, Join.
+/// White rounded square button (the "+" next to the search bar).
+class SquareIconButton extends StatelessWidget {
+  const SquareIconButton({super.key, required this.icon, required this.onTap});
+
+  final AppIconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(14),
+      elevation: 0,
+      shadowColor: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x14000000),
+                blurRadius: 12,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          child: HugeIcon(icon: icon, size: 22, color: AppColors.crimson),
+        ),
+      ),
+    );
+  }
+}
+
+/// "See all ›" in a dashed crimson outline.
+class SeeAllButton extends StatelessWidget {
+  const SeeAllButton({super.key, required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: CustomPaint(
+        painter: _DashedRRectPainter(AppColors.crimson),
+        child: const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'See all',
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.crimson,
+                ),
+              ),
+              SizedBox(width: 2),
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowRight01,
+                size: 16,
+                color: AppColors.crimson,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DashedRRectPainter extends CustomPainter {
+  _DashedRRectPainter(this.color);
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..addRRect(
+        RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(10)),
+      );
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+    for (final PathMetric m in path.computeMetrics()) {
+      var d = 0.0;
+      while (d < m.length) {
+        canvas.drawPath(m.extractPath(d, d + 4), paint);
+        d += 7;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashedRRectPainter old) => old.color != color;
+}
+
+/// Outlined "✓ Joined" (or "Owner") pill.
+class JoinedPill extends StatelessWidget {
+  const JoinedPill({super.key, this.label = 'Joined'});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: AppColors.crimson),
+        borderRadius: BorderRadius.circular(100),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const HugeIcon(
+            icon: HugeIcons.strokeRoundedTick02,
+            size: 14,
+            color: AppColors.crimson,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppColors.crimson,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A school community: cover strip, the APS badge, Join / ✓ Joined.
 class SchoolCommunityCard extends ConsumerWidget {
   const SchoolCommunityCard({super.key, required this.community});
 
@@ -274,16 +405,24 @@ class SchoolCommunityCard extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Container(
-                    height: 46,
-                    decoration: const BoxDecoration(
-                      color: AppColors.crimson,
-                      borderRadius: BorderRadius.vertical(
+                    height: 58,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [AppColors.crimson, AppColors.crimsonDark],
+                      ),
+                      image: communityBannerAsset(c) == null
+                          ? null
+                          : DecorationImage(
+                              image: AssetImage(communityBannerAsset(c)!),
+                              fit: BoxFit.cover,
+                            ),
+                      borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(14),
                       ),
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 26, 12, 12),
+                    padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
                     child: Row(
                       children: [
                         Expanded(
@@ -311,27 +450,18 @@ class SchoolCommunityCard extends ConsumerWidget {
                             ],
                           ),
                         ),
-                        CommunityPill(
-                          label: 'Join',
-                          icon: Icons.add_rounded,
-                          filled: true,
-                          onTap: () => _joinCommunity(context, ref, c),
-                        ),
+                        if (c.isMember)
+                          const JoinedPill()
+                        else
+                          CommunityPill(
+                            label: 'Join',
+                            filled: true,
+                            onTap: () => _joinCommunity(context, ref, c),
+                          ),
                       ],
                     ),
                   ),
                 ],
-              ),
-              Positioned(
-                left: 12,
-                top: 22,
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.white, width: 2.5),
-                    borderRadius: BorderRadius.circular(13),
-                  ),
-                  child: CommunityIcon(community: c, size: 42, onDark: true),
-                ),
               ),
             ],
           ),
@@ -351,49 +481,43 @@ class _JoinedCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = community;
     return SizedBox(
-      width: 144,
+      width: 172,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(14),
           onTap: () => context.push('/home/community/${c.id}'),
           child: Ink(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: communityCard(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    CommunityIcon(community: c, size: 40),
-                    const Spacer(),
-                    if (c.isOwner)
-                      const Icon(
-                        Icons.star_rounded,
-                        size: 18,
-                        color: AppColors.gold,
-                        semanticLabel: 'Owner',
+                CommunityIcon(community: c, size: 36),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        c.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: kTxt,
+                        ),
                       ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  c.name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: kTxt,
-                    height: 1.25,
+                      const SizedBox(height: 2),
+                      Text(
+                        c.membersLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 11.5, color: kTxt3),
+                      ),
+                    ],
                   ),
-                ),
-                const Spacer(),
-                Text(
-                  c.isOwner ? 'Owner · ${c.membersLabel}' : c.membersLabel,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 11.5, color: kTxt3),
                 ),
               ],
             ),
@@ -405,16 +529,50 @@ class _JoinedCard extends StatelessWidget {
 }
 
 /// A community row: icon, name, kind and size, and Join / Request /
-/// Requested / Joined. Tap to open it.
+/// Requested / Joined. Tap to open it. [menu] adds a ⋮ (Open / Leave).
 class CommunityTile extends ConsumerWidget {
   const CommunityTile({
     super.key,
     required this.community,
     this.divider = false,
+    this.menu = false,
   });
 
   final Community community;
   final bool divider;
+  final bool menu;
+
+  Future<void> _leave(BuildContext context, WidgetRef ref) async {
+    final c = community;
+    final messenger = ScaffoldMessenger.of(context);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Leave ${c.name}?'),
+        content: const Text("You'll stop seeing its posts and chat."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Leave'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await ref.read(communityRepositoryProvider).leave(c.id);
+      ref
+        ..invalidate(myCommunitiesProvider)
+        ..invalidate(myCommunityChatsProvider)
+        ..invalidate(discoverProvider);
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(friendlyError(e))));
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -455,8 +613,10 @@ class CommunityTile extends ConsumerWidget {
               ),
             ),
             const SizedBox(width: 8),
-            if (c.isMember)
-              _Pill(c.isOwner ? 'Owner' : 'Joined')
+            if (c.isOwner)
+              const JoinedPill(label: 'Owner')
+            else if (c.isMember)
+              const JoinedPill()
             else if (c.requested)
               const _Pill('Requested')
             else
@@ -464,6 +624,29 @@ class CommunityTile extends ConsumerWidget {
                 label: c.isPrivate ? 'Request' : 'Join',
                 filled: !c.isPrivate,
                 onTap: () => _joinCommunity(context, ref, c),
+              ),
+            if (menu)
+              PopupMenuButton<String>(
+                icon: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedMoreVertical,
+                  color: kTxt,
+                ),
+                padding: EdgeInsets.zero,
+                onSelected: (v) {
+                  if (v == 'open') {
+                    context.push('/home/community/${c.id}');
+                  } else {
+                    _leave(context, ref);
+                  }
+                },
+                itemBuilder: (_) => [
+                  const PopupMenuItem(value: 'open', child: Text('Open')),
+                  if (c.isMember && !c.isOwner)
+                    const PopupMenuItem(
+                      value: 'leave',
+                      child: Text('Leave community'),
+                    ),
+                ],
               ),
           ],
         ),
@@ -507,10 +690,10 @@ class CommunityIcon extends StatelessWidget {
                 color: onDark ? AppColors.crimsonDark : Colors.white,
               ),
             )
-          : Icon(
-              community.isPrivate
-                  ? Icons.lock_outline_rounded
-                  : Icons.groups_rounded,
+          : HugeIcon(
+              icon: community.isPrivate
+                  ? HugeIcons.strokeRoundedLockKey
+                  : HugeIcons.strokeRoundedUserGroup,
               color: AppColors.crimson,
               size: size * 0.5,
             ),

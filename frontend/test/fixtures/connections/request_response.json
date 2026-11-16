@@ -1,0 +1,7 @@
+{
+  "success": true,
+  "message": "Connection requested",
+  "data": {
+    "status": "PENDING"
+  }
+}

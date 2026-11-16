@@ -1,4 +1,6 @@
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:apsbrat_frontend/core/theme/app_icons.dart';
 import 'package:apsbrat_frontend/features/community/data/community_repository.dart';
 import 'package:apsbrat_frontend/features/community/presentation/post_card.dart';
 import 'package:apsbrat_frontend/features/feed/data/dummy_data.dart';
@@ -69,7 +71,7 @@ class HomeTab extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     FeedIconBtn(
-                      icon: Icons.notifications_none_rounded,
+                      icon: HugeIcons.strokeRoundedNotification01,
                       onTap: () => context.go('/home/notifications'),
                     ),
                     const SizedBox(width: 8),
@@ -91,8 +93,8 @@ class HomeTab extends StatelessWidget {
                                 color: kGoldDark,
                               ),
                             )
-                          : const Icon(
-                              Icons.person_outline_rounded,
+                          : const HugeIcon(
+                              icon: HugeIcons.strokeRoundedUser,
                               size: 20,
                               color: kGoldDark,
                             ),
@@ -252,8 +254,8 @@ class HomeTab extends StatelessWidget {
                                         width: 2,
                                       ),
                                     ),
-                                    child: const Icon(
-                                      Icons.add,
+                                    child: const HugeIcon(
+                                      icon: HugeIcons.strokeRoundedAdd01,
                                       size: 8,
                                       color: Colors.white,
                                     ),
@@ -308,8 +310,8 @@ class HomeTab extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            Icon(
-                              Icons.favorite_border_rounded,
+                            HugeIcon(
+                              icon: HugeIcons.strokeRoundedHeart,
                               size: 11,
                               color: Color(0xCCD4A84A),
                             ),
@@ -393,7 +395,7 @@ class HomeTab extends StatelessWidget {
               typeLabel: 'New join',
               body:
                   "Priya is from your 12A batch at APS Patiala 2022. She's now based in Bengaluru working at Wipro.",
-              primaryIcon: Icons.person_add_rounded,
+              primaryIcon: HugeIcons.strokeRoundedUserAdd01,
               primaryLabel: 'Connect',
               secondaryLabel: 'View profile',
               onPrimary: () => onOpenBatchmate(dummyRecentJoins[0]),
@@ -409,7 +411,7 @@ class HomeTab extends StatelessWidget {
               typeLabelColor: const Color(0xFF166534),
               body:
                   'Rohit accepted your connection request. You can now message each other on APS Brat.',
-              primaryIcon: Icons.chat_bubble_rounded,
+              primaryIcon: HugeIcons.strokeRoundedMessage01,
               primaryLabel: 'Say hi',
               secondaryLabel: 'View profile',
               onPrimary: onGoMessages,
@@ -423,7 +425,7 @@ class HomeTab extends StatelessWidget {
               typeLabel: 'New join',
               body:
                   "Sneha is from your 9C batch at APS Pune 2019. She's currently in Mumbai at IIT Bombay.",
-              primaryIcon: Icons.person_add_rounded,
+              primaryIcon: HugeIcons.strokeRoundedUserAdd01,
               primaryLabel: 'Connect',
               secondaryLabel: 'View profile',
               onPrimary: () => onOpenBatchmate(dummyRecentJoins[3]),
@@ -510,7 +512,7 @@ class _FeedCard extends StatelessWidget {
   final Color? typeLabelBg;
   final Color? typeLabelColor;
   final String body;
-  final IconData primaryIcon;
+  final AppIconData primaryIcon;
   final String primaryLabel;
   final String secondaryLabel;
   final VoidCallback onPrimary;
@@ -593,7 +595,7 @@ class _FeedCard extends StatelessWidget {
                       shape: const StadiumBorder(),
                     ),
                     onPressed: onPrimary,
-                    icon: Icon(primaryIcon, size: 13),
+                    icon: HugeIcon(icon: primaryIcon, size: 13),
                     label: Text(
                       primaryLabel,
                       style: const TextStyle(
@@ -614,7 +616,10 @@ class _FeedCard extends StatelessWidget {
                       shape: const StadiumBorder(),
                     ),
                     onPressed: onSecondary,
-                    icon: const Icon(Icons.visibility_rounded, size: 13),
+                    icon: const HugeIcon(
+                      icon: HugeIcons.strokeRoundedEye,
+                      size: 13,
+                    ),
                     label: Text(
                       secondaryLabel,
                       style: const TextStyle(

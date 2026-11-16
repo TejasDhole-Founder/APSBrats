@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:hugeicons/hugeicons.dart';
 
 import 'package:apsbrat_frontend/features/auth/presentation/providers/auth_provider.dart';
 import 'package:apsbrat_frontend/features/onboarding/presentation/providers/onboarding_flow_provider.dart';
@@ -8,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// The one entry point for both new and returning users: email + OTP, or
 /// Google. Verifying logs you in if the email already has an account,
@@ -125,6 +127,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final state = ref.watch(authControllerProvider);
     final controller = ref.read(authControllerProvider.notifier);
 
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     return PopScope(
       // On the OTP step the system back button returns to the email step;
       // on the email step it pops back to the welcome screen as usual.
@@ -133,9 +136,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         if (!didPop) _editEmail();
       },
       child: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.light,
+        value: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          systemNavigationBarColor: Colors.transparent,
+          systemNavigationBarIconBrightness: Brightness.light,
+        ),
         child: Scaffold(
           backgroundColor: Welcome.bg,
+          resizeToAvoidBottomInset: false,
           body: WelcomeBackground(
             child: SafeArea(
               child: LayoutBuilder(
@@ -146,7 +155,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     child: IntrinsicHeight(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        padding: EdgeInsets.fromLTRB(
+                          24,
+                          0,
+                          24,
+                          MediaQuery.viewInsetsOf(context).bottom,
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
@@ -157,52 +171,85 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 onPressed: state.otpSent
                                     ? _editEmail
                                     : () => context.go('/'),
-                                icon: const Icon(
-                                  Icons.arrow_back_rounded,
+                                icon: const HugeIcon(
+                                  icon: HugeIcons.strokeRoundedArrowLeft01,
                                   color: Welcome.gold,
                                   size: 26,
                                 ),
                               ),
                             ),
                             const SizedBox(height: 8),
-                            const Icon(
-                              Icons.account_balance_outlined,
-                              size: 92,
-                              color: Welcome.gold,
+                            Image.asset(
+                              'assets/images/aps_crest.png',
+                              width: 104,
+                              height: 104,
+                              fit: BoxFit.contain,
+                              semanticLabel: 'APS Brat logo',
                             ),
                             const SizedBox(height: 14),
-                            const BrandTitle(fontSize: 38),
+                            const BrandTitle(),
                             const SizedBox(height: 22),
                             const DiamondDivider(),
                             const SizedBox(height: 40),
-                            RichText(
-                              textAlign: TextAlign.center,
-                              text: TextSpan(
-                                style: Welcome.headline,
-                                children: [
-                                  TextSpan(
-                                    text: _signUp
-                                        ? 'Join us, '
-                                        : 'Welcome back, ',
+                            AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 300),
+                              switchInCurve: Curves.easeOutCubic,
+                              switchOutCurve: Curves.easeInCubic,
+                              transitionBuilder: (child, animation) {
+                                final incoming = child.key == ValueKey(_signUp);
+                                final fromRight = _signUp;
+                                final begin = incoming
+                                    ? Offset(fromRight ? 1 : -1, 0)
+                                    : Offset(fromRight ? -1 : 1, 0);
+                                return SlideTransition(
+                                  position: Tween<Offset>(
+                                    begin: begin,
+                                    end: Offset.zero,
+                                  ).animate(animation),
+                                  child: FadeTransition(
+                                    opacity: animation,
+                                    child: child,
                                   ),
-                                  const TextSpan(
-                                    text: 'brat',
-                                    style: TextStyle(color: Welcome.goldLight),
+                                );
+                              },
+                              child: Column(
+                                key: ValueKey(_signUp),
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  RichText(
+                                    textAlign: TextAlign.center,
+                                    text: TextSpan(
+                                      style: Welcome.headline,
+                                      children: [
+                                        TextSpan(
+                                          text: _signUp
+                                              ? 'Join us, '
+                                              : 'Welcome back, ',
+                                        ),
+                                        const TextSpan(
+                                          text: 'brat',
+                                          style: TextStyle(
+                                            color: Welcome.goldLight,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    state.otpSent
+                                        ? 'Enter the 6-digit code we sent you'
+                                        : _signUp
+                                        ? 'Create your account with your email'
+                                        : 'Enter your email to log in',
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.mulish(
+                                      fontSize: 14,
+                                      height: 1.6,
+                                      color: Welcome.muted,
+                                    ),
                                   ),
                                 ],
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              state.otpSent
-                                  ? 'Enter the 6-digit code we sent you'
-                                  : _signUp
-                                  ? 'Create your account with your email'
-                                  : 'Enter your email to log in',
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Welcome.muted,
                               ),
                             ),
                             const SizedBox(height: 22),
@@ -298,15 +345,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return [
       Container(
         decoration: BoxDecoration(
-          color: Welcome.card.withValues(alpha: 0.7),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Welcome.gold.withValues(alpha: 0.35)),
+          color: Welcome.card,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Welcome.goldDeep, width: 2),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           children: [
-            const Icon(
-              Icons.mail_outline_rounded,
+            const HugeIcon(
+              icon: HugeIcons.strokeRoundedMail01,
               size: 20,
               color: Welcome.gold,
             ),
@@ -357,8 +404,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.mail_outline_rounded,
+              const HugeIcon(
+                icon: HugeIcons.strokeRoundedMail01,
                 size: 18,
                 color: Welcome.gold,
               ),
@@ -465,10 +512,10 @@ class _OtpBox extends StatelessWidget {
       height: 64,
       decoration: BoxDecoration(
         color: filled ? Welcome.card : Welcome.cardDeep.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: filled ? Welcome.gold : Welcome.gold.withValues(alpha: 0.25),
-          width: filled ? 1.6 : 1,
+          color: filled ? Welcome.gold : Welcome.goldDeep,
+          width: 2,
         ),
       ),
       alignment: Alignment.center,
@@ -541,10 +588,10 @@ class _GoogleButton extends StatelessWidget {
     return GestureDetector(
       onTap: loading ? null : onTap,
       child: Container(
-        height: 52,
+        height: 50,
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Welcome.goldDeep, width: 2),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -556,7 +603,7 @@ class _GoogleButton extends StatelessWidget {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF3C3C3C),
+                color: Welcome.cream,
               ),
             ),
           ],

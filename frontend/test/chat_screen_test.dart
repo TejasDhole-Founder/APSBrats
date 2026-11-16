@@ -8,6 +8,9 @@ import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hugeicons/hugeicons.dart';
+
+import 'hugeicon_finder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _rohit = Person(
@@ -154,7 +157,7 @@ void main() {
         findsOneWidget,
       );
       expect(
-        find.byIcon(Icons.done_rounded),
+        hugeIcon(HugeIcons.strokeRoundedTick01),
         findsOneWidget,
       ); // my message is sent
       expect(find.byIcon(Icons.mic), findsNothing);
@@ -208,7 +211,10 @@ void main() {
     expect(
       tester
           .widget<IconButton>(
-            find.widgetWithIcon(IconButton, Icons.send_rounded),
+            find.ancestor(
+              of: hugeIcon(HugeIcons.strokeRoundedSent),
+              matching: find.byType(IconButton),
+            ),
           )
           .onPressed,
       isNull,

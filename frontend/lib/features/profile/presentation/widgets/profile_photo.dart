@@ -5,6 +5,7 @@ import 'package:apsbrat_frontend/features/profile/data/profile_repository.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Pick a photo, upload it as my profile photo, and refresh everywhere that
@@ -107,8 +108,8 @@ class _ProfilePhotoButtonState extends ConsumerState<ProfilePhotoButton> {
                       fit: BoxFit.cover,
                     )
                   : (widget.initials ?? '').isEmpty
-                  ? Icon(
-                      Icons.person_outline_rounded,
+                  ? HugeIcon(
+                      icon: HugeIcons.strokeRoundedUser,
                       size: size * 0.45,
                       color: kGoldDark,
                     )
@@ -131,8 +132,8 @@ class _ProfilePhotoButtonState extends ConsumerState<ProfilePhotoButton> {
                   shape: BoxShape.circle,
                   border: Border.all(color: AppColors.crimson, width: 2),
                 ),
-                child: Icon(
-                  Icons.photo_camera_rounded,
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedCamera01,
                   size: size * 0.17,
                   color: AppColors.crimsonDark,
                 ),

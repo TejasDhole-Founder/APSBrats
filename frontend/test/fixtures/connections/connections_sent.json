@@ -1,0 +1,24 @@
+{
+  "success": true,
+  "data": [
+    {
+      "id": "6f5d67e6-abe9-4f84-9864-4d01936e4450",
+      "username": "fx_target",
+      "initials": "EN",
+      "name": "Esha Nair",
+      "school": "",
+      "detail": "",
+      "city": null,
+      "job": null,
+      "currentStatus": "STUDENT",
+      "profilePicUrl": null,
+      "online": false,
+      "lastActiveAt": null,
+      "tags": [
+        "Student"
+      ],
+      "mutualCount": 0,
+      "relation": "PENDING_OUT"
+    }
+  ]
+}

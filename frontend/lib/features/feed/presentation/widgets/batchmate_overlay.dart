@@ -1,4 +1,5 @@
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:apsbrat_frontend/features/feed/data/dummy_data.dart';
 import 'package:apsbrat_frontend/features/feed/presentation/widgets/feed_shared.dart';
 import 'package:flutter/material.dart';
@@ -54,14 +55,16 @@ class _BatchmateOverlayState extends State<BatchmateOverlay> {
                                     color: Colors.white.withValues(alpha: 0.12),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(
-                                    Icons.arrow_back_rounded,
+                                  child: const HugeIcon(
+                                    icon: HugeIcons.strokeRoundedArrowLeft01,
                                     size: 16,
                                     color: Colors.white,
                                   ),
                                 ),
                               ),
-                              FeedIconBtn(icon: Icons.more_vert_rounded),
+                              FeedIconBtn(
+                                icon: HugeIcons.strokeRoundedMoreVertical,
+                              ),
                             ],
                           ),
                           const SizedBox(height: 14),
@@ -195,8 +198,8 @@ class _BatchmateOverlayState extends State<BatchmateOverlay> {
                               shape: const StadiumBorder(),
                             ),
                             onPressed: () => widget.onMessage(p),
-                            icon: const Icon(
-                              Icons.chat_bubble_rounded,
+                            icon: const HugeIcon(
+                              icon: HugeIcons.strokeRoundedMessage01,
                               size: 14,
                               color: AppColors.gold,
                             ),
@@ -233,10 +236,10 @@ class _BatchmateOverlayState extends State<BatchmateOverlay> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(
-                                    _connected
-                                        ? Icons.check_rounded
-                                        : Icons.person_add_rounded,
+                                  HugeIcon(
+                                    icon: _connected
+                                        ? HugeIcons.strokeRoundedTick02
+                                        : HugeIcons.strokeRoundedUserAdd01,
                                     size: 14,
                                     color: _connected
                                         ? const Color(0xFF065F46)

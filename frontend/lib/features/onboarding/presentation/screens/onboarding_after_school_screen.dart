@@ -1,16 +1,17 @@
-import 'package:apsbrat_frontend/core/theme/app_inputs.dart';
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
 import 'package:apsbrat_frontend/features/career/data/career_models.dart';
 import 'package:apsbrat_frontend/features/career/presentation/career_form.dart';
 import 'package:apsbrat_frontend/features/onboarding/presentation/providers/onboarding_flow_provider.dart';
 import 'package:apsbrat_frontend/features/onboarding/presentation/widgets/onboarding_frame.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:apsbrat_frontend/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-/// Alumni only, optional, LinkedIn-style: every company they've worked at
-/// and every college they've been to, as many of each as they like.
-/// Cards left blank are ignored.
+/// Alumni only, optional: every company they've worked at and every college
+/// they've been to. Cards left blank are ignored.
 class OnboardingAfterSchoolScreen extends ConsumerStatefulWidget {
   const OnboardingAfterSchoolScreen({super.key});
 
@@ -64,19 +65,54 @@ class _OnboardingAfterSchoolScreenState
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _Section(
-              title: 'Work',
+              title: 'Work Experience',
+              subtitle:
+                  'Add your work experience, internships or current role.',
+              icon: HugeIcons.strokeRoundedBriefcase01,
               kind: kWork,
               career: career,
               addLabel: 'Add another company',
+              cardLabel: 'Work Experience',
               onChangedError: () => setState(() => _error = null),
             ),
             const SizedBox(height: 18),
             _Section(
-              title: 'College',
+              title: 'Education',
+              subtitle: 'Add your college and degree details.',
+              icon: HugeIcons.strokeRoundedMortarboard01,
               kind: kEducation,
               career: career,
               addLabel: 'Add another college',
+              cardLabel: 'Education',
               onChangedError: () => setState(() => _error = null),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFBEBD8),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Row(
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedInformationCircle,
+                    size: 18,
+                    color: AppColors.crimson,
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'You can skip either section and update your profile later.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.crimsonDark,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -90,16 +126,22 @@ class _OnboardingAfterSchoolScreenState
 class _Section extends ConsumerWidget {
   const _Section({
     required this.title,
+    required this.subtitle,
+    required this.icon,
     required this.kind,
     required this.career,
     required this.addLabel,
+    required this.cardLabel,
     required this.onChangedError,
   });
 
   final String title;
+  final String subtitle;
+  final AppIconData icon;
   final String kind;
   final List<CareerDraft> career;
   final String addLabel;
+  final String cardLabel;
   final VoidCallback onChangedError;
 
   @override
@@ -110,57 +152,174 @@ class _Section extends ConsumerWidget {
         if (career[i].kind == kind) i,
     ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title.toUpperCase(), style: appFieldLabelStyle),
-        const SizedBox(height: 8),
-        for (final i in indexes)
-          Container(
-            margin: const EdgeInsets.only(bottom: 10),
-            padding: const EdgeInsets.fromLTRB(12, 4, 4, 8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AppColors.crimson.withValues(alpha: 0.25),
-                width: 1.5,
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF6F1),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.crimson.withValues(alpha: 0.15)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.crimsonDark,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: HugeIcon(icon: icon, size: 20, color: Colors.white),
               ),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: CareerForm(
-                      // Removing a card shifts the ones after it; a fresh key
-                      // per position and length keeps their text in sync.
-                      key: ValueKey('$i-${career.length}'),
-                      initial: career[i],
-                      onChanged: (d) {
-                        onChangedError();
-                        notifier.updateCareer(i, d);
-                      },
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: GoogleFonts.playfairDisplay(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.crimson,
+                      ),
                     ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF8A7A6E),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFBEBD8),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: const Text(
+                  'Optional',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.crimson,
                   ),
                 ),
-                IconButton(
-                  tooltip: kind == kWork ? 'Remove company' : 'Remove college',
-                  icon: const Icon(Icons.close_rounded, size: 18),
-                  onPressed: () => notifier.removeCareer(i),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          for (var n = 0; n < indexes.length; n++)
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: AppColors.crimson.withValues(alpha: 0.25),
                 ),
-              ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(10, 6, 6, 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.crimson.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '$cardLabel ${n + 1}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.crimson,
+                            ),
+                          ),
+                        ),
+                        InkWell(
+                          onTap: () => notifier.removeCareer(indexes[n]),
+                          borderRadius: BorderRadius.circular(10),
+                          child: Container(
+                            width: 34,
+                            height: 34,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: AppColors.crimson.withValues(
+                                  alpha: 0.25,
+                                ),
+                              ),
+                            ),
+                            child: const HugeIcon(
+                              icon: HugeIcons.strokeRoundedDelete02,
+                              size: 18,
+                              color: AppColors.crimson,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  CareerForm(
+                    // Removing a card shifts the ones after it; a fresh key
+                    // per position and length keeps their text in sync.
+                    key: ValueKey('${indexes[n]}-${career.length}'),
+                    initial: career[indexes[n]],
+                    onChanged: (d) {
+                      onChangedError();
+                      notifier.updateCareer(indexes[n], d);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => notifier.addCareer(kind),
+              icon: const HugeIcon(
+                icon: HugeIcons.strokeRoundedAddCircle,
+                size: 18,
+                color: AppColors.crimson,
+              ),
+              label: Text(
+                indexes.isEmpty
+                    ? addLabel.replaceFirst('another', 'a')
+                    : addLabel,
+                style: const TextStyle(
+                  color: AppColors.crimson,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(
+                  color: AppColors.crimson.withValues(alpha: 0.6),
+                  width: 1.5,
+                ),
+                shape: const StadiumBorder(),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
             ),
           ),
-        TextButton.icon(
-          onPressed: () => notifier.addCareer(kind),
-          icon: const Icon(Icons.add_rounded, size: 18),
-          label: Text(
-            indexes.isEmpty ? addLabel.replaceFirst('another', 'a') : addLabel,
-          ),
-          style: TextButton.styleFrom(foregroundColor: AppColors.crimson),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -200,7 +359,11 @@ class _Footer extends StatelessWidget {
               Expanded(
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.crimsonDark,
+                    foregroundColor: AppColors.crimson,
+                    side: const BorderSide(
+                      color: AppColors.crimson,
+                      width: 1.5,
+                    ),
                     shape: const StadiumBorder(),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
@@ -219,7 +382,7 @@ class _Footer extends StatelessWidget {
                   ),
                   onPressed: onContinue,
                   child: const Text(
-                    'Continue',
+                    'Continue  →',
                     style: TextStyle(fontWeight: FontWeight.w800),
                   ),
                 ),

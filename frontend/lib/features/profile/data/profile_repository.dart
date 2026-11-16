@@ -97,15 +97,28 @@ class ProfileRepository {
   }
 
   /// Creates or updates one social link. `label` is only used for CUSTOM.
+  /// Removes one platform's link. Nothing to remove is not an error.
+  Future<void> deleteSocialLink({
+    required String userId,
+    required String platform,
+  }) async {
+    await _dio.delete<dynamic>(ApiEndpoints.userSocialLink(userId, platform));
+  }
+
   Future<SocialLink> saveSocialLink({
     required String userId,
     required String platform,
     required String handle,
     String? label,
+    bool? isVisible,
   }) async {
     final res = await _dio.put<dynamic>(
       ApiEndpoints.userSocialLink(userId, platform),
-      data: {'handle': handle, if (label != null) 'label': label},
+      data: {
+        'handle': handle,
+        if (label != null) 'label': label,
+        if (isVisible != null) 'isVisible': isVisible,
+      },
     );
     return SocialLink.fromJson(dataMap(res));
   }

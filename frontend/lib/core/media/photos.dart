@@ -1,4 +1,5 @@
 import 'package:apsbrat_frontend/core/constants/api_endpoints.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:apsbrat_frontend/core/constants/env.dart';
 import 'package:apsbrat_frontend/core/network/api_response.dart';
 import 'package:apsbrat_frontend/core/network/dio_client.dart';
@@ -35,12 +36,12 @@ Future<XFile?> pickPhoto(BuildContext context) async {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_camera_outlined),
+              leading: const HugeIcon(icon: HugeIcons.strokeRoundedCamera01),
               title: const Text('Take a photo'),
               onTap: () => Navigator.of(sheetContext).pop(ImageSource.camera),
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
+              leading: const HugeIcon(icon: HugeIcons.strokeRoundedImage02),
               title: const Text('Choose from gallery'),
               onTap: () => Navigator.of(sheetContext).pop(ImageSource.gallery),
             ),
@@ -77,12 +78,12 @@ Future<List<XFile>> pickPhotos(BuildContext context, {required int max}) async {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_camera_outlined),
+              leading: const HugeIcon(icon: HugeIcons.strokeRoundedCamera01),
               title: const Text('Take a photo'),
               onTap: () => Navigator.of(sheetContext).pop(ImageSource.camera),
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
+              leading: const HugeIcon(icon: HugeIcons.strokeRoundedImage02),
               title: Text(
                 max == 1
                     ? 'Choose from gallery'
@@ -188,8 +189,8 @@ class NetworkPhoto extends StatelessWidget {
               height: 120,
               color: const Color(0xFFF3F0EC),
               alignment: Alignment.center,
-              child: const Icon(
-                Icons.broken_image_outlined,
+              child: const HugeIcon(
+                icon: HugeIcons.strokeRoundedImageNotFound01,
                 color: Color(0xFF9A7070),
               ),
             ),
@@ -251,8 +252,8 @@ class _PhotoSliderState extends State<PhotoSlider> {
                       errorWidget: (_, _, _) => Container(
                         color: const Color(0xFFF3F0EC),
                         alignment: Alignment.center,
-                        child: const Icon(
-                          Icons.broken_image_outlined,
+                        child: const HugeIcon(
+                          icon: HugeIcons.strokeRoundedImageNotFound01,
                           color: Color(0xFF9A7070),
                         ),
                       ),
@@ -385,8 +386,8 @@ class _GalleryState extends State<_Gallery> {
             child: IconButton(
               tooltip: 'Close',
               onPressed: () => Navigator.of(context).pop(),
-              icon: const Icon(
-                Icons.close_rounded,
+              icon: const HugeIcon(
+                icon: HugeIcons.strokeRoundedCancel01,
                 color: Colors.white,
                 size: 28,
               ),
@@ -438,8 +439,8 @@ Future<void> showPhotoViewer(BuildContext context, String fullUrl) {
             child: IconButton(
               tooltip: 'Close',
               onPressed: () => Navigator.of(dialogContext).pop(),
-              icon: const Icon(
-                Icons.close_rounded,
+              icon: const HugeIcon(
+                icon: HugeIcons.strokeRoundedCancel01,
                 color: Colors.white,
                 size: 28,
               ),

@@ -2,8 +2,7 @@ package com.apsconnect.api.safety;
 
 import com.apsconnect.api.circle.CircleCache;
 import com.apsconnect.api.common.exception.AppException;
-import com.apsconnect.api.connection.ConnectionRepository;
-import com.apsconnect.api.connection.ConnectionStatus;
+import com.apsconnect.api.connection.ConnectionService;
 import com.apsconnect.api.user.PersonDto;
 import com.apsconnect.api.user.PersonService;
 import com.apsconnect.api.user.User;
@@ -23,7 +22,7 @@ public class BlockService {
     private final UserBlockRepository blockRepository;
     private final UserRepository userRepository;
     private final PersonService personService;
-    private final ConnectionRepository connectionRepository;
+    private final ConnectionService connectionService;
     private final CircleCache circleCache;
 
     @Transactional
@@ -41,13 +40,8 @@ public class BlockService {
         block.setBlocked(target);
         blockRepository.save(block);
 
-        // A block ends whatever was live between the two people.
-        connectionRepository.findBetween(currentUserId, targetUserId).stream()
-                .filter(c -> c.getStatus().isLive())
-                .forEach(c -> {
-                    c.setStatus(ConnectionStatus.REMOVED);
-                    connectionRepository.save(c);
-                });
+        // A block ends whatever was live between the two people (and is recorded in their history).
+        connectionService.endForBlock(currentUserId, targetUserId);
         circleCache.evictUser(currentUserId);
         circleCache.evictUser(targetUserId);
     }

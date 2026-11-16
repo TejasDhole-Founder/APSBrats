@@ -10,6 +10,7 @@ import 'package:apsbrat_frontend/features/community/data/community_repository.da
 import 'package:apsbrat_frontend/features/community/presentation/communities_tab.dart';
 import 'package:apsbrat_frontend/features/community/presentation/post_card.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/services.dart' show SystemUiOverlayStyle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -235,14 +236,14 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
           children: [
             if (!m.mine)
               ListTile(
-                leading: const Icon(Icons.flag_outlined),
+                leading: const HugeIcon(icon: HugeIcons.strokeRoundedFlag01),
                 title: const Text('Report'),
                 onTap: () => Navigator.of(sheet).pop('report'),
               ),
             if (m.mine || canModerate)
               ListTile(
-                leading: const Icon(
-                  Icons.delete_outline_rounded,
+                leading: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedDelete02,
                   color: Colors.redAccent,
                 ),
                 title: const Text(
@@ -365,7 +366,7 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
           titleSpacing: 0,
           leading: IconButton(
             tooltip: 'Back',
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: const HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01),
             onPressed: () => context.pop(),
           ),
           title: Row(

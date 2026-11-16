@@ -1,4 +1,5 @@
 import 'package:apsbrat_frontend/core/media/photos.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
 import 'package:apsbrat_frontend/features/community/data/community_models.dart';
 import 'package:apsbrat_frontend/features/community/data/community_repository.dart';
@@ -8,7 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 
-/// One post: author, time, text, a heart, a comment count, Share and a "..."
+/// One post: author, time, text, a comment count, a Share icon and a "..."
 /// menu (Pin for owners/staff, Report, Delete).
 class PostCard extends ConsumerStatefulWidget {
   const PostCard({
@@ -132,7 +133,11 @@ class _PostCardState extends ConsumerState<PostCard> {
                 padding: EdgeInsets.only(bottom: 6),
                 child: Row(
                   children: [
-                    Icon(Icons.push_pin_rounded, size: 14, color: kTxt3),
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedPin,
+                      size: 14,
+                      color: kTxt3,
+                    ),
                     SizedBox(width: 4),
                     Text(
                       'Pinned',
@@ -187,7 +192,10 @@ class _PostCardState extends ConsumerState<PostCard> {
                 ),
                 PopupMenuButton<String>(
                   tooltip: 'More',
-                  icon: const Icon(Icons.more_horiz_rounded, color: kTxt3),
+                  icon: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedMoreHorizontal,
+                    color: kTxt3,
+                  ),
                   onSelected: (v) => switch (v) {
                     'delete' => _delete(),
                     'pin' => _togglePin(),
@@ -217,8 +225,8 @@ class _PostCardState extends ConsumerState<PostCard> {
                 padding: const EdgeInsets.only(top: 6),
                 child: Row(
                   children: [
-                    const Icon(
-                      Icons.history_edu_rounded,
+                    const HugeIcon(
+                      icon: HugeIcons.strokeRoundedNote01,
                       size: 14,
                       color: AppColors.crimson,
                     ),
@@ -241,8 +249,8 @@ class _PostCardState extends ConsumerState<PostCard> {
                   onTap: () => context.push('/home/event/${p.eventId}'),
                   child: Row(
                     children: [
-                      const Icon(
-                        Icons.event_rounded,
+                      const HugeIcon(
+                        icon: HugeIcons.strokeRoundedCalendar01,
                         size: 14,
                         color: AppColors.crimson,
                       ),
@@ -291,7 +299,6 @@ class _PostCardState extends ConsumerState<PostCard> {
                 border: Border(top: BorderSide(color: Color(0xFFF0E6E6))),
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   TextButton.icon(
                     onPressed: _toggleLike,
@@ -301,12 +308,11 @@ class _PostCardState extends ConsumerState<PostCard> {
                           : const Color(0xFF7A5A5A),
                       visualDensity: VisualDensity.compact,
                     ),
-                    icon: Icon(
-                      p.likedByMe
-                          ? Icons.favorite_rounded
-                          : Icons.favorite_border_rounded,
+                    icon: HugeIcon(
+                      icon: p.likedByMe
+                          ? HugeIcons.strokeRoundedHeart
+                          : HugeIcons.strokeRoundedHeart,
                       size: 20,
-                      semanticLabel: p.likedByMe ? 'Unlike' : 'Like',
                     ),
                     label: Text('${p.likeCount}'),
                   ),
@@ -319,21 +325,22 @@ class _PostCardState extends ConsumerState<PostCard> {
                       disabledForegroundColor: const Color(0xFF7A5A5A),
                       visualDensity: VisualDensity.compact,
                     ),
-                    icon: const Icon(
-                      Icons.chat_bubble_outline_rounded,
+                    icon: const HugeIcon(
+                      icon: HugeIcons.strokeRoundedMessage01,
                       size: 18,
-                      semanticLabel: 'Comments',
                     ),
                     label: Text('${p.commentCount}'),
                   ),
-                  TextButton.icon(
+                  const Spacer(),
+                  IconButton(
+                    tooltip: 'Share',
+                    visualDensity: VisualDensity.compact,
                     onPressed: _share,
-                    style: TextButton.styleFrom(
-                      foregroundColor: const Color(0xFF7A5A5A),
-                      visualDensity: VisualDensity.compact,
+                    icon: const HugeIcon(
+                      icon: HugeIcons.strokeRoundedShare01,
+                      size: 20,
+                      color: Color(0xFF7A5A5A),
                     ),
-                    icon: const Icon(Icons.send_outlined, size: 18),
-                    label: const Text('Share'),
                   ),
                 ],
               ),

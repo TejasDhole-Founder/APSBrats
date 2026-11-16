@@ -19,6 +19,8 @@ import 'package:apsbrat_frontend/features/profile/presentation/widgets/profile_p
 import 'package:apsbrat_frontend/features/settings/data/account_repository.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:apsbrat_frontend/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -35,9 +37,9 @@ class _ProfileTabState extends State<ProfileTab> {
   int _tab = 0;
 
   static const _tabs = [
-    (Icons.person_rounded, 'About'),
-    (Icons.timeline_rounded, 'Journey'),
-    (Icons.link_rounded, 'Socials'),
+    (HugeIcons.strokeRoundedUser, 'About'),
+    (HugeIcons.strokeRoundedTimeline, 'Journey'),
+    (HugeIcons.strokeRoundedLink01, 'Socials'),
   ];
 
   @override
@@ -121,8 +123,8 @@ class _SectionTitle extends StatelessWidget {
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
           visualDensity: VisualDensity.compact,
-          icon: const Icon(
-            Icons.edit_outlined,
+          icon: const HugeIcon(
+            icon: HugeIcons.strokeRoundedPencilEdit01,
             size: 18,
             color: AppColors.crimson,
           ),
@@ -142,7 +144,7 @@ class _ProfileTabBar extends StatelessWidget {
     required this.onTap,
   });
 
-  final List<(IconData, String)> tabs;
+  final List<(AppIconData, String)> tabs;
   final int current;
   final ValueChanged<int> onTap;
 
@@ -185,8 +187,8 @@ class _ProfileTabBar extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            tabs[i].$1,
+                          HugeIcon(
+                            icon: tabs[i].$1,
                             size: 16,
                             color: i == current ? Colors.white : kTxt3,
                           ),
@@ -306,7 +308,7 @@ class _ProfileHeader extends ConsumerWidget {
                   Align(
                     alignment: Alignment.centerRight,
                     child: FeedIconBtn(
-                      icon: Icons.settings_rounded,
+                      icon: HugeIcons.strokeRoundedSettings01,
                       onTap: onSettings,
                     ),
                   ),
@@ -357,10 +359,6 @@ class _ProfileHeader extends ConsumerWidget {
                   const SizedBox(height: 14),
                   Row(
                     children: [
-                      _StatItem(
-                        value: '${profile?.batchmatesCount ?? 0}',
-                        label: 'Batchmates',
-                      ),
                       _StatItem(
                         value:
                             '${schools?.length ?? profile?.schoolsCount ?? 0}',
@@ -416,8 +414,10 @@ class _VerifiedPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            verified ? Icons.verified_user_rounded : Icons.shield_outlined,
+          HugeIcon(
+            icon: verified
+                ? HugeIcons.strokeRoundedShieldUser
+                : HugeIcons.strokeRoundedShield01,
             size: 12,
             color: color,
           ),
@@ -449,21 +449,21 @@ class _PersonalInfoSection extends ConsumerWidget {
     return _SocialsCard(
       children: [
         _InfoRow(
-          icon: Icons.alternate_email_rounded,
+          icon: HugeIcons.strokeRoundedAtSign,
           label: 'Username',
           value: me?.username == null ? null : '@${me!.username}',
           hint: 'Not set',
         ),
         const Divider(height: 1, color: kBorder),
         _InfoRow(
-          icon: Icons.badge_outlined,
+          icon: HugeIcons.strokeRoundedIdCard,
           label: 'Full name',
           value: me?.fullName,
           hint: 'Not set',
         ),
         const Divider(height: 1, color: kBorder),
         _InfoRow(
-          icon: Icons.phone_outlined,
+          icon: HugeIcons.strokeRoundedCall,
           label: 'Phone · used to log in',
           value: me?.phone,
           hint: 'Not set',
@@ -471,7 +471,7 @@ class _PersonalInfoSection extends ConsumerWidget {
         ),
         const Divider(height: 1, color: kBorder),
         _InfoRow(
-          icon: Icons.email_outlined,
+          icon: HugeIcons.strokeRoundedMail01,
           label: 'Email',
           value: me?.email,
           hint: 'Not added',
@@ -479,21 +479,21 @@ class _PersonalInfoSection extends ConsumerWidget {
         ),
         const Divider(height: 1, color: kBorder),
         _InfoRow(
-          icon: Icons.cake_outlined,
+          icon: HugeIcons.strokeRoundedCake,
           label: 'Date of birth',
           value: _formatDob(me?.dob),
           hint: 'Not added',
         ),
         const Divider(height: 1, color: kBorder),
         _InfoRow(
-          icon: Icons.location_on_outlined,
+          icon: HugeIcons.strokeRoundedLocation01,
           label: 'Current city',
           value: me?.city,
           hint: 'Not added',
         ),
         const Divider(height: 1, color: kBorder),
         _InfoRow(
-          icon: Icons.work_outline_rounded,
+          icon: HugeIcons.strokeRoundedBriefcase01,
           label: 'What I do now',
           value:
               careerHeadline(
@@ -504,7 +504,7 @@ class _PersonalInfoSection extends ConsumerWidget {
         ),
         const Divider(height: 1, color: kBorder),
         _InfoRow(
-          icon: Icons.school_outlined,
+          icon: HugeIcons.strokeRoundedMortarboard01,
           label: 'I am a',
           value: switch (me?.currentStatus) {
             'STUDENT' => 'Student',
@@ -534,7 +534,7 @@ class _InfoRow extends StatelessWidget {
     this.verified,
   });
 
-  final IconData icon;
+  final AppIconData icon;
   final String label;
   final String? value;
   final String hint;
@@ -549,7 +549,7 @@ class _InfoRow extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(14, 11, 14, 11),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: kTxt3),
+          HugeIcon(icon: icon, size: 18, color: kTxt3),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -589,10 +589,10 @@ class _InfoRow extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    verified!
-                        ? Icons.check_circle_rounded
-                        : Icons.error_outline_rounded,
+                  HugeIcon(
+                    icon: verified!
+                        ? HugeIcons.strokeRoundedCheckmarkCircle01
+                        : HugeIcons.strokeRoundedAlert02,
                     size: 12,
                     color: verified! ? const Color(0xFF2E7D32) : kTxt3,
                   ),
@@ -849,7 +849,11 @@ class _SocialBox extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  const Icon(Icons.edit_outlined, size: 16, color: kTxt3),
+                  const HugeIcon(
+                    icon: HugeIcons.strokeRoundedPencilEdit01,
+                    size: 16,
+                    color: kTxt3,
+                  ),
                 ],
               ),
             ),
@@ -1039,7 +1043,9 @@ class _PrivacyRow extends ConsumerWidget {
         ref.watch(mySettingsProvider).valueOrNull?.isPrivate ?? false;
     return _SettingsRow(
       iconBg: kGoldLight,
-      icon: isPrivate ? Icons.lock_rounded : Icons.public_rounded,
+      icon: isPrivate
+          ? HugeIcons.strokeRoundedLockPassword
+          : HugeIcons.strokeRoundedGlobe02,
       iconColor: kGoldDark,
       // The label never changes, so the switch always means "Private is on/off".
       title: 'Private profile',
@@ -1077,7 +1083,7 @@ class _ActivityRow extends ConsumerWidget {
         ref.watch(mySettingsProvider).valueOrNull?.showActivity ?? true;
     return _SettingsRow(
       iconBg: kGoldLight,
-      icon: show ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+      icon: show ? HugeIcons.strokeRoundedEye : HugeIcons.strokeRoundedEyeOff,
       iconColor: kGoldDark,
       title: 'Show my activity',
       subtitle: show
@@ -1285,7 +1291,7 @@ class _SettingsSheetState extends ConsumerState<_SettingsSheet> {
                   rows: [
                     _SettingsRow(
                       iconBg: const Color(0xFFF0EDE5),
-                      icon: Icons.block_outlined,
+                      icon: HugeIcons.strokeRoundedCancel01,
                       iconColor: const Color(0xFF6A6050),
                       title: 'Blocked users',
                       subtitle: 'People you have blocked',
@@ -1293,7 +1299,7 @@ class _SettingsSheetState extends ConsumerState<_SettingsSheet> {
                     ),
                     _SettingsRow(
                       iconBg: const Color(0xFFF0EDE5),
-                      icon: Icons.download_outlined,
+                      icon: HugeIcons.strokeRoundedDownload01,
                       iconColor: const Color(0xFF6A6050),
                       title: 'Download my data',
                       subtitle: _exporting
@@ -1303,7 +1309,7 @@ class _SettingsSheetState extends ConsumerState<_SettingsSheet> {
                     ),
                     _SettingsRow(
                       iconBg: const Color(0xFFFEF3F3),
-                      icon: Icons.delete_outline_rounded,
+                      icon: HugeIcons.strokeRoundedDelete02,
                       iconColor: const Color(0xFFC53030),
                       title: 'Delete account',
                       subtitle: _deleting
@@ -1314,7 +1320,7 @@ class _SettingsSheetState extends ConsumerState<_SettingsSheet> {
                     ),
                     _SettingsRow(
                       iconBg: const Color(0xFFFEF3F3),
-                      icon: Icons.logout_rounded,
+                      icon: HugeIcons.strokeRoundedLogout01,
                       iconColor: const Color(0xFFC53030),
                       title: 'Log out',
                       subtitle: _loggingOut
@@ -1326,7 +1332,7 @@ class _SettingsSheetState extends ConsumerState<_SettingsSheet> {
                     ),
                     _SettingsRow(
                       iconBg: const Color(0xFFFEF3F3),
-                      icon: Icons.devices_other_rounded,
+                      icon: HugeIcons.strokeRoundedTablet01,
                       iconColor: const Color(0xFFC53030),
                       title: 'Log out of all devices',
                       subtitle: 'If you lost a phone or used a shared device',
@@ -1384,8 +1390,8 @@ class _SettingsRow extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.onTap,
-    this.trailing = const Icon(
-      Icons.chevron_right_rounded,
+    this.trailing = const HugeIcon(
+      icon: HugeIcons.strokeRoundedArrowRight01,
       size: 18,
       color: kTxt3,
     ),
@@ -1393,7 +1399,7 @@ class _SettingsRow extends StatelessWidget {
   });
 
   final Color iconBg;
-  final IconData icon;
+  final AppIconData icon;
   final Color iconColor;
   final String title;
   final String subtitle;
@@ -1417,7 +1423,7 @@ class _SettingsRow extends StatelessWidget {
                 color: iconBg,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, size: 18, color: iconColor),
+              child: HugeIcon(icon: icon, size: 18, color: iconColor),
             ),
             const SizedBox(width: 12),
             Expanded(

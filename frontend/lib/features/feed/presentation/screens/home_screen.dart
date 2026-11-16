@@ -1,9 +1,10 @@
 import 'dart:async';
+import 'package:hugeicons/hugeicons.dart';
 
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
 import 'package:apsbrat_frontend/features/chat/data/chat_repository.dart';
 import 'package:apsbrat_frontend/features/chat/data/chat_socket.dart';
-import 'package:apsbrat_frontend/features/community/presentation/communities_tab.dart';
+import 'package:apsbrat_frontend/features/community/data/community_repository.dart';
 import 'package:apsbrat_frontend/features/feed/data/dummy_data.dart';
 import 'package:apsbrat_frontend/features/feed/presentation/widgets/batch_tab.dart';
 import 'package:apsbrat_frontend/features/feed/presentation/widgets/batchmate_overlay.dart';
@@ -26,7 +27,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 /// Tab positions; must match the order of [_BottomNav._items].
-const _messagesTab = 3;
+const _messagesTab = 2;
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _tab = 0;
@@ -53,6 +54,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   AppPerson? _chatPerson;
   AppPerson? _batchmatePerson;
   StreamSubscription? _chatSocketSubscription;
+  StreamSubscription? _communitySocketSubscription;
 
   @override
   void initState() {
@@ -67,11 +69,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     _chatSocketSubscription = socket.messages.listen(
       (_) => ref.invalidate(conversationsProvider),
     );
+    _communitySocketSubscription = socket.communityMessages.listen(
+      (_) => ref.invalidate(myCommunityChatsProvider),
+    );
   }
 
   @override
   void dispose() {
     _chatSocketSubscription?.cancel();
+    _communitySocketSubscription?.cancel();
     super.dispose();
   }
 
@@ -127,12 +133,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             ? const BatchTab()
                             : const SizedBox.shrink(),
                         _visited.contains(2)
-                            ? const CommunitiesTab()
-                            : const SizedBox.shrink(),
-                        _visited.contains(3)
                             ? const MessagesTab()
                             : const SizedBox.shrink(),
-                        _visited.contains(4)
+                        _visited.contains(3)
                             ? const ProfileTab()
                             : const SizedBox.shrink(),
                       ],
@@ -168,11 +171,18 @@ class _BottomNav extends StatelessWidget {
   final ValueChanged<int> onTap;
 
   static const _items = [
-    (Icons.home_rounded, Icons.home_outlined, 'Home'),
-    (Icons.people_rounded, Icons.people_outline_rounded, 'Batchmates'),
-    (Icons.groups_rounded, Icons.groups_outlined, 'Communities'),
-    (Icons.chat_bubble_rounded, Icons.chat_bubble_outline_rounded, 'Messages'),
-    (Icons.person_rounded, Icons.person_outline_rounded, 'Profile'),
+    (HugeIcons.strokeRoundedHome01, HugeIcons.strokeRoundedHome01, 'Home'),
+    (
+      HugeIcons.strokeRoundedUserMultiple,
+      HugeIcons.strokeRoundedUserGroup02,
+      'Batchmates',
+    ),
+    (
+      HugeIcons.strokeRoundedComment01,
+      HugeIcons.strokeRoundedComment01,
+      'Social',
+    ),
+    (HugeIcons.strokeRoundedUser, HugeIcons.strokeRoundedUser, 'Profile'),
   ];
 
   @override
@@ -197,8 +207,8 @@ class _BottomNav extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        active ? activeIcon : inactiveIcon,
+                      HugeIcon(
+                        icon: active ? activeIcon : inactiveIcon,
                         size: 22,
                         color: active
                             ? AppColors.crimson

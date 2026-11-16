@@ -1,4 +1,5 @@
 import 'package:apsbrat_frontend/core/models/person.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
 import 'package:apsbrat_frontend/features/connections/data/connection_repository.dart';
 import 'package:apsbrat_frontend/features/feed/presentation/widgets/feed_shared.dart';
@@ -24,7 +25,7 @@ class RequestsScreen extends StatelessWidget {
               child: Row(
                 children: [
                   FeedIconBtn(
-                    icon: Icons.arrow_back_rounded,
+                    icon: HugeIcons.strokeRoundedArrowLeft01,
                     onTap: () => context.pop(),
                   ),
                   const SizedBox(width: 12),
@@ -147,7 +148,7 @@ class _RequestsSheetState extends ConsumerState<RequestsSheet> {
                   ),
                 ),
                 error: (_, __) => EmptyState(
-                  icon: Icons.wifi_off_rounded,
+                  icon: HugeIcons.strokeRoundedWifiOff01,
                   title: 'Could not load requests',
                   message: 'Check your connection and try again.',
                   action: TextButton(

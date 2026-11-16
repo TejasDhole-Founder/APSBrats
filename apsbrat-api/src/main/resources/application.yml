@@ -62,7 +62,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics,prometheus
   endpoint:
     health:
       probes:
@@ -71,7 +71,9 @@ management:
       group:
         readiness:
           include: readinessState,db,redis
-
+    metrics:
+      tags:
+        application: aps-brats-api
 ---
 spring:
   config:
@@ -119,7 +121,18 @@ app:
   otp:
     # Dev-only universal OTP so seeded demo accounts log in without an SMS gateway.
     master: ${OTP_MASTER:000000}
+  actuator:
+    # Local testing: expose /actuator/prometheus and /actuator/metrics without a login. Dev profile only.
+    public-metrics: true
 
+# Local analytics (dev only, read by tools/api_dashboard.py): histograms give p50/p95/p99 latency
+# for requests and for database calls.
+management:
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+        spring.data.repository.invocations: true
 ---
 spring:
   config:

@@ -4,6 +4,7 @@ import 'package:apsbrat_frontend/features/feed/presentation/widgets/feed_shared.
 import 'package:apsbrat_frontend/features/notifications/data/notification_models.dart';
 import 'package:apsbrat_frontend/features/notifications/data/notification_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -90,7 +91,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               child: Row(
                 children: [
                   FeedIconBtn(
-                    icon: Icons.arrow_back_rounded,
+                    icon: HugeIcons.strokeRoundedArrowLeft01,
                     onTap: () => context.pop(),
                   ),
                   const SizedBox(width: 12),
@@ -133,7 +134,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                   child: CircularProgressIndicator(color: AppColors.crimson),
                 ),
                 error: (_, __) => EmptyState(
-                  icon: Icons.wifi_off_rounded,
+                  icon: HugeIcons.strokeRoundedWifiOff01,
                   title: 'Could not load notifications',
                   message: 'Check your connection and try again.',
                   action: TextButton(
@@ -144,7 +145,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                 data: (list) {
                   if (list.isEmpty) {
                     return const EmptyState(
-                      icon: Icons.notifications_none_rounded,
+                      icon: HugeIcons.strokeRoundedNotification01,
                       title: 'Nothing yet',
                       message:
                           'Requests, accepted connections and school news will show up here.',

@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -40,5 +41,17 @@ public class UserSocialLinkController {
             throw new AppException("You can only edit your own social links", HttpStatus.FORBIDDEN);
         }
         return ResponseEntity.ok(ApiResponse.success(userSocialLinkService.upsertLink(userId, platform, request)));
+    }
+
+    /** Removes one of the owner's links. Only the owner may remove them. */
+    @DeleteMapping("/{platform}")
+    public ResponseEntity<ApiResponse<Void>> deleteSocialLink(
+            @PathVariable UUID userId,
+            @PathVariable SocialPlatform platform) {
+        if (!userId.equals(SecurityUtils.currentUserId())) {
+            throw new AppException("You can only edit your own social links", HttpStatus.FORBIDDEN);
+        }
+        userSocialLinkService.deleteLink(userId, platform);
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

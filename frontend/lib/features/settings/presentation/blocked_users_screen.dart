@@ -4,6 +4,7 @@ import 'package:apsbrat_frontend/features/community/data/community_repository.da
 import 'package:apsbrat_frontend/features/feed/presentation/widgets/feed_shared.dart';
 import 'package:apsbrat_frontend/features/settings/data/block_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -27,7 +28,7 @@ class BlockedUsersScreen extends ConsumerWidget {
               child: Row(
                 children: [
                   FeedIconBtn(
-                    icon: Icons.arrow_back_rounded,
+                    icon: HugeIcons.strokeRoundedArrowLeft01,
                     onTap: () => context.pop(),
                   ),
                   const SizedBox(width: 12),
@@ -55,7 +56,7 @@ class BlockedUsersScreen extends ConsumerWidget {
                 ),
                 data: (people) => people.isEmpty
                     ? const EmptyState(
-                        icon: Icons.block_outlined,
+                        icon: HugeIcons.strokeRoundedCancel01,
                         title: "You haven't blocked anyone",
                         message:
                             'People you block can\'t find you or message you.',

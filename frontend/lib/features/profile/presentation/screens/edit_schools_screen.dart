@@ -1,4 +1,5 @@
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:apsbrat_frontend/features/auth/data/auth_repository.dart';
 import 'package:apsbrat_frontend/features/feed/presentation/widgets/feed_shared.dart';
 import 'package:apsbrat_frontend/features/onboarding/data/models/school_history_registration_model.dart';
@@ -135,7 +136,7 @@ class _EditSchoolsScreenState extends ConsumerState<EditSchoolsScreen> {
               child: Row(
                 children: [
                   FeedIconBtn(
-                    icon: Icons.arrow_back_rounded,
+                    icon: HugeIcons.strokeRoundedArrowLeft01,
                     onTap: () => context.pop(),
                   ),
                   const SizedBox(width: 12),

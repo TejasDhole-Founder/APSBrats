@@ -5,6 +5,7 @@ import 'package:apsbrat_frontend/features/feed/presentation/widgets/feed_shared.
 import 'package:apsbrat_frontend/features/feed/presentation/widgets/school_timeline.dart';
 import 'package:apsbrat_frontend/features/profile/data/profile_models.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 /// A person's whole story on one line, newest first: work, then college,
 /// then their APS schools. `editable` adds the + / pencil controls for the
@@ -83,8 +84,10 @@ class _Heading extends StatelessWidget {
           if (action != null)
             TextButton.icon(
               onPressed: onAction,
-              icon: Icon(
-                action == 'Add' ? Icons.add_rounded : Icons.edit_outlined,
+              icon: HugeIcon(
+                icon: action == 'Add'
+                    ? HugeIcons.strokeRoundedAdd01
+                    : HugeIcons.strokeRoundedPencilEdit01,
                 size: 16,
               ),
               label: Text(action!),
@@ -176,10 +179,10 @@ class _EntryRow extends StatelessWidget {
                           : kCrimsonLight,
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(
-                      entry.isWork
-                          ? Icons.work_outline_rounded
-                          : Icons.school_outlined,
+                    child: HugeIcon(
+                      icon: entry.isWork
+                          ? HugeIcons.strokeRoundedBriefcase01
+                          : HugeIcons.strokeRoundedMortarboard01,
                       size: 15,
                       color: entry.isCurrent ? Colors.white : AppColors.crimson,
                     ),
@@ -235,7 +238,11 @@ class _EntryRow extends StatelessWidget {
             if (onTap != null)
               const Padding(
                 padding: EdgeInsets.only(top: 4),
-                child: Icon(Icons.edit_outlined, size: 16, color: kTxt3),
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedPencilEdit01,
+                  size: 16,
+                  color: kTxt3,
+                ),
               ),
           ],
         ),

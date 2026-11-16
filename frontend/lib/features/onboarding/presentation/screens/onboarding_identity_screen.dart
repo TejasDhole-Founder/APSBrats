@@ -1,13 +1,18 @@
 import 'dart:async';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:apsbrat_frontend/core/theme/app_icons.dart';
 import 'package:apsbrat_frontend/features/profile/presentation/widgets/profile_photo.dart';
 import 'package:apsbrat_frontend/features/profile/data/profile_repository.dart';
 
+import 'package:dio/dio.dart';
+import 'package:apsbrat_frontend/core/location/location_service.dart';
 import 'package:apsbrat_frontend/core/network/dio_client.dart';
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
 import 'package:apsbrat_frontend/features/auth/presentation/providers/auth_provider.dart';
 import 'package:apsbrat_frontend/features/onboarding/data/services/onboarding_registration_service.dart';
 import 'package:apsbrat_frontend/features/onboarding/presentation/providers/availability_checker.dart';
 import 'package:apsbrat_frontend/features/onboarding/presentation/providers/onboarding_flow_provider.dart';
+import 'package:apsbrat_frontend/features/onboarding/presentation/widgets/dob_picker_sheet.dart';
 import 'package:apsbrat_frontend/features/onboarding/presentation/widgets/onboarding_frame.dart';
 import 'package:apsbrat_frontend/core/theme/app_inputs.dart';
 import 'package:flutter/material.dart';
@@ -96,7 +101,7 @@ class _OnboardingIdentityScreenState
     final dob = _dobController.text.trim();
     final city = _cityController.text.trim();
     final profession = _professionController.text.trim();
-    final gender = _gender ?? '';
+    final gender = _gender ?? 'PREFER_NOT';
     final isStudent = _isStudent;
     final email = _email;
     final flow = _flow;
@@ -150,21 +155,54 @@ class _OnboardingIdentityScreenState
           dob: _dobController.text.trim(),
           city: _cityController.text.trim(),
           profession: _professionController.text.trim(),
-          gender: _gender ?? '',
+          gender: _gender ?? 'PREFER_NOT',
           isStudent: _isStudent,
         );
     _flow.markStep(2);
     if (mounted) context.go('/onboarding/schools');
   }
 
+  final _location = LocationService();
+
+  /// Asks for location only when tapped, reads the position, and fills the city
+  /// from the server's reverse lookup.
+  Future<void> _useMyLocation() async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final point = await _location.currentRounded();
+      final response = await ref
+          .read(dioProvider)
+          .get<dynamic>(
+            '/places/reverse',
+            queryParameters: {'lat': point.latitude, 'lon': point.longitude},
+          );
+      final data = (response.data as Map)['data'] as Map?;
+      final city = data?['city'] as String?;
+      if (city == null) {
+        throw const LocationException(
+          'Could not find your city. Type it instead.',
+        );
+      }
+      _cityController.text = city;
+    } on LocationException catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(e.message)));
+    } on DioException {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text("Couldn't find your city right now. Type it instead."),
+        ),
+      );
+    }
+  }
+
   Future<void> _pickDob() async {
-    final now = DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime(now.year - 20),
-      firstDate: DateTime(1950),
-      lastDate: DateTime(now.year - 5),
-    );
+    DateTime? current;
+    try {
+      current = DateFormat('dd/MM/yyyy').parseStrict(_dobController.text);
+    } on FormatException {
+      current = null;
+    }
+    final picked = await showDobSheet(context, initial: current);
     if (picked != null) {
       _dobController.text = DateFormat('dd/MM/yyyy').format(picked);
     }
@@ -203,6 +241,7 @@ class _OnboardingIdentityScreenState
             _scheduleSave();
           },
           onPickDob: _pickDob,
+          onUseLocation: _useMyLocation,
         ),
       ),
     );
@@ -226,6 +265,7 @@ class _FormBody extends StatelessWidget {
     required this.onGenderChanged,
     required this.onStatusChanged,
     required this.onPickDob,
+    required this.onUseLocation,
   });
 
   final TextEditingController firstNameController;
@@ -241,14 +281,15 @@ class _FormBody extends StatelessWidget {
   final ValueChanged<String?> onGenderChanged;
   final ValueChanged<bool> onStatusChanged;
   final VoidCallback onPickDob;
+  final VoidCallback onUseLocation;
 
   static const _crimson = AppColors.crimson;
   static const _border = Color(0xFFE2DDD5);
   static const _hint = Color(0xFFBBB4A8);
 
   static const _labelStyle = TextStyle(
-    fontSize: 10,
-    fontWeight: FontWeight.w800,
+    fontSize: 11,
+    fontWeight: FontWeight.w700,
     letterSpacing: 0.8,
     color: _crimson,
   );
@@ -302,7 +343,7 @@ class _FormBody extends StatelessWidget {
             children: [
               Expanded(
                 child: _labeledField(
-                  'FIRST NAME',
+                  'FIRST NAME *',
                   TextFormField(
                     controller: firstNameController,
                     decoration: _dec('Arjun'),
@@ -314,7 +355,7 @@ class _FormBody extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: _labeledField(
-                  'LAST NAME',
+                  'LAST NAME *',
                   TextFormField(
                     controller: lastNameController,
                     decoration: _dec('Singh'),
@@ -335,7 +376,7 @@ class _FormBody extends StatelessWidget {
               focusNode: usernameCheck.focus,
               inputFormatters: usernameInputFormatters,
               decoration: _dec(
-                'arjun.singh',
+                'arjun_singh',
                 suffix: _availabilitySuffix(usernameCheck),
               ).copyWith(errorText: usernameCheck.error),
               validator: _required,
@@ -361,8 +402,8 @@ class _FormBody extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(
-                    Icons.verified_rounded,
+                  const HugeIcon(
+                    icon: HugeIcons.strokeRoundedCheckmarkBadge01,
                     size: 16,
                     color: Colors.green,
                   ),
@@ -391,16 +432,19 @@ class _FormBody extends StatelessWidget {
               Expanded(
                 child: _labeledField(
                   'DATE OF BIRTH',
-                  TextFormField(
-                    controller: dobController,
-                    readOnly: true,
-                    onTap: onPickDob,
-                    decoration: _dec(
-                      'DD / MM / YYYY',
-                      suffix: const Icon(
-                        Icons.calendar_today_outlined,
-                        size: 16,
-                        color: _hint,
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: TextFormField(
+                      controller: dobController,
+                      readOnly: true,
+                      onTap: onPickDob,
+                      decoration: _dec(
+                        'DD / MM / YYYY',
+                        suffix: const HugeIcon(
+                          icon: HugeIcons.strokeRoundedCalendar03,
+                          size: 16,
+                          color: _hint,
+                        ),
                       ),
                     ),
                   ),
@@ -408,36 +452,7 @@ class _FormBody extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _labeledField(
-                  'GENDER',
-                  DropdownButtonFormField<String>(
-                    initialValue: gender,
-                    isDense: true,
-                    isExpanded: true,
-                    hint: const Text(
-                      'Select',
-                      style: TextStyle(fontSize: 13, color: _hint),
-                    ),
-                    decoration: _dec(''),
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Color(0xFF1A0A0A),
-                    ),
-                    items: const [
-                      DropdownMenuItem(value: 'MALE', child: Text('Male')),
-                      DropdownMenuItem(value: 'FEMALE', child: Text('Female')),
-                      DropdownMenuItem(
-                        value: 'NON_BINARY',
-                        child: Text('Non-binary'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'PREFER_NOT',
-                        child: Text('Prefer not to say'),
-                      ),
-                    ],
-                    onChanged: onGenderChanged,
-                  ),
-                ),
+                child: _GenderPicker(value: gender, onChanged: onGenderChanged),
               ),
             ],
           ),
@@ -445,17 +460,39 @@ class _FormBody extends StatelessWidget {
 
           // Current city
           _labeledField(
-            'CURRENT CITY',
+            'CURRENT CITY *',
             TextFormField(
               controller: cityController,
               decoration: _dec('Where are you based right now?'),
+            ),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: onUseLocation,
+              icon: const HugeIcon(
+                icon: HugeIcons.strokeRoundedTarget01,
+                size: 16,
+              ),
+              label: const Text('Use my location'),
             ),
           ),
           // "What do you do now" moved to its own step (alumni only).
           const SizedBox(height: 14),
 
           // I AM A toggle
-          const Text('I AM A', style: _labelStyle),
+          Text.rich(
+            TextSpan(
+              style: _labelStyle,
+              children: [
+                TextSpan(text: 'I AM A'),
+                TextSpan(
+                  text: ' *',
+                  style: TextStyle(color: Color(0xFFC62828)),
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 8),
           _StatusToggle(isStudent: isStudent, onChanged: onStatusChanged),
           const SizedBox(height: 8),
@@ -473,7 +510,19 @@ class _FormBody extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: _labelStyle),
+        Text.rich(
+          TextSpan(
+            style: _labelStyle,
+            children: [
+              TextSpan(text: label.replaceAll(' *', '')),
+              if (label.endsWith(' *'))
+                const TextSpan(
+                  text: ' *',
+                  style: TextStyle(color: Color(0xFFC62828)),
+                ),
+            ],
+          ),
+        ),
         const SizedBox(height: 5),
         field,
         if (hint != null) ...[
@@ -512,8 +561,8 @@ Widget? _availabilitySuffix(AvailabilityChecker check) {
     );
   }
   if (check.confirmed) {
-    return const Icon(
-      Icons.check_circle_rounded,
+    return const HugeIcon(
+      icon: HugeIcons.strokeRoundedCheckmarkCircle01,
       size: 18,
       color: Colors.green,
     );
@@ -538,6 +587,110 @@ String? _availabilityHint(
 
 /// Optional: add a profile photo during registration. It's saved straight
 /// away (the account already exists), so it's there even if they stop here.
+/// Gender as two tappable picture cards. Leaving both unselected saves
+/// "Prefer not to say".
+class _GenderPicker extends StatelessWidget {
+  const _GenderPicker({required this.value, required this.onChanged});
+
+  final String? value;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text.rich(
+          TextSpan(
+            style: _FormBody._labelStyle,
+            children: [
+              TextSpan(text: 'GENDER '),
+              TextSpan(
+                text: '(Optional)',
+                style: TextStyle(
+                  color: Color(0xFF8A8A8A),
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: _GenderCard(
+                label: 'Female',
+                asset: 'assets/images/gender_female.png',
+                compact: true,
+                selected: value == 'FEMALE',
+                onTap: () => onChanged(value == 'FEMALE' ? null : 'FEMALE'),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _GenderCard(
+                label: 'Male',
+                asset: 'assets/images/gender_male.png',
+                compact: true,
+                selected: value == 'MALE',
+                onTap: () => onChanged(value == 'MALE' ? null : 'MALE'),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _GenderCard extends StatelessWidget {
+  const _GenderCard({
+    required this.label,
+    required this.asset,
+    required this.selected,
+    required this.onTap,
+    this.compact = false,
+  });
+
+  final String label;
+  final String asset;
+  final bool selected;
+  final VoidCallback onTap;
+  final bool compact;
+
+  static const _maroon = Color(0xFF7B1414);
+  static const _tan = Color(0xFFE3C9A4);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: selected ? _maroon : _tan,
+                width: selected ? 3 : 2,
+              ),
+            ),
+            child: Image.asset(
+              asset,
+              width: compact ? 46 : 120,
+              height: compact ? 46 : 120,
+              semanticLabel: label,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _PhotoCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -547,11 +700,11 @@ class _PhotoCard extends ConsumerWidget {
       borderRadius: AppRadius.md,
       onTap: () => changeProfilePhoto(context, ref),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: const Color(0xFFFAF8F5),
-          borderRadius: AppRadius.md,
-          border: Border.all(color: const Color(0xFFE8E2DA), width: 1.5),
+          color: const Color(0xFFF7EFE4),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFE6D5BD), width: 1),
         ),
         child: Row(
           children: [
@@ -573,7 +726,7 @@ class _PhotoCard extends ConsumerWidget {
                   Text(
                     hasPhoto
                         ? 'Tap to change it anytime'
-                        : 'Optional. Helps your batchmates recognise you after all these years',
+                        : 'Optional • Helps your batchmates recognise you after all these years.',
                     style: const TextStyle(
                       fontSize: 11,
                       color: Color(0xFF9A9280),
@@ -602,18 +755,21 @@ class _StatusToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFFE2DDD5), width: 1.5),
-        borderRadius: AppRadius.sm,
+        color: const Color(0xFFF5EBDD),
+        border: Border.all(color: const Color(0xFFE6D5BD), width: 1),
+        borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
         children: [
           _Chip(
             label: 'APS Alumni',
+            icon: HugeIcons.strokeRoundedMortarboard01,
             active: !isStudent,
             onTap: () => onChanged(false),
           ),
           _Chip(
             label: 'Current student',
+            icon: HugeIcons.strokeRoundedUserGroup,
             active: isStudent,
             onTap: () => onChanged(true),
           ),
@@ -624,9 +780,15 @@ class _StatusToggle extends StatelessWidget {
 }
 
 class _Chip extends StatelessWidget {
-  const _Chip({required this.label, required this.active, required this.onTap});
+  const _Chip({
+    required this.label,
+    required this.icon,
+    required this.active,
+    required this.onTap,
+  });
 
   final String label;
+  final AppIconData icon;
   final bool active;
   final VoidCallback onTap;
 
@@ -636,19 +798,39 @@ class _Chip extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 11),
+          margin: const EdgeInsets.all(3),
+          padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 8),
           decoration: BoxDecoration(
-            color: active ? AppColors.crimson : Colors.white,
-            borderRadius: AppRadius.sm,
+            color: active ? AppColors.crimson : Colors.transparent,
+            borderRadius: BorderRadius.circular(999),
           ),
           alignment: Alignment.center,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: active ? Colors.white : const Color(0xFF9A9280),
-            ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              HugeIcon(
+                icon: icon,
+                size: 16,
+                color: active ? Colors.white : AppColors.crimson,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: active ? Colors.white : const Color(0xFF2A1A14),
+                ),
+              ),
+              if (active) ...[
+                const SizedBox(width: 6),
+                const HugeIcon(
+                  icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                  size: 16,
+                  color: AppColors.gold,
+                ),
+              ],
+            ],
           ),
         ),
       ),
@@ -697,7 +879,7 @@ class _Footer extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               const Text(
-                'Next — add my schools',
+                'Save and continue',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 14,

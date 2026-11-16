@@ -1,82 +1,113 @@
-import 'dart:math' as math;
-
-import 'package:apsbrat_frontend/features/auth/presentation/widgets/welcome_brand.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
-  // Shared pre-login palette (see welcome_brand.dart).
-  static const _bg = Welcome.bg;
-  static const _bgEdge = Welcome.bgEdge;
-  static const _gold = Welcome.gold;
-  static const _goldLight = Welcome.goldLight;
-  static const _muted = Welcome.muted;
-  static const _pillBg = Welcome.cardDeep;
-  static const _btnBg = Welcome.card;
+  static const _gold = Color(0xFFE8B84A);
+  static const _goldDeep = Color(0xFFD4A84A);
+  static const _cream = Color(0xFFF5EFE6);
+  static const _body = Color(0xFFE9D3B8);
+  static const _muted = Color(0xFFC9B49A);
+  static const _maroonText = Color(0xFF4A0C0C);
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.light,
+      ),
       child: Scaffold(
-        backgroundColor: _bg,
+        resizeToAvoidBottomInset: false,
         body: Container(
-          // Soft vignette: slightly lighter centre, darker edges, like the design.
           decoration: const BoxDecoration(
             gradient: RadialGradient(
-              center: Alignment(0, -0.3),
+              center: Alignment(0, -0.4),
               radius: 1.2,
-              colors: [_bg, _bgEdge],
+              colors: [Color(0xFF6E1418), Color(0xFF4E0B0F), Color(0xFF2A0508)],
+              stops: [0, 0.55, 1],
             ),
           ),
           child: SafeArea(
-            // Scrolls on short screens; on tall screens the Spacer keeps the
-            // buttons pinned to the bottom.
-            child: LayoutBuilder(
-              builder: (context, constraints) => SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: IntrinsicHeight(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const SizedBox(height: 40),
-                          _ApsLogo(),
-                          const SizedBox(height: 22),
-                          _Title(),
-                          const SizedBox(height: 8),
-                          _Subtitle(),
-                          const SizedBox(height: 22),
-                          _DiamondDivider(),
-                          const SizedBox(height: 34),
-                          _Headline(),
-                          const SizedBox(height: 18),
-                          _BodyText(),
-                          const SizedBox(height: 24),
-                          _StatsPill(),
-                          const Spacer(),
-                          // Both buttons land on the same email/Google screen —
-                          // "new" vs "returning" is decided after verifying,
-                          // not before.
-                          _GetStartedButton(
-                            onTap: () => context.go('/login?mode=signup'),
+            child: Stack(
+              children: [
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  child: Opacity(
+                    opacity: 0.7,
+                    child: Image.asset(
+                      'assets/images/splash_swirl_top.png',
+                      width: 110,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Opacity(
+                    opacity: 0.7,
+                    child: Image.asset(
+                      'assets/images/splash_swirl_bottom.png',
+                      width: 150,
+                    ),
+                  ),
+                ),
+                LayoutBuilder(
+                  builder: (context, constraints) => SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: IntrinsicHeight(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 28),
+                          child: Column(
+                            children: [
+                              const SizedBox(height: 64),
+                              Image.asset(
+                                'assets/images/aps_crest.png',
+                                width: 104,
+                                height: 104,
+                                semanticLabel: 'APS Brat crest',
+                              ),
+                              const SizedBox(height: 20),
+                              _Title(),
+                              const SizedBox(height: 10),
+                              const _Subtitle(),
+                              const SizedBox(height: 18),
+                              const _DiamondDivider(),
+                              const SizedBox(height: 26),
+                              _Headline(),
+                              const SizedBox(height: 14),
+                              const _BodyText(),
+                              const SizedBox(height: 24),
+                              const _StatsPill(),
+                              const SizedBox(height: 40),
+                              _JoinButton(
+                                onTap: () => context.go('/login?mode=signup'),
+                              ),
+                              const SizedBox(height: 10),
+                              _LoginButton(onTap: () => context.go('/login')),
+                              const Spacer(),
+                              const SizedBox(height: 20),
+                              const _Footer(),
+                              const SizedBox(height: 28),
+                            ],
                           ),
-                          const SizedBox(height: 12),
-                          _LoginButton(onTap: () => context.go('/login')),
-                          const SizedBox(height: 26),
-                          _Footer(),
-                          const SizedBox(height: 18),
-                        ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
           ),
         ),
@@ -85,81 +116,26 @@ class SplashScreen extends StatelessWidget {
   }
 }
 
-// ── Logo: two rings + outlined hexagon ────────────────────────────────────────
-
-class _ApsLogo extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 80,
-      height: 80,
-      child: CustomPaint(painter: _CirclesPainter()),
-    );
-  }
-}
-
-class _CirclesPainter extends CustomPainter {
-  static const _gold = SplashScreen._gold;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final stroke = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2
-      ..color = _gold.withValues(alpha: 0.45);
-
-    // Outer ring (thin) and inner ring (a touch brighter).
-    canvas.drawCircle(center, size.width / 2 - 1, stroke);
-    stroke.color = _gold.withValues(alpha: 0.75);
-    canvas.drawCircle(center, size.width / 2 - 11, stroke);
-
-    // Hexagon shield: faint fill + crisp gold outline.
-    final hexPath = _hexPath(center, size.width / 2 - 22);
-    canvas.drawPath(hexPath, Paint()..color = _gold.withValues(alpha: 0.10));
-    canvas.drawPath(
-      hexPath,
-      Paint()
-        ..color = _gold
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5,
-    );
-  }
-
-  Path _hexPath(Offset center, double r) {
-    final path = Path();
-    for (var i = 0; i < 6; i++) {
-      final angle = (i * 60 - 30) * math.pi / 180;
-      final x = center.dx + r * math.cos(angle);
-      final y = center.dy + r * math.sin(angle);
-      if (i == 0) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
-    }
-    return path..close();
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter old) => false;
-}
-
 // ── Text sections ─────────────────────────────────────────────────────────────
 
 class _Title extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RichText(
-      text: const TextSpan(
-        style: TextStyle(fontSize: 32, fontWeight: FontWeight.w700, height: 1),
-        children: [
+      text: TextSpan(
+        style: GoogleFonts.cinzel(
+          fontSize: 32,
+          fontWeight: FontWeight.w600,
+          height: 1,
+          letterSpacing: 0.5,
+        ),
+        children: const [
           TextSpan(
             text: 'APS ',
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: SplashScreen._cream),
           ),
           TextSpan(
-            text: 'Brat',
+            text: 'Brats',
             style: TextStyle(color: SplashScreen._gold),
           ),
         ],
@@ -169,47 +145,55 @@ class _Title extends StatelessWidget {
 }
 
 class _Subtitle extends StatelessWidget {
+  const _Subtitle();
+
   @override
   Widget build(BuildContext context) {
-    return const Text(
-      'ARMY PUBLIC SCHOOL · ALL OF INDIA',
-      style: TextStyle(
+    return Text(
+      'ARMY PUBLIC SCHOOLS · ALL OF INDIA',
+      style: GoogleFonts.mulish(
         color: SplashScreen._muted,
         fontSize: 10,
-        letterSpacing: 2.2,
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 2.5,
       ),
     );
   }
 }
 
 class _DiamondDivider extends StatelessWidget {
+  const _DiamondDivider();
+
   @override
   Widget build(BuildContext context) {
-    final line = Expanded(
-      child: Container(
-        height: 1,
-        color: SplashScreen._gold.withValues(alpha: 0.35),
-      ),
-    );
     return Row(
       children: [
-        line,
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Transform.rotate(
-            angle: math.pi / 4,
-            child: Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: SplashScreen._gold,
-                borderRadius: BorderRadius.circular(1),
+        Expanded(
+          child: Container(
+            height: 1,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0x00D4A84A), SplashScreen._goldDeep],
               ),
             ),
           ),
         ),
-        line,
+        const SizedBox(width: 10),
+        Transform.rotate(
+          angle: 0.785398,
+          child: Container(width: 6, height: 6, color: SplashScreen._goldDeep),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Container(
+            height: 1,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [SplashScreen._goldDeep, Color(0x00D4A84A)],
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -218,87 +202,79 @@ class _DiamondDivider extends StatelessWidget {
 class _Headline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return RichText(
-      textAlign: TextAlign.center,
-      text: const TextSpan(
-        // Serif, like the design's editorial headline.
-        style: TextStyle(
-          fontFamily: 'serif',
-          fontSize: 26,
+    return Text.rich(
+      TextSpan(
+        style: GoogleFonts.cinzel(
+          fontSize: 22,
           fontWeight: FontWeight.w600,
-          height: 1.25,
+          height: 1.35,
+          color: SplashScreen._cream,
         ),
-        children: [
+        children: const [
+          TextSpan(text: 'Your batchmates\n'),
           TextSpan(
-            text: 'Your batchmates\nare ',
-            style: TextStyle(color: Colors.white),
-          ),
-          TextSpan(
-            text: 'already here.',
-            style: TextStyle(color: SplashScreen._goldLight),
+            text: 'are already here.',
+            style: TextStyle(color: SplashScreen._gold),
           ),
         ],
       ),
+      textAlign: TextAlign.center,
     );
   }
 }
 
 class _BodyText extends StatelessWidget {
+  const _BodyText();
+
   @override
   Widget build(BuildContext context) {
-    return const Text(
-      '3 schools. 12 years. Hundreds of faces you still think about.\n'
-      "Find every APS brat you've ever known.",
+    return Text(
+      'Every school. Every batch. Thousands of faces\nyou still think about.',
       textAlign: TextAlign.center,
-      style: TextStyle(color: SplashScreen._muted, fontSize: 13, height: 1.55),
+      style: GoogleFonts.mulish(
+        color: SplashScreen._muted,
+        fontSize: 14,
+        height: 1.6,
+      ),
     );
   }
 }
 
 class _StatsPill extends StatelessWidget {
+  const _StatsPill();
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: SplashScreen._pillBg,
-        borderRadius: BorderRadius.circular(100),
-        border: Border.all(color: SplashScreen._gold.withValues(alpha: 0.45)),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: SplashScreen._goldDeep.withValues(alpha: 0.4),
+        ),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.groups_rounded, size: 18, color: SplashScreen._gold),
-          Container(
-            width: 1,
-            height: 18,
-            margin: const EdgeInsets.symmetric(horizontal: 12),
-            color: SplashScreen._gold.withValues(alpha: 0.35),
-          ),
-          RichText(
-            text: const TextSpan(
-              style: TextStyle(fontSize: 13, color: Colors.white),
-              children: [
-                TextSpan(
-                  text: '4,200+',
-                  style: TextStyle(
-                    color: SplashScreen._gold,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                TextSpan(text: ' APS brats across '),
-                TextSpan(
-                  text: '137',
-                  style: TextStyle(
-                    color: SplashScreen._gold,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                TextSpan(text: ' schools'),
-              ],
+      child: Text.rich(
+        TextSpan(
+          style: GoogleFonts.mulish(fontSize: 13, color: SplashScreen._cream),
+          children: const [
+            TextSpan(
+              text: '4,200+',
+              style: TextStyle(
+                color: SplashScreen._gold,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-        ],
+            TextSpan(text: ' brats across '),
+            TextSpan(
+              text: '137',
+              style: TextStyle(
+                color: SplashScreen._gold,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            TextSpan(text: ' schools'),
+          ],
+        ),
       ),
     );
   }
@@ -306,50 +282,52 @@ class _StatsPill extends StatelessWidget {
 
 // ── Buttons ───────────────────────────────────────────────────────────────────
 
-class _GetStartedButton extends StatelessWidget {
-  const _GetStartedButton({required this.onTap});
+class _JoinButton extends StatelessWidget {
+  const _JoinButton({required this.onTap});
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
-        decoration: BoxDecoration(
-          color: SplashScreen._btnBg,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: SplashScreen._gold.withValues(alpha: 0.6),
-            width: 1.2,
-          ),
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: Material(
+        color: SplashScreen._gold,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: const BorderSide(color: SplashScreen._goldDeep, width: 2),
         ),
-        child: const Row(
-          children: [
-            Icon(
-              Icons.person_outline_rounded,
-              size: 19,
-              color: SplashScreen._gold,
-            ),
-            Expanded(
-              child: Text(
-                "Get Started — It's Free",
-                textAlign: TextAlign.center,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: onTap,
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Join APS Brats',
                 style: TextStyle(
-                  color: SplashScreen._goldLight,
-                  fontSize: 14,
+                  color: SplashScreen._maroonText,
+                  fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  letterSpacing: 0.2,
                 ),
               ),
-            ),
-            Icon(
-              Icons.arrow_forward_rounded,
-              size: 19,
-              color: SplashScreen._gold,
-            ),
-          ],
+              SizedBox(width: 8),
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowRight01,
+                size: 18,
+                color: SplashScreen._maroonText,
+              ),
+              SizedBox(width: 8),
+              Text(
+                'Register',
+                style: TextStyle(
+                  color: SplashScreen._maroonText,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -362,37 +340,41 @@ class _LoginButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          border: Border.all(color: SplashScreen._gold.withValues(alpha: 0.35)),
-          borderRadius: BorderRadius.circular(14),
+    return SizedBox(
+      width: double.infinity,
+      height: 46,
+      child: Material(
+        color: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: const BorderSide(color: SplashScreen._goldDeep, width: 2),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'Already an APS brat?  ',
-              style: TextStyle(color: SplashScreen._muted, fontSize: 13),
-            ),
-            const Text(
-              'Log In',
-              style: TextStyle(
-                color: SplashScreen._gold,
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: onTap,
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Already an APS Brat? ',
+                style: TextStyle(color: SplashScreen._body, fontSize: 14),
               ),
-            ),
-            const SizedBox(width: 6),
-            const Icon(
-              Icons.arrow_forward_rounded,
-              size: 16,
-              color: SplashScreen._gold,
-            ),
-          ],
+              Text(
+                'Log In',
+                style: TextStyle(
+                  color: SplashScreen._gold,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              SizedBox(width: 8),
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowRight01,
+                size: 16,
+                color: SplashScreen._gold,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -400,16 +382,27 @@ class _LoginButton extends StatelessWidget {
 }
 
 class _Footer extends StatelessWidget {
+  const _Footer();
+
   @override
   Widget build(BuildContext context) {
-    return const Text(
-      'ONCE AN APS BRAT, ALWAYS AN APS BRAT',
-      style: TextStyle(
-        color: SplashScreen._muted,
-        fontSize: 9,
-        letterSpacing: 2.6,
-        fontWeight: FontWeight.w500,
-      ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Image.asset('assets/images/splash_laurel_left.png', width: 18),
+        const SizedBox(width: 10),
+        Text(
+          'ONCE A BRAT, ALWAYS A BRAT',
+          style: GoogleFonts.mulish(
+            color: SplashScreen._muted,
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 3,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Image.asset('assets/images/splash_laurel_right.png', width: 18),
+      ],
     );
   }
 }

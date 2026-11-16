@@ -20,7 +20,6 @@ public record ProfileDto(
         UserStatus currentStatus,
         List<SchoolHistoryDto> schools,
         List<UserSocialLinkDto> socials,
-        long batchmatesCount,
         long schoolsCount,
         long connectedCount,
         /** Connections the viewer shares with this person (0 on own profile). */

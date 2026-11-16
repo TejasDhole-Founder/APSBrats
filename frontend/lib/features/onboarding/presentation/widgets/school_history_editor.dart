@@ -1,10 +1,13 @@
 import 'package:apsbrat_frontend/core/constants/api_endpoints.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:apsbrat_frontend/core/theme/app_icons.dart';
 import 'package:apsbrat_frontend/core/network/dio_client.dart';
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
 import 'package:apsbrat_frontend/features/onboarding/presentation/providers/onboarding_flow_provider.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 
@@ -42,6 +45,28 @@ const kSectionOptions = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 /// when both people picked a section.
 const kSectionChoices = ['', ...kSectionOptions];
 String sectionLabel(String v) => v.isEmpty ? 'Not sure' : v;
+
+/// Shows a class as a Roman numeral (1st -> I, 12th -> XII). The stored value
+/// stays as it is.
+String romanClass(String v) {
+  final n = int.tryParse(v.replaceAll(RegExp(r'[^0-9]'), ''));
+  if (n == null || n < 1 || n > 12) return v;
+  const numerals = [
+    'I',
+    'II',
+    'III',
+    'IV',
+    'V',
+    'VI',
+    'VII',
+    'VIII',
+    'IX',
+    'X',
+    'XI',
+    'XII',
+  ];
+  return numerals[n - 1];
+}
 
 /// Stream codes (as stored by the API) and their labels.
 const kStreams = <String, String>{
@@ -216,7 +241,7 @@ class _SchoolCardState extends State<_SchoolCard> {
         children: [
           // ── Card header ──
           Container(
-            padding: const EdgeInsets.fromLTRB(14, 10, 8, 10),
+            padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
             decoration: BoxDecoration(
               color: AppColors.crimson.withValues(alpha: 0.05),
               borderRadius: const BorderRadius.vertical(
@@ -226,40 +251,49 @@ class _SchoolCardState extends State<_SchoolCard> {
             child: Row(
               children: [
                 Container(
-                  width: 28,
-                  height: 28,
+                  width: 40,
+                  height: 40,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: AppColors.crimsonDark,
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Text(
-                    '${widget.index + 1}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 12,
-                    ),
+                  child: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedBookmark01,
+                    size: 20,
+                    color: Colors.white,
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 Text(
                   'School ${widget.index + 1}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.crimsonDark,
-                    fontSize: 13,
+                  style: GoogleFonts.playfairDisplay(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.crimson,
+                    fontSize: 18,
                   ),
                 ),
                 const Spacer(),
                 if (widget.canDelete)
-                  IconButton(
-                    onPressed: widget.onDelete,
-                    visualDensity: VisualDensity.compact,
-                    icon: Icon(
-                      Icons.close_rounded,
-                      size: 18,
-                      color: AppColors.crimson.withValues(alpha: 0.6),
+                  InkWell(
+                    onTap: widget.onDelete,
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: AppColors.crimson.withValues(alpha: 0.25),
+                        ),
+                      ),
+                      child: const HugeIcon(
+                        icon: HugeIcons.strokeRoundedDelete02,
+                        size: 18,
+                        color: AppColors.crimson,
+                      ),
                     ),
                   ),
               ],
@@ -289,6 +323,7 @@ class _SchoolCardState extends State<_SchoolCard> {
                         label: 'From Class',
                         value: entry.classFrom,
                         items: kClassOptions,
+                        labelOf: romanClass,
                         onChanged: (v) => _emit(entry.copyWith(classFrom: v)),
                       ),
                     ),
@@ -298,6 +333,7 @@ class _SchoolCardState extends State<_SchoolCard> {
                         label: 'To Class',
                         value: entry.classTo,
                         items: kClassOptions,
+                        labelOf: romanClass,
                         onChanged: (v) => _emit(
                           entry.copyWith(
                             classTo: v,
@@ -333,6 +369,8 @@ class _SchoolCardState extends State<_SchoolCard> {
                     Expanded(
                       child: _DropField(
                         label: 'Section',
+                        optional: true,
+                        icon: HugeIcons.strokeRoundedUserGroup,
                         value: entry.section,
                         items: kSectionChoices,
                         labelOf: sectionLabel,
@@ -360,35 +398,50 @@ class _SchoolCardState extends State<_SchoolCard> {
                 ),
                 const SizedBox(height: 6),
 
-                // MOST MISSED checkbox
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: Checkbox(
-                        value: entry.isMostMissed,
-                        activeColor: AppColors.crimson,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        onChanged: (v) => widget.onChanged(
-                          entry.copyWith(isMostMissed: v ?? false),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Expanded(
-                      child: Text(
-                        'This is the school I miss the most',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.crimsonDark,
-                          fontWeight: FontWeight.w600,
+                // FAVOURITE school row (stored as isMostMissed)
+                Container(
+                  padding: const EdgeInsets.fromLTRB(10, 8, 12, 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFBE4E4),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: Checkbox(
+                          value: entry.isMostMissed,
+                          activeColor: AppColors.crimson,
+                          checkColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          onChanged: (v) => widget.onChanged(
+                            entry.copyWith(isMostMissed: v ?? false),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 10),
+                      const Expanded(
+                        child: Text(
+                          'This was my favourite APS school',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.crimson,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      HugeIcon(
+                        icon: entry.isMostMissed
+                            ? HugeIcons.strokeRoundedHeart
+                            : HugeIcons.strokeRoundedHeart,
+                        size: 20,
+                        color: AppColors.crimson,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -439,7 +492,11 @@ class _SchoolAutocomplete extends StatelessWidget {
           controller: ctrl,
           focusNode: focusNode,
           style: const TextStyle(fontSize: 13),
-          decoration: _fieldDecoration(hintText: 'Search from APS schools...'),
+          decoration: _fieldDecoration(
+            hintText: 'APS school name',
+            prefixIcon: _fieldIcon(HugeIcons.strokeRoundedBuilding06),
+            suffixIcon: _fieldIcon(HugeIcons.strokeRoundedSearch01),
+          ),
         );
       },
       optionsViewBuilder: (context, onSelected, options) {
@@ -508,17 +565,17 @@ class _AddSchoolButton extends StatelessWidget {
       width: double.infinity,
       child: OutlinedButton.icon(
         onPressed: onPressed,
-        icon: const Icon(
-          Icons.add_circle_outline_rounded,
-          size: 16,
+        icon: const HugeIcon(
+          icon: HugeIcons.strokeRoundedAddCircle,
+          size: 18,
           color: AppColors.crimson,
         ),
         label: const Text(
-          'I went to another APS school too',
+          'Add another APS school',
           style: TextStyle(
             color: AppColors.crimson,
             fontWeight: FontWeight.w700,
-            fontSize: 12,
+            fontSize: 14,
           ),
         ),
         style: OutlinedButton.styleFrom(
@@ -537,19 +594,36 @@ class _AddSchoolButton extends StatelessWidget {
 // ── Field widgets ─────────────────────────────────────────────────────────────
 
 class _CrimsonLabel extends StatelessWidget {
-  const _CrimsonLabel(this.text);
+  const _CrimsonLabel(this.text, {this.optional = false});
 
   final String text;
+  final bool optional;
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text.toUpperCase(),
-      style: const TextStyle(
-        fontSize: 10,
-        fontWeight: FontWeight.w800,
-        letterSpacing: 0.7,
-        color: AppColors.crimson,
+    return Text.rich(
+      TextSpan(
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: AppColors.crimson,
+        ),
+        children: [
+          TextSpan(text: text),
+          if (optional)
+            const TextSpan(
+              text: ' (Optional)',
+              style: TextStyle(
+                fontWeight: FontWeight.w400,
+                color: Color(0xFF8A8A8A),
+              ),
+            )
+          else
+            const TextSpan(
+              text: ' *',
+              style: TextStyle(color: Color(0xFFC62828)),
+            ),
+        ],
       ),
     );
   }
@@ -562,12 +636,16 @@ class _DropField extends StatelessWidget {
     required this.items,
     required this.onChanged,
     this.labelOf,
+    this.icon = HugeIcons.strokeRoundedMortarboard01,
+    this.optional = false,
   });
 
   final String label;
   final String value;
   final List<String> items;
   final ValueChanged<String> onChanged;
+  final AppIconData icon;
+  final bool optional;
 
   /// Optional display text per item (items themselves are the stored codes).
   final String Function(String)? labelOf;
@@ -580,20 +658,64 @@ class _DropField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _CrimsonLabel(label),
+        _CrimsonLabel(label, optional: optional),
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
           initialValue: selected,
           isExpanded: true,
+          menuMaxHeight: 300,
+          dropdownColor: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          icon: const HugeIcon(
+            icon: HugeIcons.strokeRoundedArrowDown01,
+            color: AppColors.crimson,
+          ),
           items: items
               .map(
                 (v) => DropdownMenuItem<String>(
                   value: v,
-                  child: Text(
-                    labelOf?.call(v) ?? v,
-                    style: const TextStyle(fontSize: 13),
-                    overflow: TextOverflow.ellipsis,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    decoration: BoxDecoration(
+                      color: v == selected
+                          ? const Color(0xFFFBE4E4)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      children: [
+                        _fieldIcon(icon),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            labelOf?.call(v) ?? v,
+                            style: const TextStyle(fontSize: 14),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (v == selected)
+                          const HugeIcon(
+                            icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                            size: 18,
+                            color: AppColors.crimson,
+                          ),
+                      ],
+                    ),
                   ),
+                ),
+              )
+              .toList(),
+          selectedItemBuilder: (context) => items
+              .map(
+                (v) => Row(
+                  children: [
+                    _fieldIcon(icon),
+                    const SizedBox(width: 10),
+                    Text(
+                      labelOf?.call(v) ?? v,
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  ],
                 ),
               )
               .toList(),
@@ -627,14 +749,131 @@ class _YearField extends StatelessWidget {
         const SizedBox(height: 6),
         TextFormField(
           controller: controller,
-          keyboardType: TextInputType.number,
-          onChanged: (v) => onChanged(v.trim()),
-          style: const TextStyle(fontSize: 13),
-          decoration: _fieldDecoration(hintText: 'YYYY'),
+          readOnly: true,
+          style: const TextStyle(fontSize: 14),
+          onTap: () async {
+            final year = await showSchoolYearPicker(
+              context,
+              int.tryParse(controller.text),
+            );
+            if (year != null) onChanged('$year');
+          },
+          decoration: _fieldDecoration(
+            hintText: 'YYYY',
+            prefixIcon: _fieldIcon(HugeIcons.strokeRoundedCalendar04),
+          ),
         ),
       ],
     );
   }
+}
+
+/// Opens the year wheel (1950 to now) and returns the chosen year.
+Future<int?> showSchoolYearPicker(BuildContext context, int? current) {
+  const minYear = 1950;
+  final maxYear = DateTime.now().year;
+  var selected = (current ?? maxYear).clamp(minYear, maxYear);
+  final wheel = FixedExtentScrollController(initialItem: selected - minYear);
+
+  return showDialog<int>(
+    context: context,
+    builder: (ctx) => StatefulBuilder(
+      builder: (ctx, setDialog) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFFBF6),
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Select Year',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.crimson,
+                ),
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                height: 180,
+                child: Stack(
+                  children: [
+                    // Highlight sits under the wheel so the year stays visible.
+                    IgnorePointer(
+                      child: Center(
+                        child: Container(
+                          height: 40,
+                          margin: const EdgeInsets.symmetric(horizontal: 6),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: const Color(0xFFC76D68),
+                              width: 1.5,
+                            ),
+                            color: const Color(0xFFFDECE3),
+                          ),
+                        ),
+                      ),
+                    ),
+                    ListWheelScrollView.useDelegate(
+                      controller: wheel,
+                      itemExtent: 40,
+                      physics: const FixedExtentScrollPhysics(),
+                      onSelectedItemChanged: (i) =>
+                          setDialog(() => selected = minYear + i),
+                      childDelegate: ListWheelChildBuilderDelegate(
+                        childCount: maxYear - minYear + 1,
+                        builder: (c, i) => Center(
+                          child: Text(
+                            '${minYear + i}',
+                            style: i == selected - minYear
+                                ? const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF5C0F13),
+                                  )
+                                : const TextStyle(
+                                    fontSize: 16,
+                                    color: Color(0xFF9A9A9A),
+                                  ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: () => Navigator.of(ctx).pop(selected),
+                child: Container(
+                  width: double.infinity,
+                  height: 46,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: AppColors.crimsonDark,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Text(
+                    'Done',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  ).whenComplete(wheel.dispose);
 }
 
 // ── Error card ────────────────────────────────────────────────────────────────
@@ -665,24 +904,35 @@ class _NetworkError extends StatelessWidget {
 
 // ── Shared input decoration ───────────────────────────────────────────────────
 
-InputDecoration _fieldDecoration({String? hintText}) {
+InputDecoration _fieldDecoration({
+  String? hintText,
+  Widget? prefixIcon,
+  Widget? suffixIcon,
+}) {
+  const border = Color(0xFFE6D5BD);
   return InputDecoration(
     hintText: hintText,
-    hintStyle: const TextStyle(color: Color(0xFFBBBBBB), fontSize: 13),
+    hintStyle: const TextStyle(color: Color(0xFF9A8F84), fontSize: 13),
+    prefixIcon: prefixIcon,
+    suffixIcon: suffixIcon,
     filled: true,
     fillColor: Colors.white,
-    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
     border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
+      borderRadius: BorderRadius.circular(14),
+      borderSide: const BorderSide(color: border, width: 1.2),
     ),
     enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
+      borderRadius: BorderRadius.circular(14),
+      borderSide: const BorderSide(color: border, width: 1.2),
     ),
     focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(14),
       borderSide: const BorderSide(color: AppColors.crimson, width: 1.5),
     ),
   );
 }
+
+/// Small maroon icon used inside the school fields.
+Widget _fieldIcon(AppIconData icon) =>
+    HugeIcon(icon: icon, size: 18, color: AppColors.crimson);

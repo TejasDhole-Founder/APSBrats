@@ -1,0 +1,28 @@
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "73fe01bd-b6df-4fcb-9b1a-1cc080582f81",
+        "username": "fx_friend2",
+        "initials": "CI",
+        "name": "Chitra Iyer",
+        "school": "",
+        "detail": "",
+        "city": null,
+        "job": null,
+        "currentStatus": "STUDENT",
+        "profilePicUrl": null,
+        "online": true,
+        "lastActiveAt": "2026-11-15T19:32:38.368332",
+        "tags": [
+          "Student"
+        ],
+        "mutualCount": 1,
+        "relation": "CONNECTED"
+      }
+    ],
+    "nextCursor": null,
+    "hasMore": false
+  }
+}

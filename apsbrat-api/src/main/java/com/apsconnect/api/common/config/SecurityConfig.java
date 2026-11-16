@@ -4,9 +4,11 @@ import com.apsconnect.api.auth.JwtAuthFilter;
 import com.apsconnect.api.common.security.RestAccessDeniedHandler;
 import com.apsconnect.api.common.security.RestAuthEntryPoint;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -29,6 +31,10 @@ public class SecurityConfig {
     private final RestAuthEntryPoint authEntryPoint;
     private final RestAccessDeniedHandler accessDeniedHandler;
 
+    /** Local testing only: lets a scraper read /actuator/prometheus and /actuator/metrics without a login. Off everywhere else. */
+    @Value("${app.actuator.public-metrics:false}")
+    private boolean publicMetrics;
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
@@ -47,6 +53,8 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health/**", "/actuator/health").permitAll()
                         // Build version and time only: lets on-call tie a failure to a release.
                         .requestMatchers("/actuator/info").permitAll()
+                        .requestMatchers("/actuator/prometheus", "/actuator/metrics", "/actuator/metrics/**").access((a, c) ->
+                                new AuthorizationDecision(publicMetrics))
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/media/**").permitAll()

@@ -42,7 +42,7 @@ public class ProfileService {
         // opening the profile shows no details (the app says "Unknown user").
         if (user.getDeletedAt() != null) {
             return new ProfileDto(user.getId(), null, user.getFullName(), null, null, null, null, null,
-                    false, null, List.of(), List.of(), 0, 0, 0, 0, false, null, true);
+                    false, null, List.of(), List.of(), 0, 0, 0, false, null, true);
         }
 
         boolean self = user.getId().equals(viewerId);
@@ -81,7 +81,6 @@ public class ProfileService {
                 user.getCurrentStatus(),
                 schools,
                 socials,
-                connectedCount,
                 schools.size(),
                 connectedCount,
                 mutualCount,

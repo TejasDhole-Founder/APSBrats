@@ -25,6 +25,11 @@ public class CommunityChatController {
 
     private final CommunityChatService chatService;
 
+    @GetMapping("/communities/mine/chats")
+    public ResponseEntity<ApiResponse<java.util.List<CommunityChatService.ChatListItem>>> myChats() {
+        return ResponseEntity.ok(ApiResponse.success(chatService.myChats(SecurityUtils.currentUserId())));
+    }
+
     @GetMapping("/communities/{id}/chat")
     public ResponseEntity<ApiResponse<CommunityChatService.Summary>> summary(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.success(chatService.summary(SecurityUtils.currentUserId(), id)));

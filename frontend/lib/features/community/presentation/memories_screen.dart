@@ -6,6 +6,7 @@ import 'package:apsbrat_frontend/features/community/presentation/community_scree
 import 'package:apsbrat_frontend/features/community/presentation/community_ui.dart';
 import 'package:apsbrat_frontend/features/feed/presentation/widgets/feed_shared.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -77,12 +78,12 @@ class _MemoriesTabState extends ConsumerState<MemoriesTab> {
               if (c.isMember) ...[
                 PromptCard(
                   hint: 'Got an old school photo?',
-                  leading: const Icon(
-                    Icons.history_edu_rounded,
+                  leading: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedNote01,
                     color: AppColors.crimson,
                     size: 26,
                   ),
-                  trailingIcon: Icons.add_circle_outline_rounded,
+                  trailingIcon: HugeIcons.strokeRoundedAddCircle,
                   onTap: () => showPostComposer(
                     context,
                     communityId: c.id,
@@ -141,7 +142,7 @@ class _MemoriesTabState extends ConsumerState<MemoriesTab> {
                 )
               else if (feed.items.isEmpty)
                 EmptyState(
-                  icon: Icons.photo_library_outlined,
+                  icon: HugeIcons.strokeRoundedImage02,
                   image: kEmptyInboxImage,
                   title: _year == null && _category == null
                       ? 'No memories yet'
@@ -232,11 +233,10 @@ class _MemoryTile extends StatelessWidget {
               const Positioned(
                 right: 4,
                 top: 4,
-                child: Icon(
-                  Icons.collections_rounded,
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedAlbum01,
                   size: 16,
                   color: Colors.white,
-                  shadows: [Shadow(blurRadius: 3)],
                 ),
               ),
           ],

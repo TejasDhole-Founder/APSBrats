@@ -37,11 +37,11 @@ const appFieldLabelStyle = TextStyle(
   color: AppColors.crimson,
 );
 
-/// Instagram-style usernames: letters, numbers, periods and underscores, up to
-/// 30 characters, always lowercase. Anything else is dropped as you type.
+/// Usernames match the server rule: letters, numbers and underscores, up to
+/// 20 characters, always lowercase. Anything else is dropped as you type.
 final List<TextInputFormatter> usernameInputFormatters = [
-  FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9._]')),
-  LengthLimitingTextInputFormatter(30),
+  FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9_]')),
+  LengthLimitingTextInputFormatter(20),
   TextInputFormatter.withFunction(
     (oldValue, newValue) =>
         newValue.copyWith(text: newValue.text.toLowerCase()),

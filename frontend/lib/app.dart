@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:apsbrat_frontend/core/app_root.dart';
 import 'package:apsbrat_frontend/core/constants/env.dart';
 import 'package:apsbrat_frontend/core/network/dio_client.dart';
@@ -5,8 +7,11 @@ import 'package:apsbrat_frontend/core/routes/app_router.dart';
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
 import 'package:apsbrat_frontend/features/auth/data/auth_repository.dart';
 import 'package:apsbrat_frontend/features/chat/data/chat_socket.dart';
+import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class ApsBratApp extends ConsumerWidget {
   const ApsBratApp({super.key, required this.flavor});
@@ -27,6 +32,7 @@ class ApsBratApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       routerConfig: router,
+      localizationsDelegates: const [CountryLocalizations.delegate],
       builder: (context, child) {
         return Banner(
           message: flavor.name.toUpperCase(),
@@ -74,75 +80,124 @@ class _PhoneWidth extends StatelessWidget {
   }
 }
 
-/// A strip above every screen while the server is unreachable or chat is
-/// reconnecting. The widget tree keeps the same shape either way, so the
-/// router's Navigator (and the back stack) is never rebuilt.
-class _ConnectionBanner extends ConsumerWidget {
+/// A strip above the screen while the server is unreachable or chat is
+/// reconnecting. It appears only after the problem has lasted [_delay], and
+/// never on the splash or login screens. The widget tree keeps the same shape
+/// either way, so the router's Navigator (and the back stack) is never rebuilt.
+class _ConnectionBanner extends ConsumerStatefulWidget {
   const _ConnectionBanner({required this.child});
 
   final Widget child;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_ConnectionBanner> createState() => _ConnectionBannerState();
+}
+
+class _ConnectionBannerState extends ConsumerState<_ConnectionBanner> {
+  static const _delay = Duration(seconds: 10);
+  static const _quietPaths = {'/', '/login'};
+
+  Timer? _timer;
+  bool _showBanner = false;
+  late final ValueNotifier<bool> _reconnecting;
+  late final GoRouter _router;
+
+  @override
+  void initState() {
+    super.initState();
+    _reconnecting = ref.read(chatSocketProvider).reconnecting;
+    _reconnecting.addListener(_refresh);
+    _router = ref.read(appRouterProvider);
+    _router.routeInformationProvider.addListener(_refresh);
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _reconnecting.removeListener(_refresh);
+    _router.routeInformationProvider.removeListener(_refresh);
+    super.dispose();
+  }
+
+  bool get _problem => ref.read(networkOfflineProvider) || _reconnecting.value;
+
+  bool get _onQuietScreen =>
+      _quietPaths.contains(_router.routeInformationProvider.value.uri.path);
+
+  void _refresh() {
+    if (!mounted) return;
+    if (_problem) {
+      _timer ??= Timer(_delay, () {
+        _timer = null;
+        if (mounted && _problem) setState(() => _showBanner = true);
+      });
+    } else {
+      _timer?.cancel();
+      _timer = null;
+      if (_showBanner) setState(() => _showBanner = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen<bool>(networkOfflineProvider, (_, _) => _refresh());
     final offline = ref.watch(networkOfflineProvider);
-    return ValueListenableBuilder<bool>(
-      valueListenable: ref.watch(chatSocketProvider).reconnecting,
-      builder: (context, reconnecting, _) {
-        final message = offline
-            ? "You're offline. We'll retry when you're back."
-            : reconnecting
-            ? 'Reconnecting to chat…'
-            : null;
-        return Column(
-          children: [
-            if (message != null)
-              Material(
-                color: AppColors.crimson,
-                child: SafeArea(
-                  bottom: false,
-                  child: Semantics(
-                    liveRegion: true,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 6,
+    final reconnecting = _reconnecting.value;
+    final message = offline
+        ? "You're offline. We'll retry when you're back."
+        : reconnecting
+        ? 'Reconnecting to chat…'
+        : null;
+    final show = _showBanner && message != null && !_onQuietScreen;
+
+    return Column(
+      children: [
+        if (show)
+          Material(
+            color: AppColors.crimson,
+            child: SafeArea(
+              bottom: false,
+              child: Semantics(
+                liveRegion: true,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 6,
+                  ),
+                  child: Row(
+                    children: [
+                      HugeIcon(
+                        icon: offline
+                            ? HugeIcons.strokeRoundedCloudOff
+                            : HugeIcons.strokeRoundedRefresh,
+                        size: 16,
+                        color: Colors.white,
                       ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            offline
-                                ? Icons.cloud_off_rounded
-                                : Icons.sync_rounded,
-                            size: 16,
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          message,
+                          style: const TextStyle(
                             color: Colors.white,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              message,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
               ),
-            Expanded(
-              child: MediaQuery.removePadding(
-                context: context,
-                removeTop: message != null,
-                child: child,
-              ),
             ),
-          ],
-        );
-      },
+          ),
+        Expanded(
+          child: MediaQuery.removePadding(
+            context: context,
+            removeTop: show,
+            child: widget.child,
+          ),
+        ),
+      ],
     );
   }
 }

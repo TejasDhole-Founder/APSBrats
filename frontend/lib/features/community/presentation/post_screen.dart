@@ -1,4 +1,5 @@
 import 'package:apsbrat_frontend/core/theme/app_inputs.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
 import 'package:apsbrat_frontend/features/community/data/community_models.dart';
 import 'package:apsbrat_frontend/features/community/data/community_repository.dart';
@@ -133,7 +134,7 @@ class _PostScreenState extends ConsumerState<PostScreen> {
               ),
               error: (e, _) => SingleChildScrollView(
                 child: EmptyState(
-                  icon: Icons.forum_outlined,
+                  icon: HugeIcons.strokeRoundedComment01,
                   image: kEmptyInboxImage,
                   title: statusOf(e) == 404
                       ? 'This post is gone'
@@ -280,7 +281,10 @@ class _PostScreenState extends ConsumerState<PostScreen> {
                       onPressed: _sending
                           ? null
                           : () => _send(_post ?? loaded.requireValue),
-                      icon: const Icon(Icons.send_rounded, size: 20),
+                      icon: const HugeIcon(
+                        icon: HugeIcons.strokeRoundedSent,
+                        size: 20,
+                      ),
                     ),
                   ],
                 ),
@@ -312,14 +316,14 @@ class _CommentRow extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.flag_outlined),
+              leading: const HugeIcon(icon: HugeIcons.strokeRoundedFlag01),
               title: const Text('Report'),
               onTap: () => Navigator.of(sheet).pop('report'),
             ),
             if (comment.canDelete)
               ListTile(
-                leading: const Icon(
-                  Icons.delete_outline_rounded,
+                leading: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedDelete02,
                   color: Colors.redAccent,
                 ),
                 title: const Text(

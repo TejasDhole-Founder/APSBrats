@@ -1,5 +1,6 @@
 import 'package:apsbrat_frontend/features/feed/presentation/widgets/feed_shared.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -15,7 +16,7 @@ void main() {
         home: Scaffold(
           body: SingleChildScrollView(
             child: EmptyState(
-              icon: Icons.chat_bubble_outline_rounded,
+              icon: HugeIcons.strokeRoundedMessage01,
               image: kEmptyInboxImage,
               title: 'No messages yet',
               message: 'Your chats will show up here.',

@@ -213,6 +213,7 @@ class OnboardingFlowState {
     this.twitter = '',
     this.customLabel = '',
     this.customHandle = '',
+    this.privateSocials = const ['WHATSAPP'],
     this.career = const [
       CareerDraft(),
       CareerDraft(kind: kEducation, current: false),
@@ -236,6 +237,10 @@ class OnboardingFlowState {
   final String twitter;
   final String customLabel;
   final String customHandle;
+
+  /// Links hidden from the public profile, by platform key ('INSTAGRAM',
+  /// 'LINKEDIN', 'WHATSAPP', 'TWITTER', 'CUSTOM'). WhatsApp starts private.
+  final List<String> privateSocials;
 
   /// The jobs and colleges typed on the "After school" step (alumni only),
   /// as many of each as they like. Starts with one blank card of each kind;
@@ -265,6 +270,7 @@ class OnboardingFlowState {
     String? twitter,
     String? customLabel,
     String? customHandle,
+    List<String>? privateSocials,
     List<CareerDraft>? career,
     int? step,
   }) {
@@ -285,6 +291,7 @@ class OnboardingFlowState {
       twitter: twitter ?? this.twitter,
       customLabel: customLabel ?? this.customLabel,
       customHandle: customHandle ?? this.customHandle,
+      privateSocials: privateSocials ?? this.privateSocials,
       career: career ?? this.career,
       step: step ?? this.step,
     );
@@ -307,6 +314,7 @@ class OnboardingFlowState {
     'twitter': twitter,
     'customLabel': customLabel,
     'customHandle': customHandle,
+    'privateSocials': privateSocials,
     'career': [for (final c in career) c.toJson()],
     'step': step,
   };
@@ -333,6 +341,9 @@ class OnboardingFlowState {
       twitter: json['twitter'] as String? ?? '',
       customLabel: json['customLabel'] as String? ?? '',
       customHandle: json['customHandle'] as String? ?? '',
+      privateSocials: json['privateSocials'] is List
+          ? [for (final p in json['privateSocials'] as List) p.toString()]
+          : const ['WHATSAPP'],
       career: json['career'] is List
           ? [
               for (final c in json['career'] as List)
@@ -453,6 +464,7 @@ class OnboardingFlowNotifier extends StateNotifier<OnboardingFlowState> {
     required String twitter,
     required String customLabel,
     required String customHandle,
+    List<String>? privateSocials,
   }) {
     state = state.copyWith(
       instagram: instagram,
@@ -461,6 +473,7 @@ class OnboardingFlowNotifier extends StateNotifier<OnboardingFlowState> {
       twitter: twitter,
       customLabel: customLabel,
       customHandle: customHandle,
+      privateSocials: privateSocials,
     );
   }
 

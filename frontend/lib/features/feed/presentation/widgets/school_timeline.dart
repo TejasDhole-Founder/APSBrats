@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:hugeicons/hugeicons.dart';
 
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
 import 'package:apsbrat_frontend/features/feed/presentation/widgets/feed_shared.dart';
@@ -18,7 +19,7 @@ class SchoolTimeline extends StatelessWidget {
   Widget build(BuildContext context) {
     if (schools.isEmpty) {
       return const EmptyState(
-        icon: Icons.school_outlined,
+        icon: HugeIcons.strokeRoundedMortarboard01,
         title: 'No schools yet',
         message:
             'The APS schools you add during onboarding will be listed here.',

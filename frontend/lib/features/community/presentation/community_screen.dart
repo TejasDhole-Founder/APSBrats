@@ -19,6 +19,8 @@ import 'package:apsbrat_frontend/features/feed/presentation/widgets/feed_shared.
 import 'package:apsbrat_frontend/features/search/data/search_repository.dart'
     show kPeoplePageSize;
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:apsbrat_frontend/core/theme/app_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -87,8 +89,18 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen>
   /// Fits the header's content: crimson band, badge, name, meta, about, buttons.
   double _headerHeight(Community c, bool tabs) {
     final top = MediaQuery.paddingOf(context).top + kToolbarHeight;
-    final about = (c.description ?? '').isNotEmpty ? 40.0 : 0.0;
-    return top + 20 + 34 + 26 + 22 + about + 14 + 40 + 16 + (tabs ? 48 : 0);
+    final about = !c.isSchool && (c.description ?? '').isNotEmpty ? 40.0 : 0.0;
+    return top +
+        20 +
+        34 +
+        26 +
+        22 +
+        30 +
+        about +
+        14 +
+        40 +
+        16 +
+        (tabs ? 60 : 0);
   }
 
   @override
@@ -107,7 +119,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen>
           ),
           error: (e, _) => _Shell(
             child: EmptyState(
-              icon: Icons.groups_outlined,
+              icon: HugeIcons.strokeRoundedUserGroup,
               image: kEmptyInboxImage,
               title: statusOf(e) == 404
                   ? 'Community not found'
@@ -136,7 +148,9 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen>
                     systemOverlayStyle: SystemUiOverlayStyle.light,
                     leading: IconButton(
                       tooltip: 'Back',
-                      icon: const Icon(Icons.arrow_back_rounded),
+                      icon: const HugeIcon(
+                        icon: HugeIcons.strokeRoundedArrowLeft01,
+                      ),
                       onPressed: () => context.pop(),
                     ),
                     title: _collapsed
@@ -152,12 +166,16 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen>
                       if (_collapsed && c.isMember)
                         IconButton(
                           tooltip: 'Community chat',
-                          icon: const Icon(Icons.chat_bubble_outline_rounded),
+                          icon: const HugeIcon(
+                            icon: HugeIcons.strokeRoundedMessage01,
+                          ),
                           onPressed: () => _openChatFor(c),
                         ),
                       IconButton(
                         tooltip: 'Share',
-                        icon: const Icon(Icons.share_outlined),
+                        icon: const HugeIcon(
+                          icon: HugeIcons.strokeRoundedShare01,
+                        ),
                         onPressed: () => Share.share(
                           'Join ${c.name} on APS Brats, the app for Army Public School alumni.',
                         ),
@@ -172,7 +190,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen>
                         final min =
                             MediaQuery.paddingOf(context).top +
                             kToolbarHeight +
-                            (readable ? 48 : 0);
+                            (readable ? 60 : 0);
                         final t = ((box.maxHeight - min) / (full - min)).clamp(
                           0.0,
                           1.0,
@@ -200,7 +218,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen>
                     ),
                     bottom: readable
                         ? PreferredSize(
-                            preferredSize: const Size.fromHeight(48),
+                            preferredSize: const Size.fromHeight(60),
                             child: Material(
                               color: Colors.white,
                               child: TabBar(
@@ -215,15 +233,58 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen>
                                   fontWeight: FontWeight.w700,
                                 ),
                                 tabs: [
-                                  const Tab(text: 'Feed'),
+                                  const Tab(
+                                    height: 60,
+                                    icon: HugeIcon(
+                                      icon: HugeIcons
+                                          .strokeRoundedLeftToRightListBullet,
+                                      size: 20,
+                                    ),
+                                    text: 'Feed',
+                                  ),
                                   if (c.isSchool) ...const [
-                                    Tab(text: 'Events'),
-                                    Tab(text: 'Memories'),
+                                    Tab(
+                                      height: 60,
+                                      icon: HugeIcon(
+                                        icon: HugeIcons.strokeRoundedCalendar03,
+                                        size: 20,
+                                      ),
+                                      text: 'Events',
+                                    ),
+                                    Tab(
+                                      height: 60,
+                                      icon: HugeIcon(
+                                        icon: HugeIcons.strokeRoundedImage02,
+                                        size: 20,
+                                      ),
+                                      text: 'Memories',
+                                    ),
                                   ] else ...const [
-                                    Tab(text: 'Chat'),
-                                    Tab(text: 'Events'),
+                                    Tab(
+                                      height: 60,
+                                      icon: HugeIcon(
+                                        icon: HugeIcons.strokeRoundedMessage01,
+                                        size: 20,
+                                      ),
+                                      text: 'Chat',
+                                    ),
+                                    Tab(
+                                      height: 60,
+                                      icon: HugeIcon(
+                                        icon: HugeIcons.strokeRoundedCalendar03,
+                                        size: 20,
+                                      ),
+                                      text: 'Events',
+                                    ),
                                   ],
-                                  const Tab(text: 'Members'),
+                                  const Tab(
+                                    height: 60,
+                                    icon: HugeIcon(
+                                      icon: HugeIcons.strokeRoundedUserGroup02,
+                                      size: 20,
+                                    ),
+                                    text: 'Members',
+                                  ),
                                 ],
                               ),
                             ),
@@ -263,7 +324,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen>
                           ),
                           SliverToBoxAdapter(
                             child: EmptyState(
-                              icon: Icons.lock_outline_rounded,
+                              icon: HugeIcons.strokeRoundedLockKey,
                               image: kEmptyInboxImage,
                               title: 'Members only',
                               message: c.requested
@@ -317,7 +378,7 @@ class _Shell extends StatelessWidget {
         child: Align(
           alignment: Alignment.centerLeft,
           child: FeedIconBtn(
-            icon: Icons.arrow_back_rounded,
+            icon: HugeIcons.strokeRoundedArrowLeft01,
             onTap: () => context.pop(),
           ),
         ),
@@ -362,7 +423,7 @@ class _OwnerMenu extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return PopupMenuButton<String>(
       tooltip: 'Owner options',
-      icon: const Icon(Icons.more_vert_rounded),
+      icon: const HugeIcon(icon: HugeIcons.strokeRoundedMoreVertical),
       onSelected: (v) => v == 'requests'
           ? context.push('/home/community/${community.id}/requests')
           : _delete(context, ref),
@@ -474,8 +535,9 @@ class _HeaderState extends ConsumerState<_Header> {
         ? ref.watch(communityChatSummaryProvider(c.id)).valueOrNull
         : null;
     final unread = summary?.unreadCount ?? 0;
-    final online = summary?.onlineCount ?? 0;
+    final extra = c.memberCount - faces.take(3).length;
     final band = MediaQuery.paddingOf(context).top + kToolbarHeight + 20;
+    final banner = communityBannerAsset(c);
 
     return Container(
       color: kCommunityBg,
@@ -483,50 +545,121 @@ class _HeaderState extends ConsumerState<_Header> {
         physics: const NeverScrollableScrollPhysics(),
         child: Stack(
           children: [
-            Container(height: band, color: AppColors.crimson),
+            Container(
+              height: band,
+              decoration: BoxDecoration(
+                color: AppColors.crimson,
+                image: banner == null
+                    ? null
+                    : DecorationImage(
+                        image: AssetImage(banner),
+                        fit: BoxFit.cover,
+                      ),
+              ),
+            ),
             Padding(
-              padding: EdgeInsets.fromLTRB(16, band - 30, 16, 0),
+              // Schools show only the banner; the name sits below it.
+              padding: EdgeInsets.fromLTRB(
+                16,
+                c.isSchool ? band + 12 : band - 30,
+                16,
+                0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: kCommunityBg, width: 3),
-                      borderRadius: BorderRadius.circular(18),
+                  if (!c.isSchool) ...[
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: kCommunityBg, width: 3),
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: CommunityIcon(
+                        community: c,
+                        size: 56,
+                        onDark: true,
+                      ),
                     ),
-                    child: CommunityIcon(community: c, size: 56, onDark: true),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    c.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: kTxt,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
+                    const SizedBox(height: 8),
+                  ],
                   Row(
                     children: [
-                      AvatarStack(people: faces),
-                      if (faces.isNotEmpty) const SizedBox(width: 8),
-                      Expanded(
+                      Flexible(
                         child: Text(
-                          [
-                            c.kindLabel,
-                            c.membersLabel,
-                            if (online > 0) '$online online',
-                          ].join(' · '),
+                          c.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                            color: kTxt,
+                          ),
+                        ),
+                      ),
+                      if (c.isSchool) ...[
+                        const SizedBox(width: 6),
+                        const HugeIcon(
+                          icon: HugeIcons.strokeRoundedCheckmarkBadge01,
+                          size: 18,
+                          color: AppColors.crimson,
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      HugeIcon(
+                        icon: c.isSchool
+                            ? HugeIcons.strokeRoundedBuilding06
+                            : HugeIcons.strokeRoundedHexagon,
+                        size: 14,
+                        color: kTxt3,
+                      ),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          c.kindLabel,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(fontSize: 12, color: kTxt3),
                         ),
                       ),
+                      Container(
+                        width: 1,
+                        height: 12,
+                        margin: const EdgeInsets.symmetric(horizontal: 8),
+                        color: kCardLine,
+                      ),
+                      const HugeIcon(
+                        icon: HugeIcons.strokeRoundedUserGroup,
+                        size: 15,
+                        color: kTxt3,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        c.membersLabel,
+                        maxLines: 1,
+                        style: const TextStyle(fontSize: 12, color: kTxt3),
+                      ),
                     ],
                   ),
-                  if ((c.description ?? '').isNotEmpty) ...[
+                  if (faces.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        AvatarStack(people: faces, size: 26),
+                        if (extra > 0) ...[
+                          const SizedBox(width: 8),
+                          Text(
+                            '+$extra members',
+                            style: const TextStyle(fontSize: 12, color: kTxt3),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                  if (!c.isSchool && (c.description ?? '').isNotEmpty) ...[
                     const SizedBox(height: 6),
                     Text(
                       c.description!,
@@ -562,10 +695,10 @@ class _HeaderState extends ConsumerState<_Header> {
                                 children: [
                                   CommunityPill(
                                     label: c.isOwner ? 'Owner' : 'Joined',
-                                    icon: Icons.check_rounded,
+                                    icon: HugeIcons.strokeRoundedTick02,
                                     trailing: c.isOwner
                                         ? null
-                                        : Icons.keyboard_arrow_down_rounded,
+                                        : HugeIcons.strokeRoundedArrowDown01,
                                     expand: true,
                                     onTap: () {},
                                   ),
@@ -577,13 +710,13 @@ class _HeaderState extends ConsumerState<_Header> {
                       else if (c.requested)
                         const CommunityPill(
                           label: 'Requested · waiting for the owner',
-                          icon: Icons.schedule_rounded,
+                          icon: HugeIcons.strokeRoundedClock01,
                           expand: true,
                         )
                       else
                         CommunityPill(
                           label: c.isPrivate ? 'Request to join' : 'Join',
-                          icon: Icons.add_rounded,
+                          icon: HugeIcons.strokeRoundedAdd01,
                           filled: true,
                           expand: true,
                           onTap: _busy ? null : _join,
@@ -592,7 +725,7 @@ class _HeaderState extends ConsumerState<_Header> {
                         const SizedBox(width: 10),
                         CommunityPill(
                           label: unread > 0 ? 'Chat · $unread' : 'Chat',
-                          icon: Icons.chat_bubble_outline_rounded,
+                          icon: HugeIcons.strokeRoundedMessage01,
                           filled: true,
                           expand: true,
                           onTap: widget.onChat,
@@ -687,6 +820,13 @@ class _FeedTab extends ConsumerWidget {
                   if (c.isMember) ...[
                     PromptCard(
                       hint: 'Share a memory or update',
+                      actionIcons: c.isSchool
+                          ? const [
+                              HugeIcons.strokeRoundedImage02,
+                              HugeIcons.strokeRoundedVideo01,
+                              HugeIcons.strokeRoundedFile01,
+                            ]
+                          : null,
                       onTap: () => showPostComposer(
                         context,
                         communityId: c.id,
@@ -768,7 +908,7 @@ class _FeedTab extends ConsumerWidget {
                     )
                   else if (feed.items.isEmpty && sort == 'popular')
                     const EmptyState(
-                      icon: Icons.local_fire_department_outlined,
+                      icon: HugeIcons.strokeRoundedFire,
                       image: kEmptyInboxImage,
                       title: 'Nothing popular yet',
                       message:
@@ -776,7 +916,7 @@ class _FeedTab extends ConsumerWidget {
                     )
                   else if (feed.items.isEmpty)
                     EmptyState(
-                      icon: Icons.forum_outlined,
+                      icon: HugeIcons.strokeRoundedComment01,
                       image: kEmptyInboxImage,
                       title: 'No posts yet',
                       message: c.isMember
@@ -824,7 +964,7 @@ class _SortToggle extends StatelessWidget {
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color: value == v ? Colors.white : Colors.transparent,
+                  color: value == v ? AppColors.crimson : Colors.transparent,
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: Text(
@@ -832,7 +972,7 @@ class _SortToggle extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
-                    color: value == v ? AppColors.crimson : kTxt3,
+                    color: value == v ? Colors.white : kTxt3,
                   ),
                 ),
               ),
@@ -1184,8 +1324,8 @@ class _PostComposerState extends ConsumerState<PostComposer> {
                                     ),
                                   ),
                                 )
-                              : const Icon(
-                                  Icons.add_photo_alternate_outlined,
+                              : const HugeIcon(
+                                  icon: HugeIcons.strokeRoundedImage01,
                                   color: AppColors.crimson,
                                 ),
                         ),
@@ -1224,8 +1364,8 @@ class _PostComposerState extends ConsumerState<PostComposer> {
                                       color: Colors.black54,
                                       shape: BoxShape.circle,
                                     ),
-                                    child: const Icon(
-                                      Icons.close_rounded,
+                                    child: const HugeIcon(
+                                      icon: HugeIcons.strokeRoundedCancel01,
                                       size: 14,
                                       color: Colors.white,
                                     ),
@@ -1249,8 +1389,8 @@ class _PostComposerState extends ConsumerState<PostComposer> {
                   children: [
                     Row(
                       children: [
-                        const Icon(
-                          Icons.history_edu_rounded,
+                        const HugeIcon(
+                          icon: HugeIcons.strokeRoundedNote01,
                           color: AppColors.crimson,
                           size: 20,
                         ),
@@ -1430,8 +1570,8 @@ class _MembersTabState extends ConsumerState<_MembersTab> {
                           textInputAction: TextInputAction.search,
                           decoration: appInputDecoration('Search members')
                               .copyWith(
-                                prefixIcon: const Icon(
-                                  Icons.search_rounded,
+                                prefixIcon: const HugeIcon(
+                                  icon: HugeIcons.strokeRoundedSearch01,
                                   size: 20,
                                 ),
                                 isDense: true,
@@ -1449,7 +1589,9 @@ class _MembersTabState extends ConsumerState<_MembersTab> {
                               'Batch',
                               style: TextStyle(fontSize: 13),
                             ),
-                            icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                            icon: const HugeIcon(
+                              icon: HugeIcons.strokeRoundedArrowDown01,
+                            ),
                             items: [
                               const DropdownMenuItem(
                                 value: null,
@@ -1495,7 +1637,7 @@ class _MembersTabState extends ConsumerState<_MembersTab> {
                     )
                   else if (people.isEmpty)
                     EmptyState(
-                      icon: Icons.groups_outlined,
+                      icon: HugeIcons.strokeRoundedUserGroup,
                       image: kEmptyInboxImage,
                       title: filtered ? 'No members found' : 'No one else yet',
                       message: filtered
@@ -1575,7 +1717,7 @@ class _MemberRow extends StatelessWidget {
           foregroundColor: AppColors.crimson,
         ),
         onPressed: onAction,
-        icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
+        icon: const HugeIcon(icon: HugeIcons.strokeRoundedMessage01, size: 18),
       ),
       _ when requested || p.relation == 'PENDING_OUT' => const _SmallPill(
         'Requested',
@@ -1715,16 +1857,20 @@ class _JoinRequestsScreenState extends ConsumerState<JoinRequestsScreen> {
     final requests = ref.watch(joinRequestsProvider(widget.communityId));
     final count = requests.valueOrNull?.length ?? 0;
 
-    Widget round(IconData icon, bool filled, VoidCallback onTap, String tip) =>
-        IconButton.filled(
-          tooltip: tip,
-          style: IconButton.styleFrom(
-            backgroundColor: filled ? AppColors.crimson : kTint,
-            foregroundColor: filled ? Colors.white : kTxt2,
-          ),
-          onPressed: _busy ? null : onTap,
-          icon: Icon(icon, size: 18),
-        );
+    Widget round(
+      AppIconData icon,
+      bool filled,
+      VoidCallback onTap,
+      String tip,
+    ) => IconButton.filled(
+      tooltip: tip,
+      style: IconButton.styleFrom(
+        backgroundColor: filled ? AppColors.crimson : kTint,
+        foregroundColor: filled ? Colors.white : kTxt2,
+      ),
+      onPressed: _busy ? null : onTap,
+      icon: HugeIcon(icon: icon, size: 18),
+    );
 
     return Scaffold(
       backgroundColor: kCommunityBg,
@@ -1762,7 +1908,7 @@ class _JoinRequestsScreenState extends ConsumerState<JoinRequestsScreen> {
         ),
         error: (e, _) => Center(
           child: EmptyState(
-            icon: Icons.wifi_off_rounded,
+            icon: HugeIcons.strokeRoundedWifiOff01,
             title: 'Could not load requests',
             message: friendlyError(e),
             action: TextButton(
@@ -1775,7 +1921,7 @@ class _JoinRequestsScreenState extends ConsumerState<JoinRequestsScreen> {
         data: (list) => list.isEmpty
             ? const SingleChildScrollView(
                 child: EmptyState(
-                  icon: Icons.how_to_reg_outlined,
+                  icon: HugeIcons.strokeRoundedUserCheck01,
                   image: kEmptyInboxImage,
                   title: 'No requests right now',
                   message: 'When someone asks to join, they appear here.',
@@ -1845,7 +1991,7 @@ class _JoinRequestsScreenState extends ConsumerState<JoinRequestsScreen> {
                                   ),
                                 ),
                                 round(
-                                  Icons.close_rounded,
+                                  HugeIcons.strokeRoundedCancel01,
                                   false,
                                   () => _decide([
                                     list[i].person.id,
@@ -1853,7 +1999,7 @@ class _JoinRequestsScreenState extends ConsumerState<JoinRequestsScreen> {
                                   'Reject',
                                 ),
                                 round(
-                                  Icons.check_rounded,
+                                  HugeIcons.strokeRoundedTick02,
                                   true,
                                   () => _decide([
                                     list[i].person.id,

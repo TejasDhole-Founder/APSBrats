@@ -5,6 +5,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hugeicons/hugeicons.dart';
+
+import 'hugeicon_finder.dart';
 
 void main() {
   Future<void> show(
@@ -55,6 +58,6 @@ void main() {
 
   testWidgets('always shows the camera badge', (tester) async {
     await show(tester, user());
-    expect(find.byIcon(Icons.photo_camera_rounded), findsOneWidget);
+    expect(hugeIcon(HugeIcons.strokeRoundedCamera01), findsOneWidget);
   });
 }

@@ -39,8 +39,13 @@ class Community {
   String get kindLabel =>
       isSchool ? 'School' : (isPrivate ? 'Private' : 'Public');
 
-  String get membersLabel =>
-      memberCount == 1 ? '1 member' : '$memberCount members';
+  /// "1 member", "45 members", "1.2K members".
+  String get membersLabel {
+    if (memberCount == 1) return '1 member';
+    if (memberCount < 1000) return '$memberCount members';
+    final k = (memberCount / 1000).toStringAsFixed(1);
+    return '${k.endsWith('.0') ? k.substring(0, k.length - 2) : k}K members';
+  }
 
   factory Community.fromJson(Map<String, dynamic> json) => Community(
     id: json['id'] as String,
@@ -55,16 +60,24 @@ class Community {
 }
 
 class MyCommunities {
-  const MyCommunities({required this.joined, required this.suggested});
+  const MyCommunities({
+    required this.joined,
+    required this.suggested,
+    this.requested = const [],
+  });
 
   final List<Community> joined;
 
   /// My schools' communities I haven't joined yet.
   final List<Community> suggested;
 
+  /// Private communities I asked to join and am waiting on.
+  final List<Community> requested;
+
   factory MyCommunities.fromJson(Map<String, dynamic> json) => MyCommunities(
     joined: _list(json['joined'], Community.fromJson),
     suggested: _list(json['suggested'], Community.fromJson),
+    requested: _list(json['requested'], Community.fromJson),
   );
 }
 
@@ -364,6 +377,32 @@ class CommunityChatSummary {
         unreadCount: (json['unreadCount'] as num?)?.toInt() ?? 0,
         canModerate: json['canModerate'] as bool? ?? false,
         onlineCount: (json['onlineCount'] as num?)?.toInt(),
+      );
+}
+
+/// One community row in the Social list: latest message + my unread count.
+class CommunityChatItem {
+  const CommunityChatItem({
+    required this.community,
+    this.lastMessage,
+    required this.unreadCount,
+  });
+
+  final Community community;
+  final CommunityMessage? lastMessage;
+  final int unreadCount;
+
+  DateTime? get time => lastMessage?.createdAt;
+
+  factory CommunityChatItem.fromJson(Map<String, dynamic> json) =>
+      CommunityChatItem(
+        community: Community.fromJson(json['community'] as Map<String, dynamic>),
+        lastMessage: json['lastMessage'] == null
+            ? null
+            : CommunityMessage.fromJson(
+                json['lastMessage'] as Map<String, dynamic>,
+              ),
+        unreadCount: (json['unreadCount'] as num?)?.toInt() ?? 0,
       );
 }
 

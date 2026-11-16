@@ -1,4 +1,5 @@
 import 'package:apsbrat_frontend/core/network/dio_client.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:apsbrat_frontend/features/profile/presentation/widgets/profile_photo.dart';
 import 'package:apsbrat_frontend/core/theme/app_inputs.dart';
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
@@ -174,7 +175,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               child: Row(
                 children: [
                   FeedIconBtn(
-                    icon: Icons.arrow_back_rounded,
+                    icon: HugeIcons.strokeRoundedArrowLeft01,
                     onTap: () => context.pop(),
                   ),
                   const SizedBox(width: 12),
@@ -236,8 +237,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             style: const TextStyle(fontSize: 13, color: kTxt3),
             decoration: appInputDecoration(
               '',
-              suffix: const Icon(
-                Icons.lock_outline_rounded,
+              suffix: const HugeIcon(
+                icon: HugeIcons.strokeRoundedLockKey,
                 size: 16,
                 color: kTxt3,
               ),
@@ -278,8 +279,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             style: const TextStyle(fontSize: 13, color: kTxt3),
             decoration: appInputDecoration(
               '',
-              suffix: const Icon(
-                Icons.lock_outline_rounded,
+              suffix: const HugeIcon(
+                icon: HugeIcons.strokeRoundedLockKey,
                 size: 16,
                 color: kTxt3,
               ),
@@ -300,8 +301,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   validator: _required,
                   decoration: appInputDecoration(
                     'DD / MM / YYYY',
-                    suffix: const Icon(
-                      Icons.calendar_today_outlined,
+                    suffix: const HugeIcon(
+                      icon: HugeIcons.strokeRoundedCalendar03,
                       size: 16,
                       color: kTxt3,
                     ),
@@ -450,8 +451,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       );
     }
     if (_usernameCheck.confirmed) {
-      return const Icon(
-        Icons.check_circle_rounded,
+      return const HugeIcon(
+        icon: HugeIcons.strokeRoundedCheckmarkCircle01,
         size: 18,
         color: Colors.green,
       );

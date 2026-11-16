@@ -55,7 +55,16 @@ public class CommunityService {
                 .map(c -> CommunityDto.of(c, null, false))
                 .toList();
 
-        return new MyCommunitiesDto(joined, suggested);
+        Set<UUID> requestedIds = joinRequestRepository.findByUserId(userId).stream()
+                .map(JoinRequest::getCommunityId)
+                .filter(id -> !myRoles.containsKey(id))
+                .collect(Collectors.toSet());
+        List<CommunityDto> requested = communityRepository.findAllById(requestedIds).stream()
+                .sorted(Comparator.comparing(Community::getName))
+                .map(c -> CommunityDto.of(c, null, true))
+                .toList();
+
+        return new MyCommunitiesDto(joined, suggested, requested);
     }
 
     @Transactional(readOnly = true)

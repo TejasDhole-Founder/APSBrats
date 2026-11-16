@@ -1,0 +1,24 @@
+{
+  "success": true,
+  "data": [
+    {
+      "id": "f461969f-1d5a-43bc-a81c-108d01edfb1e",
+      "username": "fx_requester",
+      "initials": "DS",
+      "name": "Dev Singh",
+      "school": "",
+      "detail": "",
+      "city": null,
+      "job": null,
+      "currentStatus": "STUDENT",
+      "profilePicUrl": null,
+      "online": true,
+      "lastActiveAt": "2026-11-15T19:32:38.600971",
+      "tags": [
+        "Student"
+      ],
+      "mutualCount": 0,
+      "relation": "PENDING_IN"
+    }
+  ]
+}

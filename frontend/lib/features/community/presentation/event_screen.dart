@@ -9,6 +9,8 @@ import 'package:apsbrat_frontend/features/community/presentation/community_ui.da
 import 'package:apsbrat_frontend/features/community/presentation/post_card.dart';
 import 'package:apsbrat_frontend/features/feed/presentation/widgets/feed_shared.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:apsbrat_frontend/core/theme/app_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -158,7 +160,7 @@ class NextEventCard extends ConsumerWidget {
                 if (community.isMember)
                   CommunityPill(
                     label: going ? 'Going' : 'Go',
-                    icon: going ? Icons.check_rounded : null,
+                    icon: going ? HugeIcons.strokeRoundedTick02 : null,
                     filled: going,
                     onTap: () => setEventRsvp(context, ref, next, 'GOING'),
                   ),
@@ -239,7 +241,7 @@ class EventsTab extends ConsumerWidget {
                     children: [
                       CommunityPill(
                         label: 'Create an event',
-                        icon: Icons.add_rounded,
+                        icon: HugeIcons.strokeRoundedAdd01,
                         filled: true,
                         expand: true,
                         onTap: () => showEventForm(context, ref, c.id),
@@ -309,8 +311,8 @@ class _FeaturedEvent extends ConsumerWidget {
                           )
                         : Container(
                             color: const Color(0xFFF2E6D6),
-                            child: const Icon(
-                              Icons.celebration_outlined,
+                            child: const HugeIcon(
+                              icon: HugeIcons.strokeRoundedParty,
                               size: 34,
                               color: Color(0xFFB08A5A),
                             ),
@@ -343,8 +345,8 @@ class _FeaturedEvent extends ConsumerWidget {
                       const SizedBox(height: 3),
                       Row(
                         children: [
-                          const Icon(
-                            Icons.place_outlined,
+                          const HugeIcon(
+                            icon: HugeIcons.strokeRoundedLocation01,
                             size: 14,
                             color: kTxt3,
                           ),
@@ -489,12 +491,15 @@ class EventTile extends StatelessWidget {
                   ),
                 ),
                 if (past && !e.cancelled)
-                  const Icon(
-                    Icons.photo_library_outlined,
+                  const HugeIcon(
+                    icon: HugeIcons.strokeRoundedImage02,
                     color: AppColors.crimson,
                   )
                 else
-                  const Icon(Icons.chevron_right_rounded, color: kTxt3),
+                  const HugeIcon(
+                    icon: HugeIcons.strokeRoundedArrowRight01,
+                    color: kTxt3,
+                  ),
               ],
             ),
           ),
@@ -559,12 +564,14 @@ class _EventScreenState extends ConsumerState<EventScreen> {
                   alignment: Alignment.centerLeft,
                   child: IconButton(
                     tooltip: 'Back',
-                    icon: const Icon(Icons.arrow_back_rounded),
+                    icon: const HugeIcon(
+                      icon: HugeIcons.strokeRoundedArrowLeft01,
+                    ),
                     onPressed: () => context.pop(),
                   ),
                 ),
                 EmptyState(
-                  icon: Icons.event_busy_outlined,
+                  icon: HugeIcons.strokeRoundedCalendarRemove01,
                   image: kEmptyInboxImage,
                   title: statusOf(e) == 404
                       ? 'Event not found'
@@ -618,7 +625,10 @@ class _EventScreenState extends ConsumerState<EventScreen> {
               ),
             ),
             if (onTap != null)
-              const Icon(Icons.chevron_right_rounded, color: kTxt3),
+              const HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowRight01,
+                color: kTxt3,
+              ),
           ],
         ),
       ),
@@ -641,14 +651,14 @@ class _EventScreenState extends ConsumerState<EventScreen> {
               : null,
           leading: IconButton(
             tooltip: 'Back',
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: const HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01),
             onPressed: () => context.pop(),
           ),
           actions: [
             if (e.canManage && !e.cancelled)
               PopupMenuButton<String>(
                 tooltip: 'Manage event',
-                icon: const Icon(Icons.more_vert_rounded),
+                icon: const HugeIcon(icon: HugeIcons.strokeRoundedMoreVertical),
                 onSelected: (v) => v == 'edit'
                     ? showEventForm(context, ref, e.communityId, existing: e)
                     : _cancel(e),
@@ -728,8 +738,8 @@ class _EventScreenState extends ConsumerState<EventScreen> {
                 child: Column(
                   children: [
                     infoRow(
-                      const Icon(
-                        Icons.place_outlined,
+                      const HugeIcon(
+                        icon: HugeIcons.strokeRoundedLocation01,
                         size: 18,
                         color: AppColors.crimson,
                       ),
@@ -737,8 +747,8 @@ class _EventScreenState extends ConsumerState<EventScreen> {
                     ),
                     if (e.organizer case final o?)
                       infoRow(
-                        const Icon(
-                          Icons.person_outline_rounded,
+                        const HugeIcon(
+                          icon: HugeIcons.strokeRoundedUser,
                           size: 18,
                           color: AppColors.crimson,
                         ),
@@ -747,8 +757,8 @@ class _EventScreenState extends ConsumerState<EventScreen> {
                       ),
                     infoRow(
                       going.isEmpty
-                          ? const Icon(
-                              Icons.groups_outlined,
+                          ? const HugeIcon(
+                              icon: HugeIcons.strokeRoundedUserGroup,
                               size: 18,
                               color: AppColors.crimson,
                             )
@@ -770,8 +780,8 @@ class _EventScreenState extends ConsumerState<EventScreen> {
                           CommunityPill(
                             label: 'Going',
                             icon: e.myRsvp == 'GOING'
-                                ? Icons.check_rounded
-                                : Icons.event_available_rounded,
+                                ? HugeIcons.strokeRoundedTick02
+                                : HugeIcons.strokeRoundedCalendarCheck01,
                             filled: e.myRsvp == 'GOING',
                             expand: true,
                             onTap: () => setEventRsvp(context, ref, e, 'GOING'),
@@ -780,8 +790,8 @@ class _EventScreenState extends ConsumerState<EventScreen> {
                           CommunityPill(
                             label: 'Interested',
                             icon: e.myRsvp == 'INTERESTED'
-                                ? Icons.check_rounded
-                                : Icons.star_outline_rounded,
+                                ? HugeIcons.strokeRoundedTick02
+                                : HugeIcons.strokeRoundedStar,
                             filled: e.myRsvp == 'INTERESTED',
                             expand: true,
                             onTap: () =>
@@ -830,8 +840,8 @@ class _EventScreenState extends ConsumerState<EventScreen> {
                       style: TextButton.styleFrom(
                         foregroundColor: AppColors.crimson,
                       ),
-                      icon: const Icon(
-                        Icons.add_photo_alternate_outlined,
+                      icon: const HugeIcon(
+                        icon: HugeIcons.strokeRoundedImage01,
                         size: 18,
                       ),
                       label: const Text('Share'),
@@ -914,7 +924,7 @@ class _EventScreenState extends ConsumerState<EventScreen> {
               ),
               error: (err, _) => Center(
                 child: EmptyState(
-                  icon: Icons.wifi_off_rounded,
+                  icon: HugeIcons.strokeRoundedWifiOff01,
                   title: 'Could not load who is going',
                   message: friendlyError(err),
                   action: TextButton(
@@ -1131,7 +1141,7 @@ class _EventFormState extends ConsumerState<_EventForm> {
   @override
   Widget build(BuildContext context) {
     Widget field(
-      IconData icon,
+      AppIconData icon,
       String? value,
       String hint,
       VoidCallback onTap,
@@ -1149,7 +1159,7 @@ class _EventFormState extends ConsumerState<_EventForm> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
             child: Row(
               children: [
-                Icon(icon, size: 18, color: AppColors.crimson),
+                HugeIcon(icon: icon, size: 18, color: AppColors.crimson),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -1208,7 +1218,10 @@ class _EventFormState extends ConsumerState<_EventForm> {
                 IconButton(
                   tooltip: 'Close',
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close_rounded, color: kTxt3),
+                  icon: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedCancel01,
+                    color: kTxt3,
+                  ),
                 ),
               ],
             ),
@@ -1227,8 +1240,8 @@ class _EventFormState extends ConsumerState<_EventForm> {
                     ? const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.add_photo_alternate_outlined,
+                          HugeIcon(
+                            icon: HugeIcons.strokeRoundedImage01,
                             color: AppColors.crimson,
                           ),
                           SizedBox(width: 8),
@@ -1259,7 +1272,10 @@ class _EventFormState extends ConsumerState<_EventForm> {
                                 backgroundColor: Colors.black54,
                               ),
                               onPressed: () => setState(() => _cover = null),
-                              icon: const Icon(Icons.close_rounded, size: 18),
+                              icon: const HugeIcon(
+                                icon: HugeIcons.strokeRoundedCancel01,
+                                size: 18,
+                              ),
                             ),
                           ),
                         ],
@@ -1280,7 +1296,7 @@ class _EventFormState extends ConsumerState<_EventForm> {
             Row(
               children: [
                 field(
-                  Icons.calendar_today_outlined,
+                  HugeIcons.strokeRoundedCalendar03,
                   _date == null
                       ? null
                       : DateFormat('EEE, d MMM').format(_date!),
@@ -1289,7 +1305,7 @@ class _EventFormState extends ConsumerState<_EventForm> {
                 ),
                 const SizedBox(width: 8),
                 field(
-                  Icons.schedule_rounded,
+                  HugeIcons.strokeRoundedClock01,
                   _start?.format(context),
                   'Time',
                   () => _pickTime(true),
@@ -1302,7 +1318,7 @@ class _EventFormState extends ConsumerState<_EventForm> {
             Row(
               children: [
                 field(
-                  Icons.event_available_outlined,
+                  HugeIcons.strokeRoundedCalendarCheck01,
                   _endDate == null
                       ? null
                       : DateFormat('EEE, d MMM').format(_endDate!),
@@ -1311,7 +1327,7 @@ class _EventFormState extends ConsumerState<_EventForm> {
                 ),
                 const SizedBox(width: 8),
                 field(
-                  Icons.schedule_outlined,
+                  HugeIcons.strokeRoundedClock01,
                   _end?.format(context),
                   'Time',
                   () => _pickTime(false),
@@ -1327,8 +1343,8 @@ class _EventFormState extends ConsumerState<_EventForm> {
               textCapitalization: TextCapitalization.words,
               decoration: appInputDecoration('APS Pune hall, or Online')
                   .copyWith(
-                    prefixIcon: const Icon(
-                      Icons.place_outlined,
+                    prefixIcon: const HugeIcon(
+                      icon: HugeIcons.strokeRoundedLocation01,
                       color: AppColors.crimson,
                     ),
                   ),

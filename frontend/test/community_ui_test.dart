@@ -12,6 +12,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hugeicons/hugeicons.dart';
+
+import 'hugeicon_finder.dart';
 
 const _me = Person(
   id: 'me',
@@ -293,9 +296,9 @@ void main() {
     await show(tester, const CommunityScreen(communityId: 'c1'));
 
     repo.likeReply = Completer();
-    await tester.tap(find.byIcon(Icons.favorite_border_rounded));
+    await tester.tap(hugeIcon(HugeIcons.strokeRoundedHeart));
     await tester.pump();
-    expect(find.byIcon(Icons.favorite_rounded), findsOneWidget);
+    expect(hugeIcon(HugeIcons.strokeRoundedHeart), findsOneWidget);
     expect(find.text('5'), findsOneWidget);
 
     repo.likeReply!.complete(_post('p1', 'Like me', likes: 7, liked: true));
@@ -308,13 +311,13 @@ void main() {
     await show(tester, const CommunityScreen(communityId: 'c1'));
 
     repo.likeReply = Completer();
-    await tester.tap(find.byIcon(Icons.favorite_border_rounded));
+    await tester.tap(hugeIcon(HugeIcons.strokeRoundedHeart));
     await tester.pump();
     repo.likeReply!.completeError(
       DioException(requestOptions: RequestOptions()),
     );
     await tester.pumpAndSettle();
-    expect(find.byIcon(Icons.favorite_border_rounded), findsOneWidget);
+    expect(hugeIcon(HugeIcons.strokeRoundedHeart), findsOneWidget);
     expect(find.text('4'), findsOneWidget);
   });
 

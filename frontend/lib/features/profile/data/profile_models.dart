@@ -89,7 +89,6 @@ class Profile {
     required this.currentStatus,
     required this.schools,
     required this.socials,
-    required this.batchmatesCount,
     required this.schoolsCount,
     required this.connectedCount,
     this.mutualCount = 0,
@@ -115,7 +114,6 @@ class Profile {
   final String currentStatus;
   final List<SchoolHistory> schools;
   final List<SocialLink> socials;
-  final int batchmatesCount;
   final int schoolsCount;
   final int connectedCount;
 
@@ -150,7 +148,6 @@ class Profile {
             ?.map((e) => SocialLink.fromJson(e as Map<String, dynamic>))
             .toList() ??
         const [],
-    batchmatesCount: (json['batchmatesCount'] as num?)?.toInt() ?? 0,
     schoolsCount: (json['schoolsCount'] as num?)?.toInt() ?? 0,
     connectedCount: (json['connectedCount'] as num?)?.toInt() ?? 0,
   );

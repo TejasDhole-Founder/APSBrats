@@ -1,32 +1,32 @@
-import 'dart:math' as math;
-
-import 'package:apsbrat_frontend/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:apsbrat_frontend/core/theme/app_icons.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-/// Shared look of the pre-login screens (welcome, login/OTP):
-/// deep maroon canvas, gold accents, serif headlines.
+/// Shared look of the pre-login screens (login/OTP), matching the splash:
+/// deep maroon canvas, gold accents, Cinzel headlines, Mulish body text.
 class Welcome {
   const Welcome._();
 
-  static const bg = AppColors.crimson;
-  static const bgEdge = AppColors.crimsonDark;
-  static const gold = AppColors.gold;
-  static const goldLight = Color(0xFFE8C06A);
-  static const goldDeep = Color(0xFFC9962E);
-  static const muted = Color(0xFFD9C7B8);
-  static const card = Color(0xFF5C1010);
-  static const cardDeep = Color(0xFF4A0C0C);
+  static const bg = Color(0xFF4E0B0F);
+  static const bgEdge = Color(0xFF2A0508);
+  static const gold = Color(0xFFE8B84A);
+  static const goldDeep = Color(0xFFD4A84A);
+  static const goldLight = Color(0xFFF3D27A);
+  static const cream = Color(0xFFF5EFE6);
+  static const muted = Color(0xFFC9B49A);
+  static const card = Color(0x59000000);
+  static const cardDeep = Color(0x33000000);
 
-  static const headline = TextStyle(
-    fontFamily: 'serif',
-    fontSize: 28,
+  static TextStyle get headline => GoogleFonts.cinzel(
+    fontSize: 22,
     fontWeight: FontWeight.w600,
-    height: 1.2,
-    color: Colors.white,
+    height: 1.35,
+    color: cream,
   );
 }
 
-/// Full-screen maroon vignette behind the content.
+/// Full-screen maroon vignette with the gold swirls from the splash.
 class WelcomeBackground extends StatelessWidget {
   const WelcomeBackground({super.key, required this.child});
 
@@ -37,19 +37,46 @@ class WelcomeBackground extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         gradient: RadialGradient(
-          center: Alignment(0, -0.3),
+          center: Alignment(0, -0.4),
           radius: 1.2,
-          colors: [Welcome.bg, Welcome.bgEdge],
+          colors: [Color(0xFF6E1418), Welcome.bg, Welcome.bgEdge],
+          stops: [0, 0.55, 1],
         ),
       ),
-      child: child,
+      child: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            left: 0,
+            child: Opacity(
+              opacity: 0.7,
+              child: Image.asset(
+                'assets/images/splash_swirl_top.png',
+                width: 110,
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: Opacity(
+              opacity: 0.7,
+              child: Image.asset(
+                'assets/images/splash_swirl_bottom.png',
+                width: 150,
+              ),
+            ),
+          ),
+          child,
+        ],
+      ),
     );
   }
 }
 
 /// "APS Brat" + "ARMY PUBLIC SCHOOL · ALL OF INDIA".
 class BrandTitle extends StatelessWidget {
-  const BrandTitle({super.key, this.fontSize = 40});
+  const BrandTitle({super.key, this.fontSize = 32});
 
   final double fontSize;
 
@@ -59,15 +86,16 @@ class BrandTitle extends StatelessWidget {
       children: [
         RichText(
           text: TextSpan(
-            style: TextStyle(
+            style: GoogleFonts.cinzel(
               fontSize: fontSize,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               height: 1,
+              letterSpacing: 0.5,
             ),
             children: const [
               TextSpan(
                 text: 'APS ',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: Welcome.cream),
               ),
               TextSpan(
                 text: 'Brat',
@@ -76,14 +104,14 @@ class BrandTitle extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 8),
-        const Text(
+        const SizedBox(height: 10),
+        Text(
           'ARMY PUBLIC SCHOOL · ALL OF INDIA',
-          style: TextStyle(
+          style: GoogleFonts.mulish(
             color: Welcome.muted,
             fontSize: 10,
-            letterSpacing: 2.2,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 2.5,
           ),
         ),
       ],
@@ -91,33 +119,40 @@ class BrandTitle extends StatelessWidget {
   }
 }
 
-/// Thin gold rule with a diamond in the middle.
+/// Thin gold rule with a diamond in the middle, fading at both ends.
 class DiamondDivider extends StatelessWidget {
   const DiamondDivider({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final line = Expanded(
-      child: Container(height: 1, color: Welcome.gold.withValues(alpha: 0.35)),
-    );
     return Row(
       children: [
-        line,
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Transform.rotate(
-            angle: math.pi / 4,
-            child: Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: Welcome.gold,
-                borderRadius: BorderRadius.circular(1),
+        Expanded(
+          child: Container(
+            height: 1,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0x00D4A84A), Welcome.goldDeep],
               ),
             ),
           ),
         ),
-        line,
+        const SizedBox(width: 10),
+        Transform.rotate(
+          angle: 0.785398,
+          child: Container(width: 6, height: 6, color: Welcome.goldDeep),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Container(
+            height: 1,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Welcome.goldDeep, Color(0x00D4A84A)],
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -132,133 +167,84 @@ class WelcomeFooter extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const Text(
+        Text(
           'ONCE AN APS BRAT, ALWAYS AN APS BRAT',
-          style: TextStyle(
+          style: GoogleFonts.mulish(
             color: Welcome.muted,
-            fontSize: 9,
-            letterSpacing: 2.6,
-            fontWeight: FontWeight.w500,
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 3,
           ),
         ),
         if (withDivider) ...[
           const SizedBox(height: 14),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 90),
-            child: DiamondDivider(),
-          ),
+          const DiamondDivider(),
         ],
       ],
     );
   }
 }
 
-/// Gold gradient button with a slow moving shine and a soft glow.
-class ShimmerGoldButton extends StatefulWidget {
+/// Primary button, styled like the splash: gold fill, 2px gold border,
+/// 18px corners, 50px high, default font.
+class ShimmerGoldButton extends StatelessWidget {
   const ShimmerGoldButton({
     super.key,
     required this.label,
     required this.onTap,
     this.loading = false,
-    this.icon = Icons.arrow_forward_rounded,
+    this.icon = HugeIcons.strokeRoundedArrowRight01,
   });
 
   final String label;
   final VoidCallback? onTap;
   final bool loading;
-  final IconData icon;
+  final AppIconData icon;
 
-  @override
-  State<ShimmerGoldButton> createState() => _ShimmerGoldButtonState();
-}
-
-class _ShimmerGoldButtonState extends State<ShimmerGoldButton>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _shine = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 2400),
-  )..repeat();
-
-  @override
-  void dispose() {
-    _shine.dispose();
-    super.dispose();
-  }
+  static const _text = Color(0xFF4A0C0C);
 
   @override
   Widget build(BuildContext context) {
-    final enabled = widget.onTap != null && !widget.loading;
-    return GestureDetector(
-      onTap: enabled ? widget.onTap : null,
-      child: AnimatedBuilder(
-        animation: _shine,
-        builder: (context, _) {
-          // The highlight band sweeps from left (-1) to right (+2) and loops.
-          final t = _shine.value * 3 - 1;
-          return Container(
-            width: double.infinity,
-            height: 50,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
-              gradient: LinearGradient(
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-                stops: [
-                  (t - 0.45).clamp(0.0, 1.0),
-                  t.clamp(0.0, 1.0),
-                  (t + 0.45).clamp(0.0, 1.0),
-                ],
-                colors: const [
-                  Welcome.goldDeep,
-                  Color(0xFFF6E3A1),
-                  Welcome.goldDeep,
-                ],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Welcome.gold.withValues(alpha: 0.45),
-                  blurRadius: 22,
-                  spreadRadius: 1,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: Opacity(
-              opacity: enabled ? 1 : 0.6,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  if (widget.loading)
-                    const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.2,
-                        color: Color(0xFF3A0C0C),
-                      ),
-                    )
-                  else
-                    Text(
-                      widget.label,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF3A0C0C),
-                      ),
+    final enabled = onTap != null && !loading;
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: Material(
+        color: enabled ? Welcome.gold : Welcome.gold.withValues(alpha: 0.6),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: const BorderSide(color: Welcome.goldDeep, width: 2),
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: enabled ? onTap : null,
+          child: Center(
+            child: loading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.2,
+                      color: _text,
                     ),
-                  Positioned(
-                    right: 20,
-                    child: Icon(
-                      widget.icon,
-                      size: 22,
-                      color: const Color(0xFF3A0C0C),
-                    ),
+                  )
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        label,
+                        style: const TextStyle(
+                          color: _text,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      HugeIcon(icon: icon, size: 18, color: _text),
+                    ],
                   ),
-                ],
-              ),
-            ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }

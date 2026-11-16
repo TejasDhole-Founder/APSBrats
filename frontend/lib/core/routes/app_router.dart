@@ -5,6 +5,7 @@ import 'package:apsbrat_frontend/features/chat/presentation/screens/chat_screen.
 import 'package:apsbrat_frontend/features/community/presentation/community_chat_screen.dart';
 import 'package:apsbrat_frontend/features/community/presentation/community_screen.dart';
 import 'package:apsbrat_frontend/features/community/presentation/event_screen.dart';
+import 'package:apsbrat_frontend/features/community/presentation/my_communities_screen.dart';
 import 'package:apsbrat_frontend/features/community/presentation/post_screen.dart';
 import 'package:apsbrat_frontend/features/connections/presentation/requests_screen.dart';
 import 'package:apsbrat_frontend/features/feed/presentation/screens/home_screen.dart';
@@ -20,6 +21,7 @@ import 'package:apsbrat_frontend/features/profile/presentation/screens/edit_scho
 import 'package:apsbrat_frontend/features/profile/presentation/screens/profile_screen.dart';
 import 'package:apsbrat_frontend/features/feed/presentation/widgets/feed_shared.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -36,7 +38,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     errorBuilder: (context, state) => Scaffold(
       appBar: AppBar(title: const Text('Page not found')),
       body: EmptyState(
-        icon: Icons.link_off_rounded,
+        icon: HugeIcons.strokeRoundedUnlink01,
         title: "This page doesn't exist",
         message:
             'The link may be old, or the post or person may have been removed.',
@@ -153,6 +155,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) {
               return ProfileScreen(userId: state.pathParameters['id'] ?? '');
             },
+          ),
+          GoRoute(
+            path: 'communities',
+            builder: (context, state) => const MyCommunitiesScreen(),
           ),
           GoRoute(
             path: 'community/:id',
