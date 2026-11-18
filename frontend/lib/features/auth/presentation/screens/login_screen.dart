@@ -15,7 +15,11 @@ import 'package:google_fonts/google_fonts.dart';
 /// Google. Verifying logs you in if the email already has an account,
 /// otherwise creates a bare one and the router sends you to onboarding.
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key, this.signUp = false});
+  const LoginScreen({super.key, this.signUp = false, this.from});
+
+  /// Where to go after signing in, set when a logged-out visitor opened a
+  /// protected link. Only app-internal /home paths are followed.
+  final String? from;
 
   /// Opened from "Get Started" rather than "Log In". Same flow underneath --
   /// this only changes the wording.
@@ -113,7 +117,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       );
       if (mounted) context.go(route);
     } else {
-      context.go('/home');
+      final from = widget.from;
+      final safe =
+          from != null && from.startsWith('/home') && !from.startsWith('//');
+      context.go(safe ? from : '/home');
     }
   }
 
@@ -280,10 +287,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               const SizedBox(height: 22),
                               const _OrDivider(),
                               const SizedBox(height: 18),
-                              _GoogleButton(
-                                loading: state.loading,
-                                onTap: _google,
-                              ),
+                              // Google sign-in on the web needs a web client ID
+                              // that is not configured yet; email code only there.
+                              if (!kIsWeb)
+                                _GoogleButton(
+                                  loading: state.loading,
+                                  onTap: _google,
+                                ),
                               const SizedBox(height: 6),
                               TextButton(
                                 onPressed: () =>

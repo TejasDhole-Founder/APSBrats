@@ -13,5 +13,5 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
-ENV JAVA_OPTS="-Duser.timezone=Asia/Kolkata"
+ENV JAVA_OPTS="-Duser.timezone=Asia/Kolkata -XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError"
 ENTRYPOINT ["sh","-c","java $JAVA_OPTS -jar app.jar"]

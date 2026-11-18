@@ -27,11 +27,11 @@ Snapshot date: 2026-11-16 (commit 168d987 from 2026-11-10, plus uncommitted work
 
 ## What exists
 
-Feature status table: [00 section 2](00-project-overview.md). Short version: auth (Google works, email OTP delivery missing), onboarding, profile and career, communities with events and memories, posts with photos, likes and comments, Home feed, connections with history and blocking, DMs and group chat with push, people search, in-app notifications, moderation API. No push notifications, no admin UI, no post editing.
+Feature status table: [00 section 2](00-project-overview.md). Short version: auth (Google works, email OTP delivery missing), onboarding, profile and career, communities with events and memories, posts with photos, likes and comments, Home feed, connections with history and blocking, DMs and group chat with push, people search, in-app notifications, moderation API. No push notifications, no admin UI, no post editing. The Flutter app also builds for the web (clean URLs, login guard, email-code sign-in only; deploy steps in `docs/DEPLOYMENT.md` Part D); not yet deployed or tried on a real phone.
 
 ## Local tooling
 
-`tools/api_dashboard.py`: live API and database analytics for a locally running dev API ([10](10-development-guide.md)). The dev profile exposes `/actuator/metrics` and `/actuator/prometheus` and records latency histograms (`app.actuator.public-metrics`, dev only).
+`tools/api_dashboard.py`: live API and database analytics for a locally running dev API ([10](10-development-guide.md)). `tools/ws_load.py`: 1000-socket chat load test with its own live dashboard. The dev profile exposes `/actuator/metrics` and `/actuator/prometheus` and records latency histograms (`app.actuator.public-metrics`, dev only).
 
 ## Highest-priority open items
 

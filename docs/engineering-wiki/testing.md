@@ -13,6 +13,7 @@ Last verified: 2026-11-16 against commit 168d987 (working tree has uncommitted c
 | Frontend unit/widget tests | `flutter_test` (no `integration_test` package, no mocks library) | nothing | yes (`flutter test`) |
 | End-to-end / device tests | none | | no |
 | Load tests | k6 `apsbrat-api/load/k6-load.js` (manual, throwaway DB) | k6, running API | no |
+| WebSocket load test | `tools/ws_load.py` (1000 sockets, live dashboard on port 8097; manual, throwaway DB); `apsbrat-api/load/ws_chat_soak.py` (one socket, direct messages; not run) | `pip install websockets`, running dev API | no |
 
 Backend test code has no `src/test/resources` (no test yml, no fixtures). Surefire has no custom config in `apsbrat-api/pom.xml` (no `argLine`, no timezone, no parallelism). Setup flags for Windows are in `10-development-guide.md` section 7.
 

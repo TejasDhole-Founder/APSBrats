@@ -67,6 +67,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         await ref.read(onboardingFlowProvider.notifier).hydrate();
         return null;
       }
+      // Everything under /home needs a signed-in user. A logged-out visitor
+      // (a shared link, a reload after the session expired) is sent to log in
+      // and brought back here afterwards.
+      if (state.matchedLocation.startsWith('/home')) {
+        String? userId;
+        try {
+          userId = await ref.read(authRepositoryProvider).currentUserId();
+        } catch (_) {
+          // Storage unreadable — same as signed out.
+        }
+        if (userId == null || userId.isEmpty) {
+          return '/login?from=${Uri.encodeQueryComponent(state.uri.toString())}';
+        }
+        return null;
+      }
       if (!isLaunch || state.matchedLocation != '/') return null;
       try {
         final repo = ref.read(authRepositoryProvider);
@@ -90,6 +105,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: 'login',
             builder: (context, state) => LoginScreen(
               signUp: state.uri.queryParameters['mode'] == 'signup',
+              from: state.uri.queryParameters['from'],
             ),
           ),
           GoRoute(

@@ -119,6 +119,7 @@ These flags come from the earlier work notes for this wiki, not from a file in t
 | Flutter analyze | `cd frontend && flutter analyze` |
 | Android APK | `cd frontend && flutter build apk --dart-define=BASE_URL=<url> --dart-define=WS_URL=<url>` (UNVERIFIED: no release signing or flavor config reviewed) |
 | iOS | `flutter build ios` on macOS (UNVERIFIED) |
+| WebSocket load test | Start the API on a throwaway database with `RATE_LIMIT_IP_PER_MINUTE=100000` and `--spring.data.redis.database=1`, then `python tools/ws_load.py --community-id <id> --school-id <id> --users 1000`; dashboard at `http://localhost:8097` (header of the file explains the setup) |
 | Load test | `k6 run -e SCENARIO=baseline -e COMMUNITY_ID=<id> -e SCHOOL_ID=<id> apsbrat-api/load/k6-load.js` (read the header of the file first: needs a throwaway DB and a high `RATE_LIMIT_IP_PER_MINUTE`) |
 
 ## 9. Local analytics dashboard (`tools/api_dashboard.py`)

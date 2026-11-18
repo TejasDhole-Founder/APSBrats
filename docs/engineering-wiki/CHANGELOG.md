@@ -23,12 +23,21 @@ Frontend (`frontend`)
 - **Profile:** removed the Batchmates stat and the "mutual batchmates" row and sheet.
 - **Tests:** icon finders now use `test/hugeicon_finder.dart`; added `connection_contract_test.dart` with fixtures recorded from a real server run (`test/fixtures/connections/`).
 
+Web app (2026-11-17)
+- **Clean URLs:** `usePathUrlStrategy()` in `main.dart` (`flutter_web_plugins` added). `frontend/web/_redirects` sends every path to `index.html`; `frontend/web/_headers` sets cache and security headers.
+- **Login guard:** any `/home...` path without a stored user id redirects to `/login?from=<path>`; after sign-in the app goes to `from` (only `/home` paths are followed). `LoginScreen` has a new `from` parameter. Logged-out use of other routes is unchanged.
+- **Google sign-in button is hidden on the web** (no web client ID or Firebase web config yet): email code only. Chat reconnect on resume already existed (`chatSocketProvider`).
+- `web/index.html`: `viewport-fit=cover`, `theme-color`, real description, `apple-mobile-web-app-capable`. `web/manifest.json`: `id`, `scope`, `start_url` `/`, crimson theme colour.
+- **Memory safety:** `Dockerfile` `JAVA_OPTS` adds `-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError`; `docker-compose.yml` api gets `mem_limit` (default 1g), `restart: unless-stopped` and `CORS_ALLOWED_ORIGINS`. Addresses the heap part of risk 12 in [12](12-current-status-technical-debt.md); the socket cap and bounded outbound queue are still open. Steps for the web host and Cloud Run: `docs/DEPLOYMENT.md` (Part D).
+- Verified: `flutter build web --release` succeeds; the 3 changed Dart files analyze clean. The test suite has 18 failing tests with or without these changes (88 pass); they look for old welcome-screen text. Not tested on a real iPhone or Android phone, and the guard and `from` redirect were not run in a browser.
+
 Tests (backend)
 - Added `ConnectionFlowTest` (29 tests including races across threads), `ConnectionMigrationTest` (V39 on old-style data, including duplicate pairs), `UserPairTest`. Also verified two separate API instances on one Postgres (not part of the suite): opposite requests, double accept, accept vs withdraw, request vs block: all consistent.
 
 Tooling
 - `tools/api_dashboard.py`: local dashboard for request counts, latency percentiles, database call timings, pool, memory and optional Postgres statistics.
 - This engineering wiki (`docs/engineering-wiki/`).
+- `tools/ws_load.py`: 1000-socket community chat load test with a live dashboard (connections, push latency, delivery, other-API latency, heap, CPU, DB pool). `apsbrat-api/load/ws_chat_soak.py`: single-socket direct-message soak test (not run). Results and the memory finding: [12](12-current-status-technical-debt.md) risk 12 and section 7.
 
 ## Recent commits (from git; not the full history)
 

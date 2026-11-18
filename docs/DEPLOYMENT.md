@@ -341,6 +341,16 @@ flutter build apk --release --dart-define=BASE_URL=https://api.apsbrats.com/api 
 ```
 Distribute via **Play Console → Internal testing** and **TestFlight** — NOT a public store release yet (see the safety gate).
 
+### Web app (iPhone and Android browsers, installable from Safari / Chrome)
+The same Flutter code builds a web app. Host it on its own Cloudflare Pages project at `app.apsbrats.com`; `apsbrats.com` stays the landing site.
+
+1. Build: `flutter build web --release --dart-define=BASE_URL=https://api.apsbrats.com/api/v1 --dart-define=WS_URL=wss://api.apsbrats.com/ws` (run in `frontend/`). The URL strategy is clean paths, so the host must rewrite every path to `index.html`: `frontend/web/_redirects` does this on Cloudflare Pages, and `frontend/web/_headers` sets cache and security headers. Both are copied into `build/web`.
+2. Deploy `frontend/build/web` to a new Pages project (direct upload or connect the repo with the build command above), then add the custom domain `app.apsbrats.com`.
+3. Set on the API (Cloud Run variable): `CORS_ALLOWED_ORIGINS=https://app.apsbrats.com`. The same value allows the browser origin on `/ws`. Without it the browser blocks every call.
+4. Sign-in on the web is the email code only: the Google button is hidden when `kIsWeb`. To enable it later you need a Firebase web app config in `main.dart` and a Google web client ID in `web/index.html`, then add `app.apsbrats.com` to Firebase Auth authorized domains.
+5. Cloud Run: set memory to `1Gi` (`--memory 1Gi`). The image starts the JVM with `-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError`, so the heap follows the limit and an out-of-memory process exits and Cloud Run starts a new instance. `docker-compose.yml` has the same limit and `restart: unless-stopped` for local and VPS use.
+6. Not done: web push notifications, a 180 px `apple-touch-icon` (the 192 px icon is used), and the Android Play Store listing.
+
 ### Landing site
 The "Get the app" buttons currently link to `#get`. Once you have store/testing links, update them in `index.html`. The contact form already emails `tejasdhole.work@gmail.com`.
 
