@@ -46,4 +46,4 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: frontend
-          command: pages deploy build/web --project-name=apsbrats-app --branch=main
+          command: pages deploy build/web --project-name=aps-brats-web --branch=main
