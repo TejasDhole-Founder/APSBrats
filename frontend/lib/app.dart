@@ -34,16 +34,17 @@ class ApsBratApp extends ConsumerWidget {
       routerConfig: router,
       localizationsDelegates: const [CountryLocalizations.delegate],
       builder: (context, child) {
+        final content = _PhoneWidth(
+          child: _ConnectionBanner(child: child ?? const SizedBox.shrink()),
+        );
+        // Production shows no corner banner at all.
+        if (flavor == AppFlavor.prod) return content;
         return Banner(
           message: flavor.name.toUpperCase(),
           location: BannerLocation.topEnd,
-          color: flavor == AppFlavor.prod
-              ? Colors.transparent
-              : AppColors.goldDark.withValues(alpha: 0.92),
+          color: AppColors.goldDark.withValues(alpha: 0.92),
           textStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700),
-          child: _PhoneWidth(
-            child: _ConnectionBanner(child: child ?? const SizedBox.shrink()),
-          ),
+          child: content,
         );
       },
     );

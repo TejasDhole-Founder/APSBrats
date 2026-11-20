@@ -237,3 +237,10 @@ Each item is backed by code. Severity is a suggestion.
 18. **Low, dead password code.** `PasswordEncoder` bean (`SecurityConfig.java`) and `users.password_hash` remain although no password flow exists; harmless but confusing.
 19. **Info, security headers and CSRF choices** are appropriate for a bearer-token API; the CSP is intentionally minimal (frame/object/base only).
 20. **Info, no automated security testing found.** Unit tests exist under `apsbrat-api/src/test/java/com/apsconnect/api/` (auth, connection, media, search, circle, user, common) but coverage of the gaps above is UNVERIFIED.
+
+## 14. Web session handling (2026-11-20)
+
+- Tokens live in `flutter_secure_storage` (on the web this is browser local storage with the values encrypted by a key kept next to them, so it hides them from casual viewing but not from script injected into the page). No cookies are used: the API takes `Authorization: Bearer`, so there is no cross-site request forgery surface. Risk accepted for launch; moving the refresh token to an httpOnly cookie would need API and CORS changes (UNVERIFIED design, not started).
+- Access token 15 minutes, refresh token 30 days, rotated on use and revocable (Redis). The JWT filter checks a Redis revocation marker and records presence; it does no database read. A refresh costs one Redis delete and one user read.
+- The app refreshes early (under 30 s left) so requests are not sent with a token about to be rejected; concurrent refreshes share one call.
+- Route guards: `/home...` needs a stored user id (else `/login?from=...`); `/onboarding...` needs one (else `/login?mode=signup`); `/` and `/login` send a finished, signed-in user to `/home`.

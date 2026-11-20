@@ -85,7 +85,8 @@ jobs:
         run: |
                 flutter build web --release \
                   --dart-define=BASE_URL=https://api.apsbrats.com/api/v1 \
-                  --dart-define=WS_URL=wss://api.apsbrats.com/ws
+                  --dart-define=WS_URL=wss://api.apsbrats.com/ws \
+                  --dart-define=FLAVOR=prod
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v4

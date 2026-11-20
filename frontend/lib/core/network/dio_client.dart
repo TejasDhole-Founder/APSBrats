@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:apsbrat_frontend/core/constants/api_endpoints.dart';
@@ -15,6 +16,30 @@ const kUserIdKey = 'user_id';
 /// Non-empty once the onboarding profile step has completed — lets the
 /// router decide /home vs /onboarding on cold start without a network call.
 const kOnboardingDoneKey = 'onboarding_done';
+
+/// How long an access token is still valid, read from its own expiry claim.
+/// No network and no signature check: the server is the judge, this only tells
+/// the app when to refresh early. Null when the token can't be read.
+Duration? accessTokenTimeLeft(String token) {
+  final parts = token.split('.');
+  if (parts.length != 3) return null;
+  try {
+    final payload = jsonDecode(
+      utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
+    );
+    final exp = payload is Map ? payload['exp'] : null;
+    if (exp is! num) return null;
+    return DateTime.fromMillisecondsSinceEpoch(
+      exp.toInt() * 1000,
+    ).difference(DateTime.now());
+  } catch (_) {
+    return null;
+  }
+}
+
+/// Refresh this long before the token runs out, so a request isn't sent
+/// with a token the server is about to reject (an extra round trip).
+const kRefreshEarly = Duration(seconds: 30);
 
 final secureStorageProvider = Provider<FlutterSecureStorage>(
   (ref) => const FlutterSecureStorage(),
@@ -103,7 +128,18 @@ final dioProvider = Provider<Dio>((ref) {
   dio.interceptors.add(
     InterceptorsWrapper(
       onRequest: (options, handler) async {
-        final token = await secureStorage.read(key: kAccessTokenKey);
+        var token = await secureStorage.read(key: kAccessTokenKey);
+        // Nearly expired: refresh now (one shared call) instead of sending a
+        // request that would only come back 401 and be retried.
+        final left = token == null ? null : accessTokenTimeLeft(token);
+        if (left != null &&
+            left < kRefreshEarly &&
+            !options.path.contains('/auth/')) {
+          refreshInFlight ??= refreshAccessToken().whenComplete(() {
+            refreshInFlight = null;
+          });
+          token = await refreshInFlight ?? token;
+        }
         if (token != null && token.isNotEmpty) {
           options.headers['Authorization'] = 'Bearer $token';
         }

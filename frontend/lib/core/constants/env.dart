@@ -3,6 +3,18 @@ enum AppFlavor { dev, staging, prod }
 class Env {
   const Env._();
 
+  static const _flavorName = String.fromEnvironment(
+    'FLAVOR',
+    defaultValue: 'dev',
+  );
+
+  /// Set with `--dart-define=FLAVOR=prod` (or staging). Anything else is dev,
+  /// which shows the DEV corner banner.
+  static AppFlavor get flavor => AppFlavor.values.firstWhere(
+    (f) => f.name == _flavorName,
+    orElse: () => AppFlavor.dev,
+  );
+
   static const baseUrl = String.fromEnvironment(
     'BASE_URL',
     defaultValue: 'http://localhost:8080/api/v1',

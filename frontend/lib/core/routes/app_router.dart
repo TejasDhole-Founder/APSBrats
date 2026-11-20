@@ -82,15 +82,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         }
         return null;
       }
-      if (!isLaunch || state.matchedLocation != '/') return null;
+      final atWelcome = state.matchedLocation == '/';
+      if (!atWelcome && state.matchedLocation != '/login') return null;
       try {
         final repo = ref.read(authRepositoryProvider);
         final userId = await repo.currentUserId();
         if (userId == null || userId.isEmpty) return null;
-        // Signed in but never finished the onboarding profile step (e.g. the
-        // app was closed mid-flow) — resume there instead of /home.
+        // Signed in and set up: the welcome and login screens have nothing to
+        // offer, so the browser/system back button must not land on them.
         if (await repo.onboardingDone()) return '/home';
-        return await resumeOnboardingRoute(ref.read(onboardingFlowProvider.notifier));
+        // Signed in but never finished the onboarding profile step (e.g. the
+        // app was closed mid-flow) — resume there on launch. Later visits to
+        // the welcome screen (the login back arrow) are left alone.
+        if (isLaunch && atWelcome) {
+          return await resumeOnboardingRoute(
+            ref.read(onboardingFlowProvider.notifier),
+          );
+        }
       } catch (_) {
         // Storage unreadable — treat as logged out and stay on the welcome screen.
       }

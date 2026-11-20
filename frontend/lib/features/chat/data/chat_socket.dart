@@ -58,9 +58,9 @@ class ChatSocket {
     final token = await _storage.read(key: kAccessTokenKey);
     if (token == null || token.isEmpty) return;
 
-    // The access token lives 15 minutes, so each (re)connect first makes an
-    // ordinary API call: the Dio interceptor refreshes an expired token, and
-    // the headers below are then updated with the fresh one.
+    // The access token lives 15 minutes. On (re)connect, a token that is close
+    // to expiry is refreshed through an ordinary API call (the Dio interceptor
+    // does the refresh) and the headers below are updated with the fresh one.
     final headers = {'Authorization': 'Bearer $token'};
     _client = StompClient(
       config: StompConfig(
@@ -68,10 +68,17 @@ class ChatSocket {
         stompConnectHeaders: headers,
         webSocketConnectHeaders: headers,
         beforeConnect: () async {
-          try {
-            await _dio.get<dynamic>(ApiEndpoints.usersMe);
-          } catch (_) {
-            // Offline: the library retries in a few seconds.
+          // Only a token about to expire needs the refresh round trip. A fresh
+          // one (the usual case after a tab wakes up) skips it, so reconnecting
+          // doesn't read the user record from the database every time.
+          final current = await _storage.read(key: kAccessTokenKey);
+          final left = current == null ? null : accessTokenTimeLeft(current);
+          if (left == null || left < kRefreshEarly * 2) {
+            try {
+              await _dio.get<dynamic>(ApiEndpoints.usersMe);
+            } catch (_) {
+              // Offline: the library retries in a few seconds.
+            }
           }
           final fresh = await _storage.read(key: kAccessTokenKey);
           if (fresh != null && fresh.isNotEmpty) {

@@ -57,6 +57,41 @@ void main() {
     );
   });
 
+  testWidgets('a signed-in, finished user is kept off the welcome and login '
+      'screens (so back never lands on the code screen)', (tester) async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(storageChannel, (call) async {
+          if (call.method != 'read') return null;
+          final key = call.arguments['key'];
+          if (key == 'user_id') return 'user-1';
+          if (key == 'onboarding_done') return '1';
+          return null;
+        });
+
+    await tester.pumpWidget(
+      const ProviderScope(child: ApsBratApp(flavor: AppFlavor.dev)),
+    );
+    await tester.pump();
+    final router = ProviderScope.containerOf(
+      tester.element(find.byType(MaterialApp)),
+    ).read(appRouterProvider);
+    String here() => router.routerDelegate.currentConfiguration.uri.path;
+
+    await tester.pump(const Duration(seconds: 2));
+    expect(here(), '/home');
+
+    for (final location in ['/login', '/login?mode=signup', '/']) {
+      router.go(location);
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 2));
+      expect(here(), '/home', reason: '$location should land on /home');
+    }
+
+    // Home opens the chat connection, which leaves a retry timer behind.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(minutes: 1));
+  });
+
   testWidgets('without a verified email, any registration screen sends you '
       'to verify your email first', (tester) async {
     // Nobody has verified an OTP: no user id is stored.

@@ -77,7 +77,7 @@ Per-file case counts come from `testWidgets(` / `test(` occurrences; failure mar
 
 ## 4. Frontend test status (2026-11-20, `flutter test` in `frontend/`)
 
-All 106 frontend cases pass. The 18 that failed on 2026-11-16 were stale expectations, not code bugs, and were updated to the current screens:
+All 110 frontend cases pass (106 after the 2026-11-20 fixes, plus 4 added for token expiry and the signed-in redirect). The 18 that failed on 2026-11-16 were stale expectations, not code bugs, and were updated to the current screens:
 
 - Welcome screen: the button is "Join APS Brats" (was "Get Started - It's Free"). Affects `widget_test`, `back_nav_test`, `login_mode_test`, `launch_redirect_test`.
 - Onboarding titles render in capitals ("TELL US ABOUT...", "WHICH APS SCHOOLS DID YOU CALL HOME?"); the stepper reads "Socials" and "After school"; the last button is "Finish setup  ->" and the after-school button is "Continue  ->". Affects `career_test`, `onboarding_draft_test`, `launch_redirect_test`. The after-school page is taller than the test screen on wide layouts, so tests scroll to the buttons first.
