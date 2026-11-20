@@ -36,6 +36,7 @@ Email sign-in codes via Brevo (2026-11-20)
 - `AuthService.requestOtp` now emails the code. It is no longer one transaction (the email is sent without holding a database connection); a failed send deletes the code and the resend cooldown key. Behaviour change in prod: code requests answer 503 until Brevo is configured (before: they succeeded and nothing arrived).
 - New ADMIN-only endpoints: `GET /api/v1/admin/email/health` (checks the key and sender with Brevo, sends nothing) and `POST /api/v1/admin/email/test` (5 an hour per admin; provider problems come back as `sent:false` with a reason). `SecurityConfig` lists `/api/v1/admin/email/**` as ADMIN before the ADMIN/MODERATOR rule.
 - Verified: 30 new unit tests; full backend run 126 ran, 0 failed; the real API started against a throwaway database (401 without a token, 403 for a normal user, 200 for an admin); the real Brevo API answered 401 to a made-up key and the health, test and sign-in paths reported it correctly. NOT verified: a real key, a verified sender, or a delivered email (those are on the live host).
+- Sender: `app.email.sender-address` now defaults to `verify@apsbrats.com` (verified in Brevo); `EMAIL_SENDER_ADDRESS` overrides it. Only `BREVO_API_KEY` is required.
 - Docs: `docs/DEPLOYMENT.md` "Email (Brevo)", `.env.example`, `docker-compose.yml`, wiki pages 00, 01, 07, 09, 10, 12.
 
 Web sanity pass (2026-11-20)

@@ -272,7 +272,7 @@ Add these as **plain** env vars (not secrets — they're not sensitive):
 | `SPRING_DATA_REDIS_SSL_ENABLED` | `true` |
 | `SPRING_FLYWAY_BASELINE_ON_MIGRATE` | `false` |
 | `SERVER_PORT` | `8080` |
-| `EMAIL_SENDER_ADDRESS` | a sender verified in Brevo, e.g. `no-reply@apsbrats.com` |
+| `EMAIL_SENDER_ADDRESS` | optional: defaults to `verify@apsbrats.com`, which is verified in Brevo |
 
 ### Step 6 — Deploy and verify
 
@@ -314,7 +314,7 @@ To roll back: Console → Cloud Run → **Revisions** → select a previous revi
 The API emails each sign-in code through Brevo's transactional API (`app.email.*`, class `BrevoEmailClient`).
 
 1. **Brevo account:** create an API key (SMTP & API → API Keys) and set it as `BREVO_API_KEY` on the API host (Render environment or Cloud Run secret). Never put it in the repo or the app.
-2. **Sender:** in Brevo → Senders, Domains & Dedicated IPs, add and verify `no-reply@apsbrats.com` (and authenticate the `apsbrats.com` domain with the DKIM/SPF records Brevo shows, in Cloudflare DNS, so mail is not marked as spam). Set `EMAIL_SENDER_ADDRESS` to that address. Brevo refuses mail from an unverified sender.
+2. **Sender:** in Brevo → Senders, Domains & Dedicated IPs, add and verify the sender (`verify@apsbrats.com`, already done) (and authenticate the `apsbrats.com` domain with the DKIM/SPF records Brevo shows, in Cloudflare DNS, so mail is not marked as spam). The API uses `verify@apsbrats.com` by default; set `EMAIL_SENDER_ADDRESS` only to use a different verified sender. Brevo refuses mail from an unverified sender.
 3. **Authorized IPs:** if Brevo → Security → Authorized IPs is on, the API's outgoing IP must be listed (Render's change); otherwise turn it off. The health check below reports "blocked this server's IP address" when this is the cause.
 4. **Make yourself an admin** (once), then log in again so the new role is in your token:
    `UPDATE users SET role = 'ADMIN' WHERE email = 'you@example.com';`
