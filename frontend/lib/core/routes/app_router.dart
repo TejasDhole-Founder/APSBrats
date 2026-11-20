@@ -90,7 +90,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         // Signed in but never finished the onboarding profile step (e.g. the
         // app was closed mid-flow) — resume there instead of /home.
         if (await repo.onboardingDone()) return '/home';
-        return resumeOnboardingRoute(ref.read(onboardingFlowProvider.notifier));
+        return await resumeOnboardingRoute(ref.read(onboardingFlowProvider.notifier));
       } catch (_) {
         // Storage unreadable — treat as logged out and stay on the welcome screen.
       }
