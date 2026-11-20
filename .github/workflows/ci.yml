@@ -92,4 +92,6 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy build/web --project-name=aps-brats-web
+          # Actions ignore the job's default working-directory, so set it here.
+          workingDirectory: frontend
+          command: pages deploy build/web --project-name=aps-brats-web --commit-dirty=true
