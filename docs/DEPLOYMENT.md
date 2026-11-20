@@ -349,7 +349,8 @@ The same Flutter code builds a web app. Host it on its own Cloudflare Pages proj
 3. Set on the API (Cloud Run variable): `CORS_ALLOWED_ORIGINS=https://app.apsbrats.com`. The same value allows the browser origin on `/ws`. Without it the browser blocks every call.
 4. Sign-in on the web is the email code only: the Google button is hidden when `kIsWeb`. To enable it later you need a Firebase web app config in `main.dart` and a Google web client ID in `web/index.html`, then add `app.apsbrats.com` to Firebase Auth authorized domains.
 5. Cloud Run: set memory to `1Gi` (`--memory 1Gi`). The image starts the JVM with `-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError`, so the heap follows the limit and an out-of-memory process exits and Cloud Run starts a new instance. `docker-compose.yml` has the same limit and `restart: unless-stopped` for local and VPS use.
-6. Not done: web push notifications, a 180 px `apple-touch-icon` (the 192 px icon is used), and the Android Play Store listing.
+6. Test builds with "Skip login (dev)": add `--dart-define=DEV_LOGIN=true` to the build. The button signs in as the seeded demo user with the universal OTP `000000`, so the API behind it must run the `dev` profile (or `qa` with `OTP_MASTER=000000`) and hold throwaway data only: anyone could log in as any account there. The `prod` API always refuses the universal OTP. Never set this flag on a build that points at real users.
+7. Not done: web push notifications, a 180 px `apple-touch-icon` (the 192 px icon is used), and the Android Play Store listing.
 
 ### Landing site
 The "Get the app" buttons currently link to `#get`. Once you have store/testing links, update them in `index.html`. The contact form already emails `tejasdhole.work@gmail.com`.

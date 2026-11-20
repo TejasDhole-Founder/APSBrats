@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:hugeicons/hugeicons.dart';
 
+import 'package:apsbrat_frontend/core/constants/env.dart';
 import 'package:apsbrat_frontend/features/auth/presentation/providers/auth_provider.dart';
 import 'package:apsbrat_frontend/features/onboarding/presentation/providers/onboarding_flow_provider.dart';
 import 'package:apsbrat_frontend/features/auth/presentation/widgets/welcome_brand.dart';
@@ -310,7 +311,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 ),
                               ),
                             ],
-                            if (kDebugMode) ...[
+                            if (kDebugMode || Env.devLogin) ...[
                               const SizedBox(height: 10),
                               TextButton(
                                 onPressed: state.loading
