@@ -31,6 +31,9 @@ Web app (2026-11-17)
 - **Memory safety:** `Dockerfile` `JAVA_OPTS` adds `-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError`; `docker-compose.yml` api gets `mem_limit` (default 1g), `restart: unless-stopped` and `CORS_ALLOWED_ORIGINS`. Addresses the heap part of risk 12 in [12](12-current-status-technical-debt.md); the socket cap and bounded outbound queue are still open. Steps for the web host and Cloud Run: `docs/DEPLOYMENT.md` (Part D).
 - Verified: `flutter build web --release` succeeds; the 3 changed Dart files analyze clean. The test suite has 18 failing tests with or without these changes (88 pass); they look for old welcome-screen text. Not tested on a real iPhone or Android phone, and the guard and `from` redirect were not run in a browser.
 
+Batchmates tab (2026-11-20)
+- Removed the Friends segment from Batchmates: friends are on the Social tab. The tab opens on Classmates. Removed its list, empty state, long-press remove and the Message button on those rows. Tests updated; 109 Flutter tests pass.
+
 Email sign-in codes via Brevo (2026-11-20)
 - New `email/` package: `EmailProperties` (`app.email.*`: `BREVO_API_KEY`, `EMAIL_SENDER_ADDRESS`, `EMAIL_SENDER_NAME`), `BrevoEmailClient` (Brevo REST, short timeouts, readable failure reasons), `EmailService` (what to send, reserved test domains skipped, prod 503 when not configured or Brevo fails), `EmailAdminController`.
 - `AuthService.requestOtp` now emails the code. It is no longer one transaction (the email is sent without holding a database connection); a failed send deletes the code and the resend cooldown key. Behaviour change in prod: code requests answer 503 until Brevo is configured (before: they succeeded and nothing arrived).

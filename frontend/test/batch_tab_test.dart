@@ -58,37 +58,7 @@ Widget _tab({
 }
 
 void main() {
-  testWidgets('new user sees the no-friends state pointing at batchmates', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(1080, 2340);
-    tester.view.devicePixelRatio = 3;
-    addTearDown(tester.view.reset);
-
-    await tester.pumpWidget(
-      _tab(
-        friends: const [],
-        summary: const CircleSummary(
-          friends: 0,
-          incomingRequests: 0,
-          sentRequests: 0,
-          classmates: 0,
-          schoolmates: 27,
-          hasSection: true,
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text('Friends'), findsOneWidget);
-    expect(find.text('Classmates'), findsOneWidget);
-    expect(find.text('No friends yet'), findsOneWidget);
-    expect(find.text('See my batchmates'), findsOneWidget);
-    expect(find.text('Everyone'), findsNothing);
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('friends are listed A→Z with a Message button and mutuals', (
+  testWidgets('Batchmates opens on Classmates; friends live on the Social tab', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(1080, 2340);
@@ -110,11 +80,12 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('1 FRIEND'), findsOneWidget);
-    expect(find.text('Rahul Sharma'), findsOneWidget);
-    expect(find.text('Message'), findsOneWidget);
-    expect(find.textContaining('3 mutual'), findsOneWidget);
-    // Bell badge shows the incoming request count.
+    // No Friends segment here any more: the Social tab lists friends.
+    expect(find.text('Friends'), findsNothing);
+    expect(find.text('Classmates'), findsOneWidget);
+    expect(find.text('Batchmates'), findsWidgets);
+    expect(find.text('Message'), findsNothing);
+    // Bell badge still shows the incoming request count.
     expect(find.text('2'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

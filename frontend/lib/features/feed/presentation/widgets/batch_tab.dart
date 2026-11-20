@@ -4,7 +4,6 @@ import 'package:apsbrat_frontend/core/theme/app_icons.dart';
 
 import 'package:apsbrat_frontend/core/models/person.dart';
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
-import 'package:apsbrat_frontend/features/chat/data/chat_repository.dart';
 import 'package:apsbrat_frontend/features/connections/data/circle_repository.dart';
 import 'package:apsbrat_frontend/features/connections/data/connection_repository.dart';
 import 'package:apsbrat_frontend/features/feed/presentation/widgets/feed_shared.dart';
@@ -28,7 +27,7 @@ class BatchTab extends ConsumerStatefulWidget {
   ConsumerState<BatchTab> createState() => _BatchTabState();
 }
 
-enum _Segment { friends, classmates, batchmates }
+enum _Segment { classmates, batchmates }
 
 class _BatchTabState extends ConsumerState<BatchTab> {
   final _searchCtrl = TextEditingController();
@@ -42,7 +41,7 @@ class _BatchTabState extends ConsumerState<BatchTab> {
   int _pages = 1;
 
   // ── Circle mode ──
-  _Segment _segment = _Segment.friends;
+  _Segment _segment = _Segment.classmates;
   String? _entryId; // null = all my schools
   bool _batchOnly = false;
   int _circlePages = 1;
@@ -134,21 +133,6 @@ class _BatchTabState extends ConsumerState<BatchTab> {
 
   void _openProfile(Person p) => context.go('/home/profile/${p.id}');
 
-  Future<void> _message(Person p) async {
-    try {
-      final conversation = await ref
-          .read(chatRepositoryProvider)
-          .openWith(p.id);
-      if (!mounted) return;
-      context.go('/home/chat/${conversation.id}');
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open chat. Try again.')),
-      );
-    }
-  }
-
   Future<void> _connect(Person p) async {
     setState(() => _requested.add(p.id));
     try {
@@ -175,41 +159,6 @@ class _BatchTabState extends ConsumerState<BatchTab> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Could not accept. Try again.')),
-      );
-    }
-  }
-
-  Future<void> _removeFriend(Person p) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('Remove ${p.name}?'),
-        content: const Text(
-          'You will no longer be connected. You can send a new request later.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text(
-              'Remove',
-              style: TextStyle(color: AppColors.crimson),
-            ),
-          ),
-        ],
-      ),
-    );
-    if (ok != true) return;
-    try {
-      await ref.read(connectionRepositoryProvider).end(p.id);
-      refreshConnections(ref, otherUserId: p.id);
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not remove. Try again.')),
       );
     }
   }
@@ -413,74 +362,11 @@ class _BatchTabState extends ConsumerState<BatchTab> {
 
   List<Widget> _circleBody(CircleSummary summary, List<SchoolHistory> schools) {
     switch (_segment) {
-      case _Segment.friends:
-        return _friendsBody(summary);
       case _Segment.classmates:
         return _classmatesBody(summary, schools);
       case _Segment.batchmates:
         return _batchmatesBody(summary, schools);
     }
-  }
-
-  List<Widget> _friendsBody(CircleSummary summary) {
-    final friends = ref.watch(batchmatesProvider);
-    return [
-      friends.when(
-        loading: () => const _Loading(),
-        error: (_, __) => EmptyState(
-          icon: HugeIcons.strokeRoundedWifiOff01,
-          title: 'Could not load your friends',
-          message: 'Check your connection and try again.',
-          action: TextButton(
-            onPressed: () => ref.invalidate(batchmatesProvider),
-            child: const Text('Retry'),
-          ),
-        ),
-        data: (people) {
-          if (people.isEmpty) {
-            return _NoFriendsState(
-              schoolmates: summary.schoolmates,
-              hasSection: summary.hasSection,
-              onSeeBatchmates: () =>
-                  setState(() => _segment = _Segment.batchmates),
-              onInvite: _invite,
-              onEditSchools: () => context.go('/home/edit-schools'),
-            );
-          }
-          // A→Z with letter rails, like a contact list.
-          final widgets = <Widget>[
-            _SectionHead(
-              '${people.length} ${people.length == 1 ? 'friend' : 'friends'}',
-            ),
-            const SizedBox(height: 6),
-          ];
-          String? letter;
-          for (final p in people) {
-            final l = p.name.isEmpty ? '#' : p.name[0].toUpperCase();
-            if (l != letter) {
-              letter = l;
-              widgets.add(_LetterRail(l));
-            }
-            widgets.add(
-              _PersonCard(
-                person: p,
-                requested: false,
-                friend: true,
-                onTap: () => _openProfile(p),
-                onConnect: () {},
-                onLongPress: () => _removeFriend(p),
-                onMessage: () => _message(p),
-              ),
-            );
-            widgets.add(const SizedBox(height: 8));
-          }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: widgets,
-          );
-        },
-      ),
-    ];
   }
 
   List<Widget> _classmatesBody(
@@ -786,12 +672,6 @@ class _Header extends StatelessWidget {
               child: Row(
                 children: [
                   _HeaderChip(
-                    label: 'Friends',
-                    active: segment == _Segment.friends,
-                    onTap: () => onSegment(_Segment.friends),
-                  ),
-                  const SizedBox(width: 6),
-                  _HeaderChip(
                     label: 'Classmates',
                     active: segment == _Segment.classmates,
                     onTap: () => onSegment(_Segment.classmates),
@@ -931,32 +811,6 @@ class _SectionHead extends StatelessWidget {
         letterSpacing: 1.2,
         fontWeight: FontWeight.w800,
         color: kTxt3,
-      ),
-    );
-  }
-}
-
-class _LetterRail extends StatelessWidget {
-  const _LetterRail(this.letter);
-
-  final String letter;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(top: 6, bottom: 6),
-      padding: const EdgeInsets.only(bottom: 3),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: kBorder)),
-      ),
-      child: Text(
-        letter,
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 1,
-          color: AppColors.gold,
-        ),
       ),
     );
   }
@@ -1367,124 +1221,6 @@ class _SmallEmpty extends StatelessWidget {
   }
 }
 
-/// New user: nobody accepted yet. Points at people already here.
-class _NoFriendsState extends StatelessWidget {
-  const _NoFriendsState({
-    required this.schoolmates,
-    required this.hasSection,
-    required this.onSeeBatchmates,
-    required this.onInvite,
-    required this.onEditSchools,
-  });
-
-  final int schoolmates;
-  final bool hasSection;
-  final VoidCallback onSeeBatchmates;
-  final VoidCallback onInvite;
-  final VoidCallback onEditSchools;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SizedBox(height: 4),
-        Image.asset(
-          'assets/images/batchmates_empty.png',
-          height: 180,
-          fit: BoxFit.contain,
-          errorBuilder: (_, __, ___) => const _IllustrationFallback(),
-        ),
-        const SizedBox(height: 10),
-        const Text(
-          'No friends yet',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w800,
-            color: kTxt,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          schoolmates > 0
-              ? 'Start with the people who sat next to you.\n$schoolmates ${schoolmates == 1 ? 'person' : 'people'} from your schools ${schoolmates == 1 ? 'is' : 'are'} already here.'
-              : 'Start with the people who sat next to you.\nInvite them — you will be the first face they see.',
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 12, color: kTxt3, height: 1.45),
-        ),
-        const SizedBox(height: 14),
-        Row(
-          children: [
-            Expanded(
-              child: FilledButton.icon(
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.crimson,
-                  minimumSize: const Size(0, 42),
-                  textStyle: const TextStyle(fontSize: 13),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                onPressed: schoolmates > 0 ? onSeeBatchmates : onInvite,
-                icon: HugeIcon(
-                  icon: schoolmates > 0
-                      ? HugeIcons.strokeRoundedUserGroup
-                      : HugeIcons.strokeRoundedSent,
-                  size: 15,
-                ),
-                label: Text(
-                  schoolmates > 0 ? 'See my batchmates' : 'Invite Friends',
-                  style: const TextStyle(fontWeight: FontWeight.w800),
-                ),
-              ),
-            ),
-            if (schoolmates > 0) ...[
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.crimson,
-                    minimumSize: const Size(0, 42),
-                    textStyle: const TextStyle(fontSize: 13),
-                    side: const BorderSide(
-                      color: AppColors.crimson,
-                      width: 1.5,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  onPressed: onInvite,
-                  icon: const HugeIcon(
-                    icon: HugeIcons.strokeRoundedSent,
-                    size: 15,
-                  ),
-                  label: const Text(
-                    'Invite Friends',
-                    style: TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-        if (!hasSection) ...[
-          const SizedBox(height: 14),
-          _HintCardWide(
-            icon: HugeIcons.strokeRoundedMortarboard01,
-            title: 'Add your section to find classmates',
-            body:
-                'Your school entry has no section yet, so classmates cannot be matched.',
-            action: 'Edit schools',
-            onTap: onEditSchools,
-          ),
-        ],
-      ],
-    );
-  }
-}
-
 // ── Result card ───────────────────────────────────────────────────────────────
 
 class _PersonCard extends StatelessWidget {
@@ -1494,10 +1230,7 @@ class _PersonCard extends StatelessWidget {
     required this.onTap,
     required this.onConnect,
     this.connected = false,
-    this.friend = false,
-    this.onLongPress,
     this.onAccept,
-    this.onMessage,
   });
 
   final Person person;
@@ -1506,15 +1239,8 @@ class _PersonCard extends StatelessWidget {
   /// Already a friend (shows "Connected" instead of Connect).
   final bool connected;
 
-  /// Row in the Friends list: Message button, long-press to remove.
-  final bool friend;
   final VoidCallback onTap;
   final VoidCallback onConnect;
-  final VoidCallback? onLongPress;
-
-  /// Tapped the "Message" button specifically (friend rows only).
-  final VoidCallback? onMessage;
-
   /// Called when the person has asked ME and I tap Accept.
   final VoidCallback? onAccept;
 
@@ -1540,7 +1266,6 @@ class _PersonCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
-      onLongPress: onLongPress,
       child: Container(
         padding: const EdgeInsets.fromLTRB(12, 12, 8, 12),
         decoration: BoxDecoration(
@@ -1626,29 +1351,7 @@ class _PersonCard extends StatelessWidget {
             const SizedBox(width: 6),
             Column(
               children: [
-                if (friend)
-                  OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.crimson,
-                      minimumSize: const Size(0, 34),
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      side: const BorderSide(color: kBorder2, width: 1.5),
-                      textStyle: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    onPressed: onMessage,
-                    icon: const HugeIcon(
-                      icon: HugeIcons.strokeRoundedMessage01,
-                      size: 14,
-                    ),
-                    label: const Text('Message'),
-                  )
-                else if (isConnected)
+                if (isConnected)
                   Container(
                     height: 34,
                     padding: const EdgeInsets.symmetric(horizontal: 12),

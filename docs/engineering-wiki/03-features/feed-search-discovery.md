@@ -91,6 +91,8 @@ Not wired to notification-style events: `feed_events` are not created by joins, 
 
 ## 4. The circle (classmates, schoolmates, summary)
 
+The Batchmates tab opens on **Classmates** and has Classmates and Batchmates segments only (2026-11-20). Accepted connections (friends) are listed on the **Social** tab ("View all" sheet and the online quick row), not here.
+
 Backend: `circle/CircleController.java`, `CircleService.java`, `CircleCache.java`; queries in `user/history/UserSchoolHistoryRepository` (`findClassmateIds`, `findSchoolmateIds`, `SCHOOLMATE_MATCH`, `countClassmates`, `countSchoolmates`) and `connection/ConnectionRepository` counts. Frontend: `connections/data/circle_repository.dart` (`CircleRepository`, `circleSummaryProvider`, `classmatesProvider`, `schoolmatesProvider`), UI in `feed/presentation/widgets/batch_tab.dart` (segments Friends / Classmates / Batchmates; Friends list is `batchmatesProvider` from the connections repository).
 
 ### 4.1 Summary counts
