@@ -264,21 +264,21 @@ void main() {
       '"isStudent":false,'
       '"career":[{"kind":"WORK","organizationName":"Zomato"}]}}',
     );
-    expect(find.textContaining('socials', findRichText: true), findsWidgets);
+    expect(find.text('Instagram'), findsOneWidget);
 
     await tapBack(tester);
-    expect(find.text('WORK'), findsOneWidget);
+    expect(find.textContaining('Work Experience', findRichText: true), findsWidgets);
     expect(find.text('Zomato'), findsOneWidget);
 
     await tapBack(tester);
     expect(
-      find.textContaining('call home', findRichText: true),
+      find.textContaining('CALL HOME', findRichText: true),
       findsOneWidget,
     );
 
     await tapBack(tester);
     expect(
-      find.textContaining('tell us about', findRichText: true),
+      find.textContaining('TELL US ABOUT', findRichText: true),
       findsOneWidget,
     );
     expect(find.text('Aarav'), findsOneWidget);
@@ -296,7 +296,7 @@ void main() {
       tester,
       '{"userId":"user-1","state":{"firstName":"Aarav","step":4,"isStudent":true}}',
     );
-    await tester.tap(find.text('Complete registration'));
+    await tester.tap(find.text('Finish setup  →'));
     await tester.pump();
     await tester.pump(const Duration(seconds: 2));
     expect(find.textContaining('session expired'), findsNothing);
@@ -314,7 +314,7 @@ void main() {
     );
     await tapBack(tester);
     expect(
-      find.textContaining('call home', findRichText: true),
+      find.textContaining('CALL HOME', findRichText: true),
       findsOneWidget,
     );
 
@@ -344,36 +344,39 @@ void main() {
     );
     await tester.pump();
     await tester.pump(const Duration(seconds: 2));
-    expect(find.textContaining('after', findRichText: true), findsWidgets);
+    expect(find.textContaining('After school', findRichText: true), findsWidgets);
     // One blank job card and one blank college card to start with.
-    expect(find.text('COMPANY'), findsOneWidget);
-    expect(find.text('COLLEGE / INSTITUTE'), findsOneWidget);
+    expect(find.textContaining('Company', findRichText: true), findsOneWidget);
+    expect(find.textContaining('College / Institute', findRichText: true), findsOneWidget);
 
     // Two more companies.
     await tester.tap(find.text('Add another company'));
     await tester.pump();
     await tester.tap(find.text('Add another company'));
     await tester.pump();
-    expect(find.text('COMPANY'), findsNWidgets(3));
+    expect(find.textContaining('Company', findRichText: true), findsNWidgets(3));
 
     // Blank cards don't block Continue.
-    await tester.tap(find.text('Continue'));
+    await tester.ensureVisible(find.byType(FilledButton));
+    await tester.tap(find.byType(FilledButton));
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
-    expect(find.textContaining('socials', findRichText: true), findsWidgets);
+    expect(find.text('Instagram'), findsOneWidget);
 
     await tapBack(tester);
     // A half-filled card does block it, with a reason.
     await tester.enterText(find.byType(TextField).first, 'Zomato');
     await tester.pump(const Duration(milliseconds: 400));
-    await tester.tap(find.text('Continue'));
+    await tester.ensureVisible(find.byType(FilledButton));
+    await tester.tap(find.byType(FilledButton));
     await tester.pump();
     expect(find.text('Enter your job title'), findsOneWidget);
 
+    await tester.ensureVisible(find.text('Skip'));
     await tester.tap(find.text('Skip'));
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
-    expect(find.textContaining('socials', findRichText: true), findsWidgets);
+    expect(find.text('Instagram'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(milliseconds: 10));

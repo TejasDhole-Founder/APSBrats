@@ -18,15 +18,15 @@ String typed(String input) {
 }
 
 void main() {
-  test('keeps letters, digits, periods and underscores, lowercased', () {
-    expect(typed('Tejas.Dhole_99'), 'tejas.dhole_99');
+  test('keeps letters, digits and underscores, lowercased', () {
+    expect(typed('Tejas_Dhole_99'), 'tejas_dhole_99');
   });
 
-  test('drops @, spaces and other symbols as you type', () {
-    expect(typed('@te jas-d#hole!'), 'tejasdhole');
+  test('drops periods, @, spaces and other symbols as you type', () {
+    expect(typed('@te.jas-d#hole!'), 'tejasdhole');
   });
 
-  test('stops at 30 characters', () {
-    expect(typed('a' * 40).length, 30);
+  test('stops at 20 characters', () {
+    expect(typed('a' * 40).length, 20);
   });
 }

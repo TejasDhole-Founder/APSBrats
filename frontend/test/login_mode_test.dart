@@ -29,8 +29,8 @@ void main() {
     tester,
   ) async {
     await openApp(tester);
-    await tester.ensureVisible(find.text("Get Started — It's Free"));
-    await tester.tap(find.text("Get Started — It's Free"));
+    await tester.ensureVisible(find.text("Join APS Brats"));
+    await tester.tap(find.text("Join APS Brats"));
     await settle(tester);
 
     expect(find.textContaining('Join us', findRichText: true), findsOneWidget);

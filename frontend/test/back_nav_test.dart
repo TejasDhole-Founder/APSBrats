@@ -36,7 +36,7 @@ void main() {
     final handled = await tester.binding.handlePopRoute();
     await settle(tester);
     expect(handled, isTrue);
-    expect(find.text("Get Started — It's Free"), findsOneWidget);
+    expect(find.text("Join APS Brats"), findsOneWidget);
     expect(find.text('Send Code'), findsNothing);
   });
 }

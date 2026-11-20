@@ -33,7 +33,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(seconds: 2));
     expect(
-      find.textContaining('tell us about', findRichText: true),
+      find.textContaining('TELL US ABOUT', findRichText: true),
       findsOneWidget,
     );
 
@@ -50,9 +50,9 @@ void main() {
     router.go('/');
     await tester.pump();
     await tester.pump(const Duration(seconds: 2));
-    expect(find.text("Get Started — It's Free"), findsOneWidget);
+    expect(find.text("Join APS Brats"), findsOneWidget);
     expect(
-      find.textContaining('tell us about', findRichText: true),
+      find.textContaining('TELL US ABOUT', findRichText: true),
       findsNothing,
     );
   });

@@ -52,44 +52,45 @@ Note: `GlobalExceptionHandlerTest` covers 400 and 409 and a generic 500 body. `C
 | File | Cases | Area |
 |---|---|---|
 | `account_safety_test.dart` | 4 | Account safety screens |
-| `back_nav_test.dart` | 1 | System back from login (FAILS) |
+| `back_nav_test.dart` | 1 | System back from login |
 | `batch_tab_test.dart` | 2 | Batchmates tab |
-| `career_test.dart` | 13 | Career history and onboarding steps (4 FAIL) |
+| `career_test.dart` | 13 | Career history and onboarding steps |
 | `chat_screen_test.dart` | 5 | Chat screen |
-| `communities_tab_test.dart` | 1 | Five tabs fit a phone (FAILS) |
-| `community_ui_test.dart` | 18 | Communities UI (2 FAIL) |
+| `communities_tab_test.dart` | 1 | Five tabs fit a phone |
+| `community_ui_test.dart` | 18 | Communities UI |
 | `connection_contract_test.dart` | 11 | Connection API contract using `test/fixtures/connections` |
 | `dob_format_test.dart` | 3 | Date of birth format |
 | `empty_state_test.dart` | 1 | Empty state widget |
-| `launch_redirect_test.dart` | 2 | Router redirect on launch (1 FAILS) |
-| `login_mode_test.dart` | 3 | Login vs create-account wording (1 FAILS) |
-| `onboarding_draft_test.dart` | 13 | Draft save/restore (2 FAIL) |
+| `launch_redirect_test.dart` | 2 | Router redirect on launch |
+| `login_mode_test.dart` | 3 | Login vs create-account wording |
+| `onboarding_draft_test.dart` | 13 | Draft save/restore |
 | `onboarding_steps_test.dart` | 2 | Step flow |
 | `photos_test.dart` | 4 | Photo URL helper |
 | `profile_cache_test.dart` | 3 | Profile cache |
 | `profile_photo_test.dart` | 3 | Profile photo |
 | `school_overlap_test.dart` | 6 | School overlap rules |
-| `school_years_test.dart` | 7 | Year joined/left auto-fill (3 FAIL) |
-| `username_input_test.dart` | 3 | Username input formatter (2 FAIL) |
-| `widget_test.dart` | 1 | Splash route renders (FAILS) |
+| `school_years_test.dart` | 7 | Year joined/left auto-fill |
+| `username_input_test.dart` | 3 | Username input formatter |
+| `widget_test.dart` | 1 | Splash route renders |
 
 Per-file case counts come from `testWidgets(` / `test(` occurrences; failure marks come from the run.
 
-## 4. Known failures (2026-11-16, `flutter test` in `frontend/`)
+## 4. Frontend test status (2026-11-20, `flutter test` in `frontend/`)
 
-18 failing frontend cases, all from tests that no longer match the code:
+All 106 frontend cases pass. The 18 that failed on 2026-11-16 were stale expectations, not code bugs, and were updated to the current screens:
 
-| Test | Observed cause |
-|---|---|
-| `username_input_test`: keeps letters, digits, periods... | Expected `tejas.dhole_99`, got `tejasdhole_99`: formatter now drops periods |
-| `username_input_test`: stops at 30 characters | Expected 30, got 20: max length is now 20 |
-| `widget_test`: renders splash screen route | Looks for text "Get Started" that is not found |
-| `login_mode_test`: Get Started opens create-account wording | Same screen/text change (likely) |
-| `back_nav_test`, `career_test` (4), `launch_redirect_test`, `onboarding_draft_test` (2), `school_years_test` (3), `communities_tab_test`, `community_ui_test` (2) | Not diagnosed individually. UNVERIFIED cause: likely stale expectations after the onboarding/communities UI changes (note `CLAUDE.md` says the flow is Profile, Verify, Schools, Socials) |
+- Welcome screen: the button is "Join APS Brats" (was "Get Started - It's Free"). Affects `widget_test`, `back_nav_test`, `login_mode_test`, `launch_redirect_test`.
+- Onboarding titles render in capitals ("TELL US ABOUT...", "WHICH APS SCHOOLS DID YOU CALL HOME?"); the stepper reads "Socials" and "After school"; the last button is "Finish setup  ->" and the after-school button is "Continue  ->". Affects `career_test`, `onboarding_draft_test`, `launch_redirect_test`. The after-school page is taller than the test screen on wide layouts, so tests scroll to the buttons first.
+- Usernames: the app drops periods and caps at 20 characters (matches the server rule). `username_input_test` now asserts that.
+- School years: the year fields are read-only and open a year wheel, so `school_years_test` taps the field and "Done" instead of typing.
+- Communities: four tabs (Home, Batchmates, Social, Profile); Messages and Communities are segments of Social. "Your Schools" heading; the joined card shows the member count only; the create action is the add icon.
+- `onboarding_draft_test` lets a pending request time out before closing the app (otherwise it fired after the providers were disposed).
 
-Only the first three causes were read from output. The rest are unconfirmed.
+Two layout overflows found by these tests were fixed in the app: the gender chip row on the identity screen and the Messages/Communities segment control on narrow phones (labels now shrink with an ellipsis).
 
-Consequences: CI job `frontend` runs `flutter test`, so it should fail on this commit (not checked on GitHub). Backend: no known failures; ApiApplicationTests was skipped in the last report, so context-load plus all 40 migrations on a fresh DB has not been confirmed by that report. `ConnectionMigrationTest` and `ConnectionFlowTest` did run, which means Docker worked for those at that time.
+CI: `.github/workflows/ci.yml` runs `flutter analyze --no-fatal-infos` then `flutter test`. Analyze exits 0 (39 info hints, no warnings or errors) on the local Flutter version; CI uses the latest stable and reports more `deprecated_member_use` hints, which no longer fail the build.
+
+Backend: no known failures; ApiApplicationTests was skipped in the last report, so context-load plus all 40 migrations on a fresh DB has not been confirmed by that report. `ConnectionMigrationTest` and `ConnectionFlowTest` did run, which means Docker worked for those at that time.
 
 ## 5. Coverage gaps
 No coverage tool is configured (no JaCoCo in `pom.xml`, no `--coverage` in CI). Qualitative gaps from the test list:

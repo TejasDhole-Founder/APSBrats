@@ -21,6 +21,6 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text("Get Started — It's Free"), findsOneWidget);
+    expect(find.text("Join APS Brats"), findsOneWidget);
   });
 }

@@ -228,6 +228,9 @@ void main() {
     // Closes the app and lets the deferred "save on leave" timer run before the
     // test ends.
     Future<void> closeApp(WidgetTester tester) async {
+      // Let the pending profile request (a dio timeout) finish while the app
+      // is still alive; otherwise it fires after the providers are disposed.
+      await tester.pump(const Duration(seconds: 30));
       await tester.pumpWidget(const SizedBox());
       await tester.pump(const Duration(milliseconds: 10));
     }
@@ -237,7 +240,7 @@ void main() {
     ) async {
       await launchWithDraft(tester, 1);
       expect(
-        find.textContaining('tell us about', findRichText: true),
+        find.textContaining('TELL US ABOUT', findRichText: true),
         findsOneWidget,
       );
       expect(find.text('Aarav'), findsOneWidget);
@@ -251,11 +254,11 @@ void main() {
     testWidgets('step 2: the user lands on the schools screen', (tester) async {
       await launchWithDraft(tester, 2);
       expect(
-        find.textContaining('call home', findRichText: true),
+        find.textContaining('CALL HOME', findRichText: true),
         findsOneWidget,
       );
       expect(
-        find.textContaining('tell us about', findRichText: true),
+        find.textContaining('TELL US ABOUT', findRichText: true),
         findsNothing,
       );
       await closeApp(tester);

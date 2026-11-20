@@ -244,12 +244,12 @@ void main() {
     ];
     await show(tester, const CommunitiesTab());
 
-    expect(find.text('Your schools'), findsOneWidget);
+    expect(find.text('Your Schools'), findsOneWidget);
     expect(find.text('APS Pune'), findsOneWidget);
     expect(find.text('School · 0 members'), findsOneWidget);
-    // What I'm in: the swipeable row (owner shown on the card).
+    // What I'm in: the swipeable row (name and member count on the card).
     expect(find.text('NDA Aspirants'), findsOneWidget);
-    expect(find.text('Owner · 3 members'), findsOneWidget);
+    expect(find.text('3 members'), findsWidgets);
     // Discover: a private group says Request, not Join.
     expect(find.text('Private · 3 members'), findsOneWidget);
     expect(find.text('Request'), findsOneWidget);
@@ -259,12 +259,12 @@ void main() {
     expect(repo.joined, ['s1']);
   });
 
-  testWidgets('nothing joined or found: the illustration and a Create button', (
+  testWidgets('nothing joined or found: a note and the add button to create', (
     tester,
   ) async {
     await show(tester, const CommunitiesTab());
     expect(find.text("You're in every group so far."), findsOneWidget);
-    expect(find.text("Can't find your group? Create one"), findsOneWidget);
+    expect(hugeIcon(HugeIcons.strokeRoundedAdd01), findsOneWidget);
   });
 
   testWidgets('a member posts and the new post appears on top', (tester) async {

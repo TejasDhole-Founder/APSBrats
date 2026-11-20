@@ -166,12 +166,16 @@ class _SegmentedControl extends StatelessWidget {
                         color: i == index ? Colors.white : _kMaroon,
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        labels[i],
-                        style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w700,
-                          color: i == index ? Colors.white : _kMaroon,
+                      Flexible(
+                        child: Text(
+                          labels[i],
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
+                            color: i == index ? Colors.white : _kMaroon,
+                          ),
                         ),
                       ),
                     ],

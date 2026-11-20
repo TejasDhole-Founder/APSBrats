@@ -61,7 +61,6 @@ Post and comment editing, comment replies, reactions other than likes, reposts, 
 | Framework-level 413/415 (multipart limit, content type) use code `BAD_REQUEST` while `ImageProcessor` uses the correct codes; 409s are logged at ERROR with a stack (convention says WARN) | `GlobalExceptionHandler` | [audit] |
 | Duplicate report returns 409 although the first report counted | `ReportService` | [audit] |
 | Report shown on the user's own posts and rejected by the server; delete dialog says "can't be undone" but delete is soft | `post_card.dart` | [audit] |
-| Two frontend tests contradict the code: `username_input_test.dart` (code caps at 20 and drops periods) and `communities_tab_test.dart` (names "five tabs"; there are four) | `frontend/test/` | [audit] |
 
 ## 6. Known limitations
 

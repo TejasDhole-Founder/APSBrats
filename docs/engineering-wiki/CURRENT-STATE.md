@@ -23,7 +23,7 @@ Snapshot date: 2026-11-16 (commit 168d987 from 2026-11-10, plus uncommitted work
 | Suite | Result | Notes |
 |---|---|---|
 | Backend (`mvn test`, Docker tests enabled, `ApiApplicationTests` excluded) | 95 passed, 0 failed | `ApiApplicationTests` needs `postgres:16-alpine`/`redis:7-alpine` images and is skipped when Docker is not set up. Windows flags: [10 section 7](10-development-guide.md) |
-| Flutter (`flutter test`) | 88 passed, 18 failed | The 18 were already failing before the recent work (stale expectations); see [testing.md](testing.md). CI's frontend job would fail on them |
+| Flutter (`flutter test`) | 106 passed, 0 failed | The 18 stale tests were updated on 2026-11-20; see [testing.md](testing.md) section 4. Not yet confirmed on GitHub Actions |
 
 ## What exists
 

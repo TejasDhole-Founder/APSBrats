@@ -48,6 +48,20 @@ void main() {
   });
 
   group('in the school card', () {
+    // The year fields are read-only: a tap opens the year wheel, Done picks.
+    String yearText(WidgetTester tester, int field) =>
+        tester
+            .widget<TextField>(find.byType(TextField).at(field))
+            .controller!
+            .text;
+
+    Future<void> pickYear(WidgetTester tester, int field) async {
+      await tester.tap(find.byType(TextField).at(field));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
+    }
+
     Future<void> showCard(WidgetTester tester, SchoolHistoryDraft start) async {
       var draft = start;
       await tester.pumpWidget(
@@ -72,34 +86,29 @@ void main() {
       await tester.pump();
     }
 
-    testWidgets('typing the year joined fills the year left', (tester) async {
-      await showCard(tester, class11to12);
-      await tester.enterText(find.byType(TextField).at(1), '2019');
-      await tester.pump();
-      expect(find.text('2021'), findsOneWidget);
+    testWidgets('picking the year joined fills the year left', (tester) async {
+      await showCard(tester, class11to12.copyWith(yearJoined: '2019'));
+      await pickYear(tester, 1);
+      expect(yearText(tester, 2), '2021');
     });
 
-    testWidgets('typing the year left fills the year joined', (tester) async {
-      await showCard(tester, class11to12);
-      await tester.enterText(find.byType(TextField).at(2), '2021');
-      await tester.pump();
-      expect(find.text('2019'), findsOneWidget);
+    testWidgets('picking the year left fills the year joined', (tester) async {
+      await showCard(tester, class11to12.copyWith(yearLeft: '2021'));
+      await pickYear(tester, 2);
+      expect(yearText(tester, 1), '2019');
     });
 
-    testWidgets('a year you typed yourself is never overwritten', (
+    testWidgets('a year you set yourself is never overwritten', (
       tester,
     ) async {
-      await showCard(tester, class11to12);
-      await tester.enterText(find.byType(TextField).at(1), '2019');
-      await tester.pump();
-      // Correct the suggestion by hand (e.g. repeated a year).
-      await tester.enterText(find.byType(TextField).at(2), '2022');
-      await tester.pump();
-      // Changing the joined year now leaves your 2022 alone.
-      await tester.enterText(find.byType(TextField).at(1), '2018');
-      await tester.pump();
-      expect(find.text('2022'), findsOneWidget);
-      expect(find.text('2018'), findsOneWidget);
+      await showCard(
+        tester,
+        class11to12.copyWith(yearJoined: '2019', yearLeft: '2022'),
+      );
+      // Re-picking the joined year must leave your 2022 alone.
+      await pickYear(tester, 1);
+      expect(yearText(tester, 1), '2019');
+      expect(yearText(tester, 2), '2022');
     });
   });
 }

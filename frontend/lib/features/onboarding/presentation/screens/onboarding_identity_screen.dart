@@ -814,12 +814,16 @@ class _Chip extends StatelessWidget {
                 color: active ? Colors.white : AppColors.crimson,
               ),
               const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: active ? Colors.white : const Color(0xFF2A1A14),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: active ? Colors.white : const Color(0xFF2A1A14),
+                  ),
                 ),
               ),
               if (active) ...[

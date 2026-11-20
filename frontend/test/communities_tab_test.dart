@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('five tabs fit a phone and Communities opens its own page', (
+  testWidgets('four tabs fit a phone and Social opens Communities', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(375, 812);
@@ -16,20 +16,17 @@ void main() {
     );
     await tester.pump();
 
-    for (final label in [
-      'Home',
-      'Batchmates',
-      'Communities',
-      'Messages',
-      'Profile',
-    ]) {
+    for (final label in ['Home', 'Batchmates', 'Social', 'Profile']) {
       expect(find.text(label), findsWidgets, reason: label);
     }
 
+    // Messages and Communities share the Social tab behind a segmented control.
+    await tester.tap(find.text('Social').last);
+    await tester.pump();
     await tester.tap(find.text('Communities').last);
     await tester.pump();
-    // The real tab: search box and the Discover section (no server in tests).
-    expect(find.text('Discover'), findsOneWidget);
+    // The real tab: the Discover section (no server in tests).
+    expect(find.text('Discover Communities'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
     // Home opens the chat connection, which leaves a retry timer behind.
