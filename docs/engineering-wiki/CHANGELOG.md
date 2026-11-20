@@ -31,6 +31,9 @@ Web app (2026-11-17)
 - **Memory safety:** `Dockerfile` `JAVA_OPTS` adds `-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError`; `docker-compose.yml` api gets `mem_limit` (default 1g), `restart: unless-stopped` and `CORS_ALLOWED_ORIGINS`. Addresses the heap part of risk 12 in [12](12-current-status-technical-debt.md); the socket cap and bounded outbound queue are still open. Steps for the web host and Cloud Run: `docs/DEPLOYMENT.md` (Part D).
 - Verified: `flutter build web --release` succeeds; the 3 changed Dart files analyze clean. The test suite has 18 failing tests with or without these changes (88 pass); they look for old welcome-screen text. Not tested on a real iPhone or Android phone, and the guard and `from` redirect were not run in a browser.
 
+Icon sizes (2026-11-20)
+- Fixed oversized icons from the Hugeicons switch. Cause: `HugeIcon` fills its box and ignores the surrounding icon size, and an `InputDecoration` icon slot forces at least 48 px, so field icons (calendar, building, search, ID card, location, chevrons) rendered at 48 px on the registration, career, school, event and profile screens. New `fieldIconSlot` (`core/theme/app_inputs.dart`) keeps the size; used in `appInputDecoration` and the identity, career and school field decorations and two `prefixIcon` uses. Set explicit sizes on inline chevrons (18) and list-row icons (20 to 22). Found by rendering the four registration steps to images. Test: `field_icon_size_test.dart` (3). 112 Flutter tests pass.
+
 Batchmates tab (2026-11-20)
 - Removed the Friends segment from Batchmates: friends are on the Social tab. The tab opens on Classmates. Removed its list, empty state, long-press remove and the Message button on those rows. Tests updated; 109 Flutter tests pass.
 

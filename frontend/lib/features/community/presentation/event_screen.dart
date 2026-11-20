@@ -493,11 +493,13 @@ class EventTile extends StatelessWidget {
                 if (past && !e.cancelled)
                   const HugeIcon(
                     icon: HugeIcons.strokeRoundedImage02,
+                    size: 20,
                     color: AppColors.crimson,
                   )
                 else
                   const HugeIcon(
                     icon: HugeIcons.strokeRoundedArrowRight01,
+                    size: 18,
                     color: kTxt3,
                   ),
               ],
@@ -627,6 +629,7 @@ class _EventScreenState extends ConsumerState<EventScreen> {
             if (onTap != null)
               const HugeIcon(
                 icon: HugeIcons.strokeRoundedArrowRight01,
+                size: 18,
                 color: kTxt3,
               ),
           ],
@@ -1242,6 +1245,7 @@ class _EventFormState extends ConsumerState<_EventForm> {
                         children: [
                           HugeIcon(
                             icon: HugeIcons.strokeRoundedImage01,
+                            size: 18,
                             color: AppColors.crimson,
                           ),
                           SizedBox(width: 8),
@@ -1343,9 +1347,12 @@ class _EventFormState extends ConsumerState<_EventForm> {
               textCapitalization: TextCapitalization.words,
               decoration: appInputDecoration('APS Pune hall, or Online')
                   .copyWith(
-                    prefixIcon: const HugeIcon(
-                      icon: HugeIcons.strokeRoundedLocation01,
-                      color: AppColors.crimson,
+                    prefixIcon: fieldIconSlot(
+                      const HugeIcon(
+                        icon: HugeIcons.strokeRoundedLocation01,
+                        size: 18,
+                        color: AppColors.crimson,
+                      ),
                     ),
                   ),
             ),

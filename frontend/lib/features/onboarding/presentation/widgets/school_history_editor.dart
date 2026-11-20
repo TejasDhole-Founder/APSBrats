@@ -1,3 +1,4 @@
+import 'package:apsbrat_frontend/core/theme/app_inputs.dart';
 import 'package:apsbrat_frontend/core/constants/api_endpoints.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:apsbrat_frontend/core/theme/app_icons.dart';
@@ -668,6 +669,7 @@ class _DropField extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           icon: const HugeIcon(
             icon: HugeIcons.strokeRoundedArrowDown01,
+            size: 18,
             color: AppColors.crimson,
           ),
           items: items
@@ -913,8 +915,8 @@ InputDecoration _fieldDecoration({
   return InputDecoration(
     hintText: hintText,
     hintStyle: const TextStyle(color: Color(0xFF9A8F84), fontSize: 13),
-    prefixIcon: prefixIcon,
-    suffixIcon: suffixIcon,
+    prefixIcon: prefixIcon == null ? null : fieldIconSlot(prefixIcon),
+    suffixIcon: suffixIcon == null ? null : fieldIconSlot(suffixIcon),
     filled: true,
     fillColor: Colors.white,
     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),

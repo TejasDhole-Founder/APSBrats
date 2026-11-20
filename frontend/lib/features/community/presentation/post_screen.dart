@@ -316,7 +316,10 @@ class _CommentRow extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const HugeIcon(icon: HugeIcons.strokeRoundedFlag01),
+              leading: const HugeIcon(
+                icon: HugeIcons.strokeRoundedFlag01,
+                size: 22,
+              ),
               title: const Text('Report'),
               onTap: () => Navigator.of(sheet).pop('report'),
             ),
@@ -324,6 +327,7 @@ class _CommentRow extends StatelessWidget {
               ListTile(
                 leading: const HugeIcon(
                   icon: HugeIcons.strokeRoundedDelete02,
+                  size: 22,
                   color: Colors.redAccent,
                 ),
                 title: const Text(

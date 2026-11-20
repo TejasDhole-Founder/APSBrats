@@ -1570,9 +1570,11 @@ class _MembersTabState extends ConsumerState<_MembersTab> {
                           textInputAction: TextInputAction.search,
                           decoration: appInputDecoration('Search members')
                               .copyWith(
-                                prefixIcon: const HugeIcon(
-                                  icon: HugeIcons.strokeRoundedSearch01,
-                                  size: 20,
+                                prefixIcon: fieldIconSlot(
+                                  const HugeIcon(
+                                    icon: HugeIcons.strokeRoundedSearch01,
+                                    size: 20,
+                                  ),
                                 ),
                                 isDense: true,
                               ),
@@ -1591,6 +1593,7 @@ class _MembersTabState extends ConsumerState<_MembersTab> {
                             ),
                             icon: const HugeIcon(
                               icon: HugeIcons.strokeRoundedArrowDown01,
+                              size: 18,
                             ),
                             items: [
                               const DropdownMenuItem(

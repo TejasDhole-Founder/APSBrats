@@ -324,6 +324,7 @@ class _MessagesViewState extends ConsumerState<_MessagesView> {
                 trailing: f == _filter
                     ? const HugeIcon(
                         icon: HugeIcons.strokeRoundedTick02,
+                        size: 20,
                         color: _kMaroon,
                       )
                     : null,
@@ -532,6 +533,7 @@ class _QuickRow extends ConsumerWidget {
                   ),
                   child: const HugeIcon(
                     icon: HugeIcons.strokeRoundedAdd01,
+                    size: 20,
                     color: _kMaroon,
                   ),
                 ),

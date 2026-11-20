@@ -236,7 +236,10 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
           children: [
             if (!m.mine)
               ListTile(
-                leading: const HugeIcon(icon: HugeIcons.strokeRoundedFlag01),
+                leading: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedFlag01,
+                  size: 22,
+                ),
                 title: const Text('Report'),
                 onTap: () => Navigator.of(sheet).pop('report'),
               ),
@@ -244,6 +247,7 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
               ListTile(
                 leading: const HugeIcon(
                   icon: HugeIcons.strokeRoundedDelete02,
+                  size: 22,
                   color: Colors.redAccent,
                 ),
                 title: const Text(

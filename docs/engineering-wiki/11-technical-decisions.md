@@ -113,6 +113,7 @@ D1 Modular monolith, one jar · D2 Flyway owns the schema · D3 Stateless JWT + 
 - Decision: all Material icons were replaced with `hugeicons` (`AppIconData` typedef in `frontend/lib/core/theme/app_icons.dart`).
 - Why: Recorded (requested for a more modern look).
 - Trade-offs: only the stroke-rounded set is free, so there are no filled variants; a liked heart differs from an unliked one only by colour; `semanticLabel` is not supported (accessibility labels were dropped on a few icons).
+- Sizing rule (found 2026-11-20): `HugeIcon` defaults to 24 px and ignores the surrounding `IconTheme`, and it draws its image to fill its box. A Material `Icon` shrank to fit chips, buttons and fields; a `HugeIcon` does not. In an `InputDecoration` `prefixIcon`/`suffixIcon` slot, which forces at least 48 px, an 18 px icon was stretched to 48 (the calendar, building and search icons on the registration screens). Put icons in those slots through `fieldIconSlot` (`core/theme/app_inputs.dart`; `appInputDecoration` and the onboarding, career and school field decorations already do) and give inline icons an explicit `size` (18 for chevrons and field icons, 20 to 22 for list rows). Covered by `test/field_icon_size_test.dart`.
 
 ### D18. Metrics exposed only in dev, plus a local dashboard
 - Decision: `/actuator/prometheus` and `/actuator/metrics` are public only when `app.actuator.public-metrics=true` (dev profile); latency histograms are on in dev; `tools/api_dashboard.py` reads them.

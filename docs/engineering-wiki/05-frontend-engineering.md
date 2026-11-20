@@ -302,7 +302,7 @@ In-memory caching:
 - Two palettes coexist. `AppColors` still carries a legacy green set (`g1`..`g3`, `inputBg`, `mud`), and `AppTheme.lightTheme` uses green for `primary`, `AppBar` and dark input fills. Crimson screens use feed constants (`kCrimsonLight`, `kCrimsonMed`, `kTxt`, `kTxt3` in `feed_shared.dart`), `SplashScreen` has private color constants, and `app.dart` hard-codes `0xFFF3F0EC`. So `ThemeData` does not reflect the real brand.
 - Light theme only, Material 3. Shared tokens: `AppRadius` (sm 9, md 12, phone 40) and `AppTextStyles.fieldLabel`.
 - Every screen is clamped to 640 px and centred (`_PhoneWidth`).
-- Icons: Hugeicons (`HugeIcon(icon: HugeIcons.strokeRounded...)`).
+- Icons: Hugeicons (`HugeIcon(icon: HugeIcons.strokeRounded...)`). Give every icon an explicit `size`; icons in a field's `prefixIcon`/`suffixIcon` go through `fieldIconSlot` or they are stretched to 48 px (see D17).
 - UNVERIFIED: which font is applied app-wide (`google_fonts` plus `assets/fonts/`), and a full grep for the deprecated `withOpacity` / `DropdownButtonFormField value:` (`app.dart` uses `withValues`).
 
 ---
@@ -329,7 +329,7 @@ Dev shortcut: `AuthController.devSkipLogin()` logs in as a seeded user with a fi
 
 ## 12. Tests
 
-`frontend/test/`: 21 test files (106 cases) plus the `hugeicon_finder.dart` helper, flat, plus `test/fixtures/connections/`. Run `flutter test` in `frontend/`.
+`frontend/test/`: 22 test files (112 cases) plus the `hugeicon_finder.dart` helper, flat, plus `test/fixtures/connections/`. Run `flutter test` in `frontend/`.
 
 Covered (by file): onboarding draft/steps/DOB/school years/overlap, login mode, back navigation, launch redirect, career, community UI and tabs, chat screen, connection contract, photos, profile cache/photo, account safety, username input, empty state.
 Not covered: `dio_client.dart` (refresh, retry, idempotency), `ChatSocket`, `PostFeedNotifier`, router guards beyond `launch_redirect_test`, theme.

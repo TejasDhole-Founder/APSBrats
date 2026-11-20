@@ -36,12 +36,18 @@ Future<XFile?> pickPhoto(BuildContext context) async {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const HugeIcon(icon: HugeIcons.strokeRoundedCamera01),
+              leading: const HugeIcon(
+                icon: HugeIcons.strokeRoundedCamera01,
+                size: 22,
+              ),
               title: const Text('Take a photo'),
               onTap: () => Navigator.of(sheetContext).pop(ImageSource.camera),
             ),
             ListTile(
-              leading: const HugeIcon(icon: HugeIcons.strokeRoundedImage02),
+              leading: const HugeIcon(
+                icon: HugeIcons.strokeRoundedImage02,
+                size: 22,
+              ),
               title: const Text('Choose from gallery'),
               onTap: () => Navigator.of(sheetContext).pop(ImageSource.gallery),
             ),
@@ -78,12 +84,18 @@ Future<List<XFile>> pickPhotos(BuildContext context, {required int max}) async {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const HugeIcon(icon: HugeIcons.strokeRoundedCamera01),
+              leading: const HugeIcon(
+                icon: HugeIcons.strokeRoundedCamera01,
+                size: 22,
+              ),
               title: const Text('Take a photo'),
               onTap: () => Navigator.of(sheetContext).pop(ImageSource.camera),
             ),
             ListTile(
-              leading: const HugeIcon(icon: HugeIcons.strokeRoundedImage02),
+              leading: const HugeIcon(
+                icon: HugeIcons.strokeRoundedImage02,
+                size: 22,
+              ),
               title: Text(
                 max == 1
                     ? 'Choose from gallery'

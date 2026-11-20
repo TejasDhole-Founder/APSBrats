@@ -1,3 +1,4 @@
+import 'package:apsbrat_frontend/core/theme/app_inputs.dart';
 import 'dart:async';
 
 import 'package:apsbrat_frontend/core/theme/app_theme.dart';
@@ -40,11 +41,16 @@ InputDecoration _careerDecoration(
     hintStyle: const TextStyle(color: Color(0xFF9A8F84), fontSize: 13),
     prefixIcon: icon == null
         ? null
-        : HugeIcon(icon: icon, size: 18, color: AppColors.crimson),
+        : fieldIconSlot(
+            HugeIcon(icon: icon, size: 18, color: AppColors.crimson),
+          ),
     suffixIcon: chevron
-        ? const HugeIcon(
-            icon: HugeIcons.strokeRoundedArrowDown01,
-            color: AppColors.crimson,
+        ? fieldIconSlot(
+            const HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowDown01,
+              size: 18,
+              color: AppColors.crimson,
+            ),
           )
         : null,
     filled: true,

@@ -690,6 +690,7 @@ class _CountryCodeBox extends StatelessWidget {
             const SizedBox(width: 4),
             const HugeIcon(
               icon: HugeIcons.strokeRoundedArrowDown01,
+              size: 18,
               color: AppColors.crimson,
             ),
           ],

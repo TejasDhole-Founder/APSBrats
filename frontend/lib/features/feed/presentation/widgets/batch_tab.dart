@@ -1027,6 +1027,7 @@ class _ShowMore extends StatelessWidget {
         onPressed: onTap,
         icon: const HugeIcon(
           icon: HugeIcons.strokeRoundedArrowDown01,
+          size: 18,
           color: AppColors.crimson,
         ),
         label: const Text(
@@ -1241,6 +1242,7 @@ class _PersonCard extends StatelessWidget {
 
   final VoidCallback onTap;
   final VoidCallback onConnect;
+
   /// Called when the person has asked ME and I tap Accept.
   final VoidCallback? onAccept;
 
@@ -1500,6 +1502,7 @@ class _InviteBanner extends StatelessWidget {
             ),
             const HugeIcon(
               icon: HugeIcons.strokeRoundedArrowRight01,
+              size: 18,
               color: AppColors.crimson,
             ),
           ],

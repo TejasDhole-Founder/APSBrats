@@ -298,7 +298,7 @@ class _FormBody extends StatelessWidget {
     return InputDecoration(
       hintText: hint,
       prefixText: prefix,
-      suffixIcon: suffix,
+      suffixIcon: suffix == null ? null : fieldIconSlot(suffix),
       filled: true,
       fillColor: Colors.white,
       hintStyle: const TextStyle(fontSize: 13, color: _hint),
