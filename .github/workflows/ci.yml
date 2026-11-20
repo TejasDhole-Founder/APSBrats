@@ -1,5 +1,5 @@
 
-name: CI
+name: APS Brats CI/CD
 
 on:
   push:
@@ -7,9 +7,15 @@ on:
   pull_request:
     branches: [main]
 
+# One run per branch at a time. A newer push cancels an older unfinished run,
+# except on main, so a deploy that is already uploading is never cut off.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   backend:
-    name: API build & test
+    name: API - build and test
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -29,7 +35,7 @@ jobs:
         run: mvn -B verify
 
   frontend:
-    name: Flutter analyze & test
+    name: App - analyze and test
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -53,7 +59,7 @@ jobs:
         run: flutter test
 
   web-deploy:
-    name: Build & deploy Flutter Web
+    name: Web - build and deploy to Cloudflare Pages
     runs-on: ubuntu-latest
     needs: [backend, frontend]
 

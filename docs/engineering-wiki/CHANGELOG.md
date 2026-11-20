@@ -31,6 +31,10 @@ Web app (2026-11-17)
 - **Memory safety:** `Dockerfile` `JAVA_OPTS` adds `-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError`; `docker-compose.yml` api gets `mem_limit` (default 1g), `restart: unless-stopped` and `CORS_ALLOWED_ORIGINS`. Addresses the heap part of risk 12 in [12](12-current-status-technical-debt.md); the socket cap and bounded outbound queue are still open. Steps for the web host and Cloud Run: `docs/DEPLOYMENT.md` (Part D).
 - Verified: `flutter build web --release` succeeds; the 3 changed Dart files analyze clean. The test suite has 18 failing tests with or without these changes (88 pass); they look for old welcome-screen text. Not tested on a real iPhone or Android phone, and the guard and `from` redirect were not run in a browser.
 
+Web app connection and CI (2026-11-20)
+- Live API refused the web app origin (403 "Invalid CORS request"): the qa/prod `app.cors.allowed-origins` default was empty. It now defaults to the web app address; `CORS_ALLOWED_ORIGINS` still replaces it. Takes effect when the API is redeployed.
+- One workflow, `APS Brats CI/CD` (`.github/workflows/ci.yml`): jobs "API - build and test", "App - analyze and test", "Web - build and deploy to Cloudflare Pages"; runs on one branch no longer overlap (main is never cancelled mid-deploy). The deleted `deploy-web.yml` can still be listed in the Actions sidebar until its old runs are deleted.
+
 Dev login flag (2026-11-20)
 - `Env.devLogin` (`--dart-define=DEV_LOGIN=true`) shows "Skip login (dev)" in release builds; default off. It needs an API with the universal OTP `000000` (dev, or qa with `OTP_MASTER`); prod refuses it. See `docs/DEPLOYMENT.md` Part D.
 

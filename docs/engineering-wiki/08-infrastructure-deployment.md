@@ -42,7 +42,7 @@ Hosting layer in front of the API (Cloudflare, Cloud Run/Render/VPS, Neon, Upsta
 | Profile | Datasource | Flyway | Redis | Other |
 |---|---|---|---|---|
 | dev (default via `spring.profiles.active: dev`) | `localhost:5432/apsbrat_db` | on, `baseline-on-migrate: true`, baseline V4 | `localhost:6379`, SSL off | `show-sql`, springdoc on, master OTP allowed, public metrics on, latency histograms on |
-| qa | `DATABASE_URL` required | on, baseline off unless env set | host required, SSL default on | springdoc off, CORS from env, rolling log file |
+| qa | `DATABASE_URL` required | on, baseline off unless env set | host required, SSL default on | springdoc off, CORS from env (default: the web app address), rolling log file |
 | prod | same as qa | same | same | same as qa. The only code difference is `AuthService.isProd()`: in prod the OTP is not logged and the master OTP is never accepted; in dev and qa the OTP is logged and the master OTP works whenever `OTP_MASTER` is non-blank (blank by default in qa) |
 
 Guard: `common/config/DevProfileGuard.java` aborts startup when the dev profile is active by default (no `SPRING_PROFILES_ACTIVE` env var) inside Docker or Kubernetes.
