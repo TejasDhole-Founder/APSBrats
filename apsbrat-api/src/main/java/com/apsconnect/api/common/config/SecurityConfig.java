@@ -65,6 +65,8 @@ public class SecurityConfig {
                         // School history and social links used to be public; both now require
                         // login, and the write endpoints additionally check the path id is the
                         // caller's own (see UserSchoolHistoryController / UserSocialLinkController).
+                        // Sends real email through our provider account: admins only, not moderators.
+                        .requestMatchers("/api/v1/admin/email/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/admin/**").hasAnyRole("ADMIN", "MODERATOR")
                         .anyRequest().authenticated())
                 .exceptionHandling(e -> e

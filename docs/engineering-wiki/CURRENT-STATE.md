@@ -22,12 +22,12 @@ Snapshot date: 2026-11-16 (commit 168d987 from 2026-11-10, plus uncommitted work
 
 | Suite | Result | Notes |
 |---|---|---|
-| Backend (`mvn test`, Docker tests enabled, `ApiApplicationTests` excluded) | 95 passed, 0 failed | `ApiApplicationTests` needs `postgres:16-alpine`/`redis:7-alpine` images and is skipped when Docker is not set up. Windows flags: [10 section 7](10-development-guide.md) |
+| Backend (`mvn -B test`, 2026-11-20) | 95 passed, 0 failed, 31 skipped (Docker image tests) | The 30 email and sign-in tests added on 2026-11-20 are in the 95 and need no Docker. Earlier report: 95 passed with Docker tests enabled and `ApiApplicationTests` excluded; not re-run that way since | `ApiApplicationTests` needs `postgres:16-alpine`/`redis:7-alpine` images and is skipped when Docker is not set up. Windows flags: [10 section 7](10-development-guide.md) |
 | Flutter (`flutter test`) | 110 passed, 0 failed | The 18 stale tests were updated on 2026-11-20; see [testing.md](testing.md) section 4. Not yet confirmed on GitHub Actions |
 
 ## What exists
 
-Feature status table: [00 section 2](00-project-overview.md). Short version: auth (Google works, email OTP delivery missing), onboarding, profile and career, communities with events and memories, posts with photos, likes and comments, Home feed, connections with history and blocking, DMs and group chat with push, people search, in-app notifications, moderation API. No push notifications, no admin UI, no post editing. The Flutter app also builds for the web (clean URLs, login guard, email-code sign-in only; deploy steps in `docs/DEPLOYMENT.md` Part D); not yet deployed or tried on a real phone.
+Feature status table: [00 section 2](00-project-overview.md). Short version: auth (email OTP delivery through Brevo implemented, live setup not yet confirmed; Google needs Firebase config), onboarding, profile and career, communities with events and memories, posts with photos, likes and comments, Home feed, connections with history and blocking, DMs and group chat with push, people search, in-app notifications, moderation API. No push notifications, no admin UI, no post editing. The Flutter app also builds for the web (clean URLs, login guard, email-code sign-in only; deploy steps in `docs/DEPLOYMENT.md` Part D); not yet deployed or tried on a real phone.
 
 ## Local tooling
 
@@ -35,7 +35,7 @@ Feature status table: [00 section 2](00-project-overview.md). Short version: aut
 
 ## Highest-priority open items
 
-1. Email OTP delivery and removal/guarding of the demo seed before any real deployment.
+1. Confirm Brevo email on the live API (`BREVO_API_KEY`, `EMAIL_SENDER_ADDRESS`, health check, one delivered test email), and remove/guard the demo seed before any real deployment.
 2. `reinstateUser` admin check; block/discoverable/ban checks on remaining read paths.
 3. Account deletion completeness.
 4. Decide Redis failure policy; guard `IdempotencyFilter`.

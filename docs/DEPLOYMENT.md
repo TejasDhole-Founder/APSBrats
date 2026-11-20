@@ -71,9 +71,10 @@ Pick ONE. **Option 1 (Render) is the fastest for now.**
    - `SPRING_DATA_REDIS_HOST`, `SPRING_DATA_REDIS_PORT` = from Render Redis
    - `JWT_SECRET` = `openssl rand -base64 48`
    - `OTP_MASTER` = (leave blank — disables the dev master OTP)
+   - `BREVO_API_KEY` = your Brevo API key, and `EMAIL_SENDER_ADDRESS` = a sender verified in Brevo (see "Email (Brevo)" below)
    - `SPRING_FLYWAY_BASELINE_ON_MIGRATE=false`  (fresh DB → run all migrations)
 6. Deploy. Confirm the Render URL responds at `/api/schools`.
-7. (Until real SMS is wired, OTP is printed in the service **Logs** — use that to log in during testing.)
+7. Sign-in codes are emailed through Brevo once step 5's two email variables are set. Without them the prod API answers code requests with 503. Verify with the checks in "Email (Brevo)" below.
 
 ### Option 2 — Your own VPS + Cloudflare Tunnel (more control, cheap)
 Good if you want one box running the `docker-compose.yml`, with **no open ports**.
@@ -196,6 +197,9 @@ echo -n "https://media.apsbrats.com" | gcloud secrets create MEDIA_BASE_URL --da
 # App secrets — generate a fresh one for prod
 echo -n "$(openssl rand -base64 48)" | gcloud secrets create JWT_SECRET --data-file=-
 # OTP_MASTER intentionally left blank in prod (blank = disabled)
+
+# Email (Brevo)
+echo -n "YOUR_BREVO_API_KEY" | gcloud secrets create BREVO_API_KEY --data-file=-
 ```
 
 > Tip: the values in `.env` have a `CLOUDRUN_` prefix to avoid docker-compose
@@ -258,6 +262,7 @@ tab → **Reference a secret**. Add each one:
 | `R2_BUCKET` | `R2_BUCKET` | latest |
 | `MEDIA_BASE_URL` | `MEDIA_BASE_URL` | latest |
 | `JWT_SECRET` | `JWT_SECRET` | latest |
+| `BREVO_API_KEY` | `BREVO_API_KEY` | latest |
 
 Add these as **plain** env vars (not secrets — they're not sensitive):
 
@@ -267,6 +272,7 @@ Add these as **plain** env vars (not secrets — they're not sensitive):
 | `SPRING_DATA_REDIS_SSL_ENABLED` | `true` |
 | `SPRING_FLYWAY_BASELINE_ON_MIGRATE` | `false` |
 | `SERVER_PORT` | `8080` |
+| `EMAIL_SENDER_ADDRESS` | a sender verified in Brevo, e.g. `no-reply@apsbrats.com` |
 
 ### Step 6 — Deploy and verify
 
@@ -300,6 +306,23 @@ minutes.
 
 To roll back: Console → Cloud Run → **Revisions** → select a previous revision →
 **Manage traffic** → send 100% to it.
+
+---
+
+## Email (Brevo): sign-in codes
+
+The API emails each sign-in code through Brevo's transactional API (`app.email.*`, class `BrevoEmailClient`).
+
+1. **Brevo account:** create an API key (SMTP & API → API Keys) and set it as `BREVO_API_KEY` on the API host (Render environment or Cloud Run secret). Never put it in the repo or the app.
+2. **Sender:** in Brevo → Senders, Domains & Dedicated IPs, add and verify `no-reply@apsbrats.com` (and authenticate the `apsbrats.com` domain with the DKIM/SPF records Brevo shows, in Cloudflare DNS, so mail is not marked as spam). Set `EMAIL_SENDER_ADDRESS` to that address. Brevo refuses mail from an unverified sender.
+3. **Authorized IPs:** if Brevo → Security → Authorized IPs is on, the API's outgoing IP must be listed (Render's change); otherwise turn it off. The health check below reports "blocked this server's IP address" when this is the cause.
+4. **Make yourself an admin** (once), then log in again so the new role is in your token:
+   `UPDATE users SET role = 'ADMIN' WHERE email = 'you@example.com';`
+5. **Health check:** `GET /api/v1/admin/email/health` with your admin token. `status` is `UP` when the key works and the sender is verified, `DEGRADED` when the key works but the sender is not verified, `DOWN` when Brevo rejects the key or cannot be reached, `NOT_CONFIGURED` when a variable is missing. It calls Brevo but sends nothing.
+6. **Test email:** `POST /api/v1/admin/email/test` with body `{"to": "you@gmail.com"}` (or no body: goes to your own account address). At most 5 an hour. A provider problem comes back as `"sent": false` with a reason, not as an error.
+7. Both endpoints are ADMIN only (moderators cannot use them).
+
+Behaviour to know: in prod, a missing key or a Brevo failure makes `POST /api/v1/auth/request-otp` return 503 "We couldn't send your code" and frees the 60 second resend wait. Reserved test domains (`example.com`, `*.test`, `*.example`, ...) are never emailed. Outside prod, with no key, nothing is sent and the code is in the API log. Brevo's free plan allows about 300 emails a day: watch it before a launch.
 
 ---
 
@@ -361,6 +384,7 @@ The "Get the app" buttons currently link to `#get`. Once you have store/testing 
 
 These are the minimum operational guardrails even for a private staging:
 - [ ] Strong `JWT_SECRET` set; `OTP_MASTER` blank in prod.
+- [ ] `BREVO_API_KEY` and `EMAIL_SENDER_ADDRESS` set; `GET /api/v1/admin/email/health` says `UP`; the test email arrives (and not in spam).
 - [ ] Managed Postgres with **automated backups** on (Render does this; on VPS add `pg_dump` cron + offsite copy).
 - [ ] Cloudflare **rate limit** on `/api/auth/*` (cost + abuse).
 - [ ] HTTPS everywhere, Full (strict).

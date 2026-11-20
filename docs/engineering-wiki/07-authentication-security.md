@@ -46,7 +46,7 @@ sequenceDiagram
 ### 2.1 Email OTP (`api/auth/AuthService.java`)
 - `requestOtp`: email is trimmed and lower-cased; per-email 60 s cooldown (`otp:cd:`), max 5 requests/hour per email (`otp:rq:`), max 15/hour per client IP (`otp:ip:`). Code is `SecureRandom` 6 digits stored in `otp_codes.code` (plain text), TTL 10 minutes (`OTP_TTL_MINUTES`).
 - `verifyOtp`: checks the lock key first; takes the newest unconsumed row for the email; rejects expired; constant-time compare (`MessageDigest.isEqual`); on mismatch increments a counter (5 failures in 15 minutes sets `otp:lock:<email>` for 15 minutes); on success marks the row consumed and clears the counter.
-- Delivery: `requestOtp` only logs the code when the profile is not `prod` (`AuthService.java:72`). The comment at `AuthService.java:74` says email sending is a TODO, and the project has no mail dependency. So in qa and prod no user can receive an OTP. UNVERIFIED whether another deployment-time mechanism exists (nothing in the repo).
+- Delivery (since 2026-11-20): `requestOtp` saves the code, then `EmailService.sendOtp` sends it through Brevo (`email/BrevoEmailClient`, REST `POST /v3/smtp/email`, 3 s connect and 8 s read timeouts). It is not one transaction, so no database connection is held while Brevo answers. The code is also logged when the profile is not `prod`. Reserved test domains (`example.com/net/org`, `*.test`, `*.example`, `*.invalid`, `*.localhost`, `*.local`) are never emailed (demo and load-test accounts would only bounce). With no key outside prod nothing is sent. In prod a missing key or a Brevo failure returns 503 "We couldn't send your code" (generic body, details only in the server log, no recipient or key logged) and deletes the unsent code and the 60 s cooldown key so the person can retry at once. Settings: `app.email.api-key` (`BREVO_API_KEY`), `app.email.sender-address` (`EMAIL_SENDER_ADDRESS`, must be a sender verified in Brevo), `app.email.sender-name` (`EMAIL_SENDER_NAME`). Setup and checks: `docs/DEPLOYMENT.md` "Email (Brevo)".
 - Master OTP: `app.otp.master` (`OTP_MASTER`). Accepted only if the profile is not `prod`, the value is non-blank and equal (constant time). Dev default is set in `application.yml` (dev profile only); qa and prod default to empty. Note that qa is "not prod", so if `OTP_MASTER` were set in qa the master code would work there (intended for test environments).
 - `DevProfileGuard` (`api/common/config/DevProfileGuard.java`) prevents the `dev` profile (weak JWT secret, master OTP) from starting in a container without an explicit `SPRING_PROFILES_ACTIVE`.
 
@@ -90,6 +90,7 @@ Roles: `USER`, `MODERATOR`, `ADMIN` (`api/user/UserRole.java`, `users.role`). Th
 | Rule | Where | Who |
 |---|---|---|
 | `/api/v1/admin/**` | `SecurityConfig` (`hasAnyRole("ADMIN","MODERATOR")`) | staff |
+| `/api/v1/admin/email/**` | `SecurityConfig` (`hasRole("ADMIN")`, listed before the line above) | admins only |
 | Ban, set role | `AdminService.requireAdmin` (re-reads actor from DB) | ADMIN only |
 | Suspend a normal user | `AdminService.suspendUser` (1 to 365 days) | staff; suspending a MODERATOR/ADMIN needs ADMIN |
 | Reinstate (clears ban and suspension) | `AdminService.reinstateUser` | any staff, no extra check (see gaps) |
@@ -119,7 +120,7 @@ Public (no token):
 
 Conditional: `/actuator/prometheus`, `/actuator/metrics`, `/actuator/metrics/**` allowed only when `app.actuator.public-metrics=true` (dev profile only); otherwise denied for everyone.
 
-Role-gated: `/api/v1/admin/**`. Everything else: `anyRequest().authenticated()`.
+Role-gated: `/api/v1/admin/email/**` (ADMIN only: it sends real email through our provider account) and `/api/v1/admin/**` (ADMIN or MODERATOR). Everything else: `anyRequest().authenticated()`. Verified against a running API: no token 401, a normal user 403, an ADMIN 200.
 
 Not authenticated-by-default gaps: none found (default deny). Not all authenticated routes require onboarding (see `OnboardingGate` coverage in doc 04).
 

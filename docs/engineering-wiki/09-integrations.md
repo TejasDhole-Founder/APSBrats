@@ -12,7 +12,7 @@ Last verified: 2026-11-16 against commit 168d987 (working tree has uncommitted c
 | Redis | Wired | Yes |
 | Cloudflare R2 | Wired (optional, local disk is the default) | Only for qa/prod media |
 | Firebase Auth / Google sign-in | Wired in code; needs server credentials file and client Firebase config | No (email OTP works without it) |
-| Email / OTP delivery | NOT wired: the code is never sent by email | Gap |
+| Email / OTP delivery (Brevo) | Implemented 2026-11-20; needs `BREVO_API_KEY` and `EMAIL_SENDER_ADDRESS`; live setup not confirmed | Yes in prod: without them code requests return 503 |
 | Geoapify places | Wired; needs API key | No (city search returns 503 without it) |
 | FCM push notifications | NOT wired (packages declared only) | No |
 | Prometheus / Grafana | Prometheus format exposed in dev only; no scraper or Grafana config in repo | No |
@@ -47,8 +47,10 @@ Last verified: 2026-11-16 against commit 168d987 (working tree has uncommitted c
 
 ## Email / OTP delivery
 - Login is email plus 6-digit OTP (`auth/AuthService.requestOtp`, `POST /api/v1/auth/request-otp`, `/verify-otp`).
-- The code is stored in `otp_codes` and, outside prod, written to the application log. There is a `TODO` to send the code by email in qa/prod: no email or SMS provider is integrated (no mail dependency in `pom.xml`).
-- Consequence: in prod a real user cannot receive a code. Only Google sign-in works for real users, or the master OTP (do not enable in prod).
+- The code is stored in `otp_codes`, emailed through Brevo (`email/` package: `BrevoEmailClient` talks to `https://api.brevo.com/v3`, `EmailService` decides what to send, `EmailAdminController` is the operator tool) and, outside prod, written to the application log.
+- Operator endpoints (ADMIN only): `GET /api/v1/admin/email/health` (calls Brevo `/account` and `/senders`, sends nothing; status UP, DEGRADED, DOWN or NOT_CONFIGURED, never returns the key) and `POST /api/v1/admin/email/test` (optional `{"to":...}`, defaults to the admin's own address; 5 an hour per admin; a provider problem returns `sent:false` with a short reason such as a rejected key, a blocked IP, or an unverified sender).
+- Brevo free plan: about 300 emails a day (UNVERIFIED current limit). Sender must be verified in Brevo and the domain authenticated (DKIM/SPF) or mail is likely to land in spam; Brevo's Authorized IPs setting can block the API host.
+- Verified on 2026-11-20 against the real Brevo API with a made-up key: health DOWN "Brevo rejected the API key", test email `sent:false`, request-otp 503 and retry allowed. Not yet verified with a real key and a delivered email.
 - Dev: `OTP_MASTER` (universal code, dev and compose have a default; blank disables it). Constant-time comparison. Master OTP is also disabled if blank.
 - Protections that exist: per-email request limits, cooldown, attempt counter and lockout in Redis keys `otp:*`.
 

@@ -112,7 +112,7 @@ Variation: dev shortcut. `AuthController.devSkipLogin` (`auth_provider.dart`) re
 - Login after deletion: the row's email is rewritten to `deleted+<id>@deleted.invalid`, so the same real email signs up as a brand-new account.
 
 ## Not implemented (verified by search)
-- Sending the OTP by email: `AuthService.requestOtp` has a `TODO` and no mail sender exists (no `JavaMailSender` or mail dependency anywhere). In qa/prod the code only reaches the server log in non-prod; in prod it is not delivered at all, so OTP login cannot work in prod. Google sign-in is the only working prod path (if Firebase credentials are configured).
+- (Was missing until 2026-11-20) Sending the OTP by email is now done through Brevo; see [07 section 2.1](../07-authentication-security.md) and [09](../09-integrations.md). Live configuration is not yet confirmed.
 - Password login, password change, forgot-password: removed from the flow (`users.password_hash` column and a `BCryptPasswordEncoder` bean remain unused).
 - Phone login/verification (`users.phone` is a legacy column).
 - Email change (`UserService.updateMe` rejects it).
@@ -121,7 +121,7 @@ Variation: dev shortcut. `AuthController.devSkipLogin` (`auth_provider.dart`) re
 - Multi-step "Verify" onboarding screen (the `CLAUDE.md` step list says Verify is step 2; in code verification happens on the login screen before onboarding).
 
 ## Risks, bugs, tech debt
-- `AuthService.java:74` OTP never emailed (above). Highest-priority gap for prod.
+- OTP email depends on `BREVO_API_KEY` and `EMAIL_SENDER_ADDRESS` on the host; without them prod returns 503 for code requests. Highest-priority item to confirm for prod.
 - `AuthService.java:88` / `application.yml:~123`: dev profile defaults `OTP_MASTER` to a fixed code; safe only because `masterOtpMatches` is gated on non-prod and qa/prod default to empty. If qa is exposed publicly with `OTP_MASTER` set, anyone can log in as anyone.
 - `AuthService.java:144` `refresh` is `@Transactional(readOnly = true)` yet writes Redis; harmless, but misleading.
 - `AuthService.java:167` logout removes the jti from `rtu:` but `refresh` (rotation) never removes the old jti from the set; the set grows until TTL and logout-all deletes already-gone keys (harmless).

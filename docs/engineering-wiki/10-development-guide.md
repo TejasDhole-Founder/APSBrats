@@ -46,7 +46,7 @@ mvn spring-boot:run
 ```
 - Profile: `dev` by default. The pom sets `-Duser.timezone=Asia/Kolkata` for `spring-boot:run`. If you run from IntelliJ, add `-Duser.timezone=Asia/Kolkata` to the VM options (Postgres 16 rejects the legacy zone name `Asia/Calcutta`, see section 10).
 - Listens on `:8080`, REST under `/api/v1`. Swagger UI on in dev: `/swagger-ui.html`. Health: `/actuator/health`.
-- Env vars (names only): `DB_USER`, `DB_PASSWORD`, `JWT_SECRET`, `OTP_MASTER`, `SPRING_DATA_REDIS_HOST`, `STORAGE_TYPE`, `GEOAPIFY_API_KEY`, `FIREBASE_CREDENTIALS_PATH`. Dev has defaults for DB, JWT and OTP master, so nothing is needed for a basic run. Full table in `08-infrastructure-deployment.md`.
+- Env vars (names only): `DB_USER`, `DB_PASSWORD`, `JWT_SECRET`, `OTP_MASTER`, `SPRING_DATA_REDIS_HOST`, `STORAGE_TYPE`, `GEOAPIFY_API_KEY`, `FIREBASE_CREDENTIALS_PATH`, `BREVO_API_KEY`, `EMAIL_SENDER_ADDRESS`, `EMAIL_SENDER_NAME`. Dev has defaults for DB, JWT and OTP master, so nothing is needed for a basic run. Full table in `08-infrastructure-deployment.md`.
 - Without `GEOAPIFY_API_KEY` city search returns 503. Without `FIREBASE_CREDENTIALS_PATH` Google sign-in returns 503. Neither blocks the rest.
 - Media: with `STORAGE_TYPE` unset, uploads go to `apsbrat-api/media/` (gitignored) and are served at `/media/**`.
 
@@ -144,6 +144,7 @@ Open `http://localhost:8099` (bound to 127.0.0.1). `--pg-container` adds read-on
 | Connection refused on Redis at startup or 503 on readiness | Redis not running; readiness includes `redis` | `docker compose up -d redis` |
 | Google sign-in returns 503 | `FIREBASE_CREDENTIALS_PATH` unset (`FirebaseAuthVerifier`) | Provide the service-account file path, or use email OTP |
 | City search returns 503 | `GEOAPIFY_API_KEY` unset (`PlacesService.requireKey`) | Set the key |
+| Sign-in code request returns 503 in prod ("couldn't send your code") | `BREVO_API_KEY` or `EMAIL_SENDER_ADDRESS` unset, key rejected, sender not verified, or Brevo blocked the host's IP | `GET /api/v1/admin/email/health` (ADMIN) names the cause; fix per `docs/DEPLOYMENT.md` "Email (Brevo)" |
 | Android emulator cannot reach API | `localhost` default in `env.dart` | Use `10.0.2.2` via `--dart-define` (section 5) |
 | Rate limited (429) during repeated logins from one machine | IP limit 60/min (`RateLimitFilter`) | Raise `RATE_LIMIT_IP_PER_MINUTE` locally |
 | Photos upload but do not display with R2 | `MEDIA_BASE_URL` must be the full public bucket URL (`ImageUploadService` checks it) | Set it exactly |

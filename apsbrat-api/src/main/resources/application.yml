@@ -53,6 +53,14 @@ app:
       access-key: ${R2_ACCESS_KEY_ID:}
       secret-key: ${R2_SECRET_ACCESS_KEY:}
       bucket: ${R2_BUCKET:apsbrats-media}
+  email:
+    # Brevo transactional email (sign-in codes). Needs BREVO_API_KEY and
+    # EMAIL_SENDER_ADDRESS, a sender verified in Brevo. Both blank = not configured:
+    # nothing is sent, and prod answers 503 to code requests. Check it with
+    # GET /api/v1/admin/email/health (ADMIN).
+    api-key: ${BREVO_API_KEY:}
+    sender-address: ${EMAIL_SENDER_ADDRESS:}
+    sender-name: ${EMAIL_SENDER_NAME:APS Brats}
   firebase:
     # Path to the Firebase service-account JSON (Project settings → Service accounts
     # → Generate new private key). Google sign-in returns a clear 503 until this is set.

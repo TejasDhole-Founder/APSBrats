@@ -2,6 +2,7 @@ package com.apsconnect.api.auth;
 
 import com.apsconnect.api.common.exception.AppException;
 import com.apsconnect.api.common.exception.ErrorCode;
+import com.apsconnect.api.email.EmailService;
 import com.apsconnect.api.user.User;
 import com.apsconnect.api.user.UserDto;
 import com.apsconnect.api.user.UserRepository;
@@ -50,11 +51,15 @@ public class AuthService {
     private final StringRedisTemplate redis;
     private final Environment environment;
     private final FirebaseAuthVerifier googleVerifier;
+    private final EmailService emailService;
 
     @Value("${app.otp.master:}")
     private String masterOtp;
 
-    @Transactional
+    /**
+     * Not one transaction: the OTP row is saved on its own, then the email goes out
+     * without holding a database connection while Brevo answers.
+     */
     public void requestOtp(String rawEmail, String clientIp) {
         String email = normalize(rawEmail);
         enforceRequestLimits(email, clientIp);
@@ -71,9 +76,14 @@ public class AuthService {
         if (!isProd()) {
             log.info("OTP for {} is {}", email, code);
         }
-        // TODO: send the code by email in qa/prod (an EmailSender interface, the
-        // same shape as this OTP flow already has for rate limiting) — for now
-        // it only ever reaches the console/log, same as phone OTP did before.
+        try {
+            emailService.sendOtp(email, code, OTP_TTL_MINUTES);
+        } catch (RuntimeException e) {
+            // A code that never arrived must not lock the person out for the resend cooldown.
+            redis.delete(cooldownKey(email));
+            otpCodeRepository.delete(otp);
+            throw e;
+        }
     }
 
     @Transactional

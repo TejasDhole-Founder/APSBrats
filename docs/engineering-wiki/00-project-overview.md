@@ -16,7 +16,7 @@ Status is verified against code (details and sources in each feature file). "Par
 
 | Feature | Status | Detail |
 |---|---|---|
-| Sign-in (email OTP, Google), refresh tokens, logout-all | Partial | OTP is generated and checked, but never emailed in qa/prod (`AuthService.requestOtp` TODO). Google sign-in needs Firebase credentials. [auth](03-features/auth-and-sessions.md) |
+| Sign-in (email OTP, Google), refresh tokens, logout-all | Partial | The OTP is generated, checked and, since 2026-11-20, emailed through Brevo (needs `BREVO_API_KEY` and `EMAIL_SENDER_ADDRESS` on the API host; not yet confirmed on the live API). Google sign-in needs Firebase credentials. [auth](03-features/auth-and-sessions.md) |
 | Onboarding (profile, schools, socials, alumni career) | Implemented | Gated server-side by `OnboardingGate`. [auth](03-features/auth-and-sessions.md) |
 | Profile, school history, social links, career, privacy settings, data export, account deletion | Implemented, with gaps | Deletion leaves data behind. [profile](03-features/profile-career-schools.md) |
 | Communities: school (auto) and interest (user-created), join/leave, private requests, owner tools | Partial | No community edit, owners cannot remove members in the app, school communities have no owner. [communities](03-features/communities.md) |

@@ -19,12 +19,16 @@ Backend test code has no `src/test/resources` (no test yml, no fixtures). Surefi
 
 ## 2. Backend tests (`apsbrat-api/src/test/java/com/apsconnect/api`)
 
-Last report: 96 tests ran, 0 failures, 0 errors, 1 skipped (`ApiApplicationTests`, Docker was not available for that run).
+Last full run (2026-11-20, `mvn -B test`, Docker images not available so the Testcontainers classes were skipped): 126 tests ran, 0 failures, 0 errors, 31 skipped (`ApiApplicationTests` 1, `ConnectionFlowTest` 29, `ConnectionMigrationTest` 1), 95 passed. Before 2026-11-20 the report was 96 ran, 1 skipped. The 30 added since are the email and sign-in tests below; they need no Docker.
 
 | Test class | Tests | Purpose |
 |---|---|---|
 | `ApiApplicationTests` | 1 (skipped) | Full Spring context loads against real Postgres + Redis, runs all Flyway migrations from V1 |
+| `auth/AuthServiceRequestOtpTest` | 3 | The code is saved and emailed to the normalised address; a failed send deletes the code and frees the resend cooldown; a rate-limited request never reaches the provider |
 | `auth/JwtServiceTest` | 5 | Token issue/parse behaviour of `JwtService` |
+| `email/BrevoEmailClientTest` | 12 | `MockRestServiceServer`: request shape (key header, sender, recipient, both bodies), message id, readable reasons for a rejected key, a blocked IP, an unverified sender, an outage and an unreachable provider, health UP, DEGRADED, DOWN, NOT_CONFIGURED and sender-list-unavailable, and that the key never appears in the result |
+| `email/EmailServiceTest` | 10 | Code in subject and both bodies, reserved test domains skipped, not configured (silent outside prod, 503 in prod), provider failure gives a generic 503, test email result and masking, 5 an hour per admin |
+| `email/EmailAdminControllerTest` | 5 | Standalone MockMvc: health shape without secrets, test email to a given or default address, invalid address 400 before sending, no address 400. Who may call it (ADMIN only) is `SecurityConfig` and was checked against a running API, not in a unit test |
 | `career/NameKeysTest` | 2 | Name normalisation keys for career history |
 | `circle/CircleRankingTest` | 4 | Ordering of the "circle" suggestions |
 | `common/exception/GlobalExceptionHandlerTest` | 6 | AppException status/code mapping, validation 400, missing param, 405, 409 does not leak internals, unexpected error is generic |

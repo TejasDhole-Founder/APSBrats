@@ -97,7 +97,7 @@ Recorded with reasons and trade-offs in [11-technical-decisions.md](11-technical
 
 1. Chat push cannot scale beyond one API instance (in-memory broker).
 2. Redis is a hard dependency with inconsistent failure behaviour (some paths fail open, some return 503, keyed POSTs may return a raw 500).
-3. Authentication in qa/prod cannot work by email OTP (no delivery), and the production demo seed (V14) is part of the migration chain.
+3. Email OTP delivery (Brevo) is implemented but depends on `BREVO_API_KEY` and a verified `EMAIL_SENDER_ADDRESS` being set on the host (check `GET /api/v1/admin/email/health`); the production demo seed (V14) is part of the migration chain.
 4. Block, `discoverable` and ban rules are not enforced on every read path.
 
 Full list with file references: [12](12-current-status-technical-debt.md).

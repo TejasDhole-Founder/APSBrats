@@ -54,6 +54,10 @@ services:
       SPRING_FLYWAY_BASELINE_ON_MIGRATE: "false"
       JWT_SECRET: ${JWT_SECRET:-dev-only-change-me-to-a-long-random-secret}
       OTP_MASTER: ${OTP_MASTER:-000000}
+      # Sign-in emails (Brevo). Blank = not sent; outside prod the code is in the API log.
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
+      EMAIL_SENDER_ADDRESS: ${EMAIL_SENDER_ADDRESS:-}
+      EMAIL_SENDER_NAME: ${EMAIL_SENDER_NAME:-APS Brats}
       # Media storage: local disk unless these are set (see .env.example).
       STORAGE_TYPE: ${STORAGE_TYPE:-local}
       R2_ACCOUNT_ID: ${R2_ACCOUNT_ID:-}
